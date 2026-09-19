@@ -607,6 +607,12 @@ class GameRoomApp {
     setTimeout(() => {
       this.openModal('modal-game-result');
       this.openModal('modal-game-over');
+      // Silently refresh profile stats and match history in the background
+      try {
+        loadProfileData();
+      } catch (e) {
+        /* ignore */
+      }
     }, 400);
   }
 

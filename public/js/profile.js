@@ -144,8 +144,132 @@ export async function loadProfileData() {
     const inputBio = document.getElementById('input-edit-bio');
     if (inputName) inputName.value = user.display_name || '';
     if (inputBio) inputBio.value = user.bio || '';
+
+    // Load recent match history for current user
+    await loadMatchHistory(user.id);
   } catch (err) {
     console.error('Failed to load profile:', err);
+  }
+}
+
+// Load and render Recent Match History (last 5 completed games)
+export async function loadMatchHistory(currentUserId) {
+  const container = document.getElementById('profile-match-history-list');
+  const countBadge = document.getElementById('history-count-badge');
+  if (!container) return;
+
+  const token = getToken();
+  if (!token) return;
+
+  const me = currentUserId ? { id: currentUserId } : getCurrentUser();
+  const myId = me?.id ? Number(me.id) : null;
+  if (!myId) return;
+
+  try {
+    const res = await fetch('/api/history', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error('Failed to fetch history');
+
+    const data = await res.json();
+    const allGames = Array.isArray(data.history) ? data.history : [];
+    // Last 5 completed games
+    const recentGames = allGames.slice(0, 5);
+
+    if (countBadge) {
+      if (recentGames.length === 0) {
+        countBadge.textContent = '0 games';
+      } else {
+        countBadge.textContent = `${recentGames.length} ${recentGames.length === 1 ? 'game' : 'games'}`;
+      }
+    }
+
+    if (recentGames.length === 0) {
+      container.innerHTML = `
+        <div class="match-history-empty">
+          <span class="match-empty-icon">🎮</span>
+          <div class="match-empty-title">No completed games yet</div>
+          <div class="match-empty-desc">Play Tic-Tac-Toe, Rock Paper Scissors, or Connect Four to see your match history here!</div>
+        </div>
+      `;
+      return;
+    }
+
+    const GAME_META = {
+      tictactoe: { name: 'Tic-Tac-Toe', icon: '⭕' },
+      rps: { name: 'Rock Paper Scissors', icon: '✂️' },
+      connect4: { name: 'Connect Four', icon: '🔴' },
+    };
+
+    container.innerHTML = recentGames.map((game) => {
+      const isP1 = Number(game.player1_id) === myId;
+      const oppName = isP1 ? (game.p2_name || 'Opponent') : (game.p1_name || 'Opponent');
+      const oppAvatar = isP1 ? (game.p2_avatar || '🎮') : (game.p1_avatar || '🎮');
+      const oppId = isP1 ? game.player2_id : game.player1_id;
+
+      let resultText = 'LOSS';
+      let resultClass = 'badge-loss';
+
+      if (game.result === 'draw' || game.winner_id === null || game.winner_id === undefined) {
+        resultText = 'DRAW';
+        resultClass = 'badge-draw';
+      } else if (Number(game.winner_id) === myId) {
+        resultText = 'WIN';
+        resultClass = 'badge-win';
+      }
+
+      const meta = GAME_META[game.game_type] || {
+        name: game.game_type ? game.game_type.toUpperCase() : 'Game',
+        icon: '🎮',
+      };
+
+      const timeAgo = formatTimeAgo(game.created_at);
+
+      return `
+        <div class="match-history-card" data-opp-id="${oppId}">
+          <div class="match-card-left">
+            <div class="match-game-icon-chip" title="${escapeHtml(meta.name)}">
+              ${meta.icon}
+            </div>
+            <div class="match-details">
+              <div class="match-opp-row">
+                <span class="match-vs-label">vs</span>
+                <span class="match-opp-avatar">${escapeHtml(oppAvatar)}</span>
+                <strong class="match-opp-name" title="${escapeHtml(oppName)}">${escapeHtml(oppName)}</strong>
+              </div>
+              <div class="match-meta-row">
+                <span class="match-game-type">${escapeHtml(meta.name)}</span>
+                <span class="match-dot-separator">•</span>
+                <span class="match-time" title="${new Date(game.created_at).toLocaleString()}">${escapeHtml(timeAgo)}</span>
+              </div>
+            </div>
+          </div>
+          <div class="match-card-right">
+            <span class="match-result-badge ${resultClass}">${resultText}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Clicking a match card opens the opponent's public profile
+    container.querySelectorAll('.match-history-card').forEach((card) => {
+      const oppId = card.getAttribute('data-opp-id');
+      if (oppId && oppId !== 'null' && oppId !== 'undefined') {
+        card.style.cursor = 'pointer';
+        card.title = 'Click to view opponent details';
+        card.onclick = () => {
+          showPlayerProfileModal(oppId);
+        };
+      }
+    });
+  } catch (err) {
+    console.error('Failed to load match history:', err);
+    container.innerHTML = `
+      <div class="match-history-empty">
+        <span class="match-empty-icon">⚠️</span>
+        <div class="match-empty-desc">Could not load match history. Please check connection.</div>
+      </div>
+    `;
   }
 }
 
@@ -310,4 +434,25 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+function formatTimeAgo(dateInput) {
+  if (!dateInput) return 'Recently';
+  const now = Date.now();
+  const past = new Date(dateInput).getTime();
+  if (isNaN(past)) return 'Recently';
+  const diffSec = Math.max(0, Math.floor((now - past) / 1000));
+
+  if (diffSec < 60) return 'Just now';
+  if (diffSec < 3600) {
+    const mins = Math.floor(diffSec / 60);
+    return `${mins}m ago`;
+  }
+  if (diffSec < 86400) {
+    const hours = Math.floor(diffSec / 3600);
+    return `${hours}h ago`;
+  }
+  const days = Math.floor(diffSec / 86400);
+  if (days < 7) return `${days}d ago`;
+  return new Date(dateInput).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }

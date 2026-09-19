@@ -536,15 +536,20 @@ export async function dbAll(sql, params = []) {
     const myId = parseInt(uid, 10);
 
     const history = db.game_history
-      .filter((h) => h.player1_id === myId || h.player2_id === myId)
+      .filter((h) => parseInt(h.player1_id, 10) === myId || parseInt(h.player2_id, 10) === myId)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 10);
 
     return history.map((h) => {
-      const u1 = db.users.find((x) => x.id === h.player1_id) || {};
-      const u2 = db.users.find((x) => x.id === h.player2_id) || {};
+      const p1Id = parseInt(h.player1_id, 10);
+      const p2Id = parseInt(h.player2_id, 10);
+      const u1 = db.users.find((x) => x.id === p1Id) || {};
+      const u2 = db.users.find((x) => x.id === p2Id) || {};
       return {
         ...h,
+        player1_id: p1Id,
+        player2_id: p2Id,
+        winner_id: h.winner_id ? parseInt(h.winner_id, 10) : null,
         p1_name: u1.display_name || u1.username || 'Player 1',
         p1_avatar: u1.avatar || '🎮',
         p2_name: u2.display_name || u2.username || 'Player 2',
