@@ -3700,8 +3700,8 @@ html.has-stored-auth #main-interface:not(.hidden) {
    INSTAGRAM GROUP CHAT (HOME VIEW ONLY)
    =================================================== */
 
-.view-insta-gc {
-  display: flex !important;
+.view-insta-gc.active {
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
@@ -3715,7 +3715,7 @@ html.has-stored-auth #main-interface:not(.hidden) {
 }
 
 @media (max-width: 768px) {
-  .view-insta-gc {
+  .view-insta-gc.active {
     max-width: 100%;
     height: calc(100vh - 75px);
     padding: 0;
