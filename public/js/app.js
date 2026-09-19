@@ -216,6 +216,12 @@ class GameRoomApp {
       targetEl.classList.add('active');
     }
 
+    // Mark current active view on container for specialized zero-scroll layouts
+    const viewContainer = document.getElementById('view-container') || document.querySelector('.view-container');
+    if (viewContainer) {
+      viewContainer.setAttribute('data-active-view', viewName);
+    }
+
     // Mobile nav visibility (hidden during active game or auth)
     document.getElementById('mobile-bottom-nav')?.classList.toggle('hidden', isAuth || viewName === 'game');
 
