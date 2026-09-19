@@ -19,11 +19,13 @@ const db = {
   stats: [],
   friends: [],
   game_history: [],
+  direct_messages: [],
   seq: {
     users: 1,
     stats: 1,
     friends: 1,
     game_history: 1,
+    direct_messages: 1,
   },
 };
 
@@ -39,11 +41,13 @@ try {
     db.stats = Array.isArray(data.stats) ? data.stats : [];
     db.friends = Array.isArray(data.friends) ? data.friends : [];
     db.game_history = Array.isArray(data.game_history) ? data.game_history : [];
+    db.direct_messages = Array.isArray(data.direct_messages) ? data.direct_messages : [];
     db.seq = {
       users: Number(data.seq?.users) || 1,
       stats: Number(data.seq?.stats) || 1,
       friends: Number(data.seq?.friends) || 1,
       game_history: Number(data.seq?.game_history) || 1,
+      direct_messages: Number(data.seq?.direct_messages) || 1,
     };
   }
 } catch (err) {
@@ -56,6 +60,35 @@ export function getPublicAccounts() {
     display_name: u.display_name,
     avatar: u.avatar,
   }));
+}
+
+export function saveDirectMessage(senderId, receiverId, text) {
+  const id = db.seq.direct_messages++;
+  const msg = {
+    id,
+    sender_id: parseInt(senderId, 10),
+    receiver_id: parseInt(receiverId, 10),
+    text: String(text).trim(),
+    created_at: new Date().toISOString(),
+    read: 0,
+  };
+  if (!db.direct_messages) db.direct_messages = [];
+  db.direct_messages.push(msg);
+  persist();
+  return msg;
+}
+
+export function getDirectMessages(u1, u2) {
+  const id1 = parseInt(u1, 10);
+  const id2 = parseInt(u2, 10);
+  return (db.direct_messages || [])
+    .filter((m) => (m.sender_id === id1 && m.receiver_id === id2) || (m.sender_id === id2 && m.receiver_id === id1))
+    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+}
+
+export function getLastDirectMessage(u1, u2) {
+  const messages = getDirectMessages(u1, u2);
+  return messages.length > 0 ? messages[messages.length - 1] : null;
 }
 
 export async function initDb() {
@@ -71,11 +104,13 @@ export async function initDb() {
       db.stats = Array.isArray(data.stats) ? data.stats : [];
       db.friends = Array.isArray(data.friends) ? data.friends : [];
       db.game_history = Array.isArray(data.game_history) ? data.game_history : [];
+      db.direct_messages = Array.isArray(data.direct_messages) ? data.direct_messages : [];
       db.seq = {
         users: Number(data.seq?.users) || 1,
         stats: Number(data.seq?.stats) || 1,
         friends: Number(data.seq?.friends) || 1,
         game_history: Number(data.seq?.game_history) || 1,
+        direct_messages: Number(data.seq?.direct_messages) || 1,
       };
       console.log('✅ Loaded database from', DATA_FILE);
     } catch (e) {

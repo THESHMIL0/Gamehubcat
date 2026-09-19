@@ -6,7 +6,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { dbRun, dbGet, dbAll, initDb, getPublicAccounts } from './database.js';
+import { dbRun, dbGet, dbAll, initDb, getPublicAccounts, saveDirectMessage, getDirectMessages, getLastDirectMessage } from './database.js';
 
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'gameroom_super_secret_jwt_key_production_ready';
@@ -477,11 +477,22 @@ app.get('/api/friends', authenticateToken, async (req, res) => {
       [userId, userId, userId]
     );
 
-    const friendsWithPresence = friends.map((f) => ({
-      ...f,
-      isOnline: isUserOnline(f.id),
-      presence: getUserPresence(f.id),
-    }));
+    const friendsWithPresence = friends.map((f) => {
+      const lastMsg = getLastDirectMessage(userId, f.id);
+      return {
+        ...f,
+        isOnline: isUserOnline(f.id),
+        presence: getUserPresence(f.id),
+        lastMessage: lastMsg
+          ? {
+              text: lastMsg.text,
+              createdAt: lastMsg.created_at,
+              senderId: lastMsg.sender_id,
+              isMine: lastMsg.sender_id === userId,
+            }
+          : null,
+      };
+    });
 
     // Pending requests received
     const requestsReceived = await dbAll(
@@ -632,6 +643,89 @@ app.delete('/api/friends/:friendId', authenticateToken, async (req, res) => {
   }
 });
 
+// ==========================================
+// 1-ON-1 DIRECT MESSAGING (INSTAGRAM DM)
+// ==========================================
+
+// Get Direct Messages history with a friend
+app.get('/api/dm/:friendId', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const friendId = parseInt(req.params.friendId, 10);
+    if (!friendId) {
+      return res.status(400).json({ error: 'Invalid friend ID.' });
+    }
+
+    const friend = await dbGet('SELECT id, username, display_name, avatar, bio FROM users WHERE id = ?', [friendId]);
+    if (!friend) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const rawMessages = getDirectMessages(userId, friendId);
+    const messages = rawMessages.map((m) => ({
+      id: m.id,
+      senderId: m.sender_id,
+      receiverId: m.receiver_id,
+      text: m.text,
+      createdAt: m.created_at,
+      timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isMine: m.sender_id === userId,
+    }));
+
+    return res.json({
+      friend: {
+        ...friend,
+        isOnline: isUserOnline(friendId),
+        presence: getUserPresence(friendId),
+      },
+      messages,
+    });
+  } catch (err) {
+    console.error('Fetch DM error:', err);
+    return res.status(500).json({ error: 'Failed to fetch direct messages.' });
+  }
+});
+
+// Send Direct Message via REST
+app.post('/api/dm/:friendId', authenticateToken, async (req, res) => {
+  try {
+    const senderId = req.user.id;
+    const friendId = parseInt(req.params.friendId, 10);
+    let text = sanitizeText(req.body.text || '').trim();
+
+    if (!friendId) {
+      return res.status(400).json({ error: 'Invalid friend ID.' });
+    }
+    if (!text) {
+      return res.status(400).json({ error: 'Message cannot be empty.' });
+    }
+    if (text.length > 300) {
+      text = text.slice(0, 300);
+    }
+
+    const saved = saveDirectMessage(senderId, friendId, text);
+    const payload = {
+      id: saved.id,
+      senderId,
+      receiverId: friendId,
+      sender: req.user,
+      text: saved.text,
+      createdAt: saved.created_at,
+      timestamp: new Date(saved.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isMine: false,
+    };
+
+    // Emit to both recipient and sender sockets in real-time
+    sendSocketToUser(friendId, 'dm_message', payload);
+    sendSocketToUser(senderId, 'dm_message', { ...payload, isMine: true });
+
+    return res.json({ success: true, message: { ...payload, isMine: true } });
+  } catch (err) {
+    console.error('Send DM error:', err);
+    return res.status(500).json({ error: 'Failed to send message.' });
+  }
+});
+
 // User Recent Game History
 app.get('/api/history', authenticateToken, async (req, res) => {
   try {
@@ -682,20 +776,20 @@ const lobbyChatHistory = [];
 const chatRateLimits = new Map();
 
 function isUserOnline(userId) {
-  const data = connectedUsers.get(userId);
+  const data = connectedUsers.get(userId) || connectedUsers.get(Number(userId)) || connectedUsers.get(String(userId));
   return !!(data && data.socketIds && data.socketIds.size > 0);
 }
 
 function getUserPresence(userId) {
-  const data = connectedUsers.get(userId);
+  const data = connectedUsers.get(userId) || connectedUsers.get(Number(userId)) || connectedUsers.get(String(userId));
   if (!data || !data.socketIds || data.socketIds.size === 0) return 'Offline';
   return data.status || 'Online';
 }
 
 function sendSocketToUser(userId, event, payload) {
-  const userData = connectedUsers.get(userId);
-  if (userData && userData.socketIds) {
-    for (const sid of userData.socketIds) {
+  const data = connectedUsers.get(userId) || connectedUsers.get(Number(userId)) || connectedUsers.get(String(userId));
+  if (data && data.socketIds) {
+    for (const sid of data.socketIds) {
       io.to(sid).emit(event, payload);
     }
   }
@@ -854,6 +948,61 @@ io.on('connection', async (socket) => {
       io.to('lobby').emit('lobby_message', messageObj);
     } catch (e) {
       console.error('Lobby chat error:', e);
+    }
+  });
+
+  // Handle Real-time 1-on-1 Direct Message (Instagram DM)
+  socket.on('send_dm', async ({ receiverId, text }) => {
+    try {
+      const senderId = socket.userId;
+      const recId = parseInt(receiverId, 10);
+      if (!senderId || !recId) return;
+
+      let cleanText = sanitizeText(text || '').trim();
+      if (!cleanText) return;
+      if (cleanText.length > 300) cleanText = cleanText.slice(0, 300);
+
+      const saved = saveDirectMessage(senderId, recId, cleanText);
+      const payload = {
+        id: saved.id,
+        senderId,
+        receiverId: recId,
+        sender: socket.user,
+        text: saved.text,
+        createdAt: saved.created_at,
+        timestamp: new Date(saved.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      // Real-time deliver to recipient
+      sendSocketToUser(recId, 'dm_message', { ...payload, isMine: false });
+      // Echo confirmation to sender
+      sendSocketToUser(senderId, 'dm_message', { ...payload, isMine: true });
+    } catch (e) {
+      console.error('Socket send_dm error:', e);
+    }
+  });
+
+  // Fetch DM conversation history via socket
+  socket.on('get_dm_history', async ({ friendId }) => {
+    try {
+      const senderId = socket.userId;
+      const recId = parseInt(friendId, 10);
+      if (!senderId || !recId) return;
+
+      const rawMessages = getDirectMessages(senderId, recId);
+      const messages = rawMessages.map((m) => ({
+        id: m.id,
+        senderId: m.sender_id,
+        receiverId: m.receiver_id,
+        text: m.text,
+        createdAt: m.created_at,
+        timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isMine: m.sender_id === senderId,
+      }));
+
+      socket.emit('dm_history', { friendId: recId, messages });
+    } catch (e) {
+      console.error('Socket get_dm_history error:', e);
     }
   });
 

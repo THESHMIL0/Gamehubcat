@@ -496,8 +496,11 @@ export async function showPlayerProfileModal(userId) {
 
     if (user.id !== me?.id) {
       actionsContainer.innerHTML = `
+        <button type="button" class="btn btn-sm btn-secondary" onclick="window.GameApp?.closeModal('modal-player-profile'); window.FriendsModule?.openDmChat(${user.id});">
+          💬 Message
+        </button>
         <button type="button" class="btn btn-sm btn-primary" onclick="window.FriendsModule?.promptInviteGame(${user.id}, '${escapeHtml(user.display_name)}'); window.GameApp?.closeModal('modal-player-profile');">
-          Invite to Game
+          ⚔️ Duel
         </button>
       `;
     } else {

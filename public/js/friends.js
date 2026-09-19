@@ -1,5 +1,5 @@
 // ==========================================
-// GameRoom — Friends System Module (Instagram DM Style)
+// GameRoom — Friends & Instagram DM Chat Module
 // ==========================================
 
 import { getToken, getCurrentUser } from './auth.js';
@@ -11,6 +11,7 @@ let pendingSent = [];
 let selectedFriendForInvite = null;
 let searchDebounceTimer = null;
 let currentSearchQuery = '';
+let activeChatFriend = null;
 
 export function initFriends() {
   // Navigation between Instagram DM Inbox and Requests sub-page
@@ -23,6 +24,26 @@ export function initFriends() {
 
   if (btnBackToDmInbox) {
     btnBackToDmInbox.onclick = () => openInboxPage();
+  }
+
+  // Navigation from 1-on-1 DM Chat back to Inbox
+  const btnBackFromDmChat = document.getElementById('btn-back-from-dm-chat');
+  if (btnBackFromDmChat) {
+    btnBackFromDmChat.onclick = () => closeDmChat();
+  }
+
+  // 1-on-1 DM Chat Form Submission
+  const formDmChat = document.getElementById('form-dm-chat');
+  const inputDmChat = document.getElementById('input-dm-chat');
+  if (formDmChat && inputDmChat) {
+    formDmChat.onsubmit = (e) => {
+      e.preventDefault();
+      const text = inputDmChat.value.trim();
+      if (!text) return;
+      sendDmMessage(text);
+      inputDmChat.value = '';
+      inputDmChat.focus();
+    };
   }
 
   // Refresh messages button
@@ -84,7 +105,7 @@ export function initFriends() {
     };
   }
 
-  // Socket presence and friendship listeners
+  // Socket presence, messaging and friendship listeners
   const socket = getSocket();
   if (socket) {
     socket.off('presence_update');
@@ -118,6 +139,12 @@ export function initFriends() {
     socket.on('friend_removed', () => {
       loadFriendsData();
     });
+
+    // Real-time 1v1 Direct Message listener
+    socket.off('dm_message');
+    socket.on('dm_message', (msg) => {
+      handleIncomingDmMessage(msg);
+    });
   }
 
   // Select Game to Invite Modal Buttons
@@ -129,16 +156,24 @@ export function initFriends() {
         window.GameApp?.closeModal('modal-select-game-invite');
       }
     };
-  }  );
+  });
 }
 
 // Open Instagram DM Requests sub-page
 export function openRequestsPage() {
   const inbox = document.getElementById('insta-dm-inbox');
   const requestsPage = document.getElementById('insta-dm-requests-page');
-  if (inbox && requestsPage) {
+  const chatPage = document.getElementById('insta-dm-chat-page');
+
+  if (inbox) {
     inbox.classList.remove('active');
     inbox.classList.add('hidden');
+  }
+  if (chatPage) {
+    chatPage.classList.remove('active');
+    chatPage.classList.add('hidden');
+  }
+  if (requestsPage) {
     requestsPage.classList.remove('hidden');
     requestsPage.classList.add('active');
   }
@@ -148,12 +183,324 @@ export function openRequestsPage() {
 export function openInboxPage() {
   const inbox = document.getElementById('insta-dm-inbox');
   const requestsPage = document.getElementById('insta-dm-requests-page');
-  if (inbox && requestsPage) {
+  const chatPage = document.getElementById('insta-dm-chat-page');
+
+  activeChatFriend = null;
+
+  if (requestsPage) {
     requestsPage.classList.remove('active');
     requestsPage.classList.add('hidden');
+  }
+  if (chatPage) {
+    chatPage.classList.remove('active');
+    chatPage.classList.add('hidden');
+  }
+  if (inbox) {
     inbox.classList.remove('hidden');
     inbox.classList.add('active');
   }
+}
+
+// ==========================================
+// 1-ON-1 DIRECT MESSAGE CHAT SCREEN LOGIC
+// ==========================================
+
+export async function openDmChat(friendId) {
+  const inbox = document.getElementById('insta-dm-inbox');
+  const requestsPage = document.getElementById('insta-dm-requests-page');
+  const chatPage = document.getElementById('insta-dm-chat-page');
+
+  let friend = friendsList.find((f) => String(f.id) === String(friendId));
+
+  // If friend not found in memory (e.g. opened from search or profile), fetch from API
+  if (!friend) {
+    try {
+      const res = await fetch(`/api/users/${friendId}`);
+      if (res.ok) {
+        const data = await res.json();
+        friend = {
+          id: data.user.id,
+          username: data.user.username,
+          display_name: data.user.display_name,
+          avatar: data.user.avatar,
+          isOnline: data.isOnline,
+          presence: data.presence,
+        };
+      }
+    } catch (e) {
+      console.warn('Failed to load user info:', e);
+    }
+  }
+
+  if (!friend) {
+    if (window.GameApp?.showToast) {
+      window.GameApp.showToast('Could not open chat with this user.', 'warning');
+    }
+    return;
+  }
+
+  activeChatFriend = friend;
+
+  // Ensure friends view is active in main app
+  const friendsView = document.getElementById('view-friends');
+  if (friendsView && !friendsView.classList.contains('active')) {
+    if (window.GameApp?.switchView) {
+      window.GameApp.switchView('friends');
+    }
+  }
+
+  // Switch to Chat Page
+  if (inbox) {
+    inbox.classList.remove('active');
+    inbox.classList.add('hidden');
+  }
+  if (requestsPage) {
+    requestsPage.classList.remove('active');
+    requestsPage.classList.add('hidden');
+  }
+  if (chatPage) {
+    chatPage.classList.remove('hidden');
+    chatPage.classList.add('active');
+  }
+
+  // Populate Header
+  const headerAvatar = document.getElementById('dm-chat-header-avatar');
+  const headerOnlinePip = document.getElementById('dm-chat-header-online-pip');
+  const headerName = document.getElementById('dm-chat-header-name');
+  const headerStatus = document.getElementById('dm-chat-header-status');
+
+  if (headerAvatar) headerAvatar.textContent = friend.avatar || '🎮';
+  if (headerName) headerName.textContent = friend.display_name || friend.username || 'Friend';
+  if (headerOnlinePip) headerOnlinePip.classList.toggle('hidden', !friend.isOnline);
+  if (headerStatus) {
+    headerStatus.textContent = friend.isOnline ? 'Active now' : (friend.presence || 'Offline');
+    headerStatus.classList.toggle('active', !!friend.isOnline);
+  }
+
+  // Populate Intro Card
+  const introAvatar = document.getElementById('dm-chat-intro-avatar');
+  const introName = document.getElementById('dm-chat-intro-name');
+  const introHandle = document.getElementById('dm-chat-intro-handle');
+
+  if (introAvatar) introAvatar.textContent = friend.avatar || '🎮';
+  if (introName) introName.textContent = friend.display_name || friend.username || 'Friend';
+  if (introHandle) introHandle.textContent = `@${friend.username || ''} • GameRoom Friend`;
+
+  // Wire Duel and Profile action buttons inside DM
+  const onDuelClick = () => {
+    promptInviteGame(friend.id, friend.display_name || friend.username);
+  };
+  const onProfileClick = () => {
+    if (window.GameApp?.showPlayerProfile) {
+      window.GameApp.showPlayerProfile(friend.id);
+    }
+  };
+
+  const btnHeaderDuel = document.getElementById('btn-dm-chat-duel');
+  const btnIntroDuel = document.getElementById('btn-dm-intro-duel');
+  const btnPillDuel = document.getElementById('btn-dm-pill-duel');
+  if (btnHeaderDuel) btnHeaderDuel.onclick = onDuelClick;
+  if (btnIntroDuel) btnIntroDuel.onclick = onDuelClick;
+  if (btnPillDuel) btnPillDuel.onclick = onDuelClick;
+
+  const btnHeaderProfile = document.getElementById('btn-dm-chat-profile');
+  const btnIntroProfile = document.getElementById('btn-dm-intro-profile');
+  const headerUserClickable = document.getElementById('dm-chat-header-user-clickable');
+  if (btnHeaderProfile) btnHeaderProfile.onclick = onProfileClick;
+  if (btnIntroProfile) btnIntroProfile.onclick = onProfileClick;
+  if (headerUserClickable) headerUserClickable.onclick = onProfileClick;
+
+  // Clear messages list and show loading state
+  const messagesList = document.getElementById('dm-chat-messages-list');
+  if (messagesList) {
+    messagesList.innerHTML = '<div class="empty-state-hint compact" style="padding: 1rem; color: #737373;">Loading messages...</div>';
+  }
+
+  // Load message history from REST API
+  try {
+    const token = getToken();
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await fetch(`/api/dm/${friend.id}`, { headers });
+    if (res.ok) {
+      const data = await res.json();
+      renderDmMessagesHistory(data.messages || []);
+    } else {
+      if (messagesList) messagesList.innerHTML = '';
+    }
+  } catch (err) {
+    if (messagesList) messagesList.innerHTML = '';
+  }
+
+  // Focus input field
+  const inputEl = document.getElementById('input-dm-chat');
+  if (inputEl) {
+    inputEl.value = '';
+    setTimeout(() => inputEl.focus(), 150);
+  }
+}
+
+export function closeDmChat() {
+  activeChatFriend = null;
+  const chatPage = document.getElementById('insta-dm-chat-page');
+  const inbox = document.getElementById('insta-dm-inbox');
+
+  if (chatPage) {
+    chatPage.classList.remove('active');
+    chatPage.classList.add('hidden');
+  }
+  if (inbox) {
+    inbox.classList.remove('hidden');
+    inbox.classList.add('active');
+  }
+
+  loadFriendsData();
+}
+
+// Send Direct Message (Socket with REST fallback)
+export async function sendDmMessage(text) {
+  if (!activeChatFriend || !text) return;
+  const token = getToken();
+  const socket = getSocket();
+
+  if (socket && socket.connected) {
+    socket.emit('send_dm', { receiverId: activeChatFriend.id, text });
+  } else if (token) {
+    try {
+      const res = await fetch(`/api/dm/${activeChatFriend.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ text }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.message) {
+          appendDmMessage(data.message);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to send DM via REST:', err);
+    }
+  }
+}
+
+// Handles incoming DM message from socket
+function handleIncomingDmMessage(msg) {
+  const currentUser = getCurrentUser();
+  const myId = currentUser?.id;
+  const isMine = msg.isMine !== undefined ? msg.isMine : (String(msg.senderId) === String(myId));
+  const otherUserId = isMine ? msg.receiverId : msg.senderId;
+
+  // If user is currently in this exact DM chat, append message immediately
+  if (activeChatFriend && String(activeChatFriend.id) === String(otherUserId)) {
+    appendDmMessage(msg);
+  } else if (!isMine) {
+    // Show Instagram style toast banner notification
+    if (window.GameApp?.showToast) {
+      const senderName = msg.sender?.display_name || 'Friend';
+      window.GameApp.showToast(`💬 ${senderName}: ${msg.text}`, 'info');
+    }
+    // Update local memory snippet
+    updateFriendLastMessageLocally(otherUserId, msg.text, msg.createdAt, false);
+    renderFriendsList();
+  }
+}
+
+// Render message history list
+function renderDmMessagesHistory(messages) {
+  const container = document.getElementById('dm-chat-messages-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (messages.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state-hint compact" style="text-align: center; color: #737373; font-size: 0.8rem; padding: 1.5rem 0;">
+        No messages yet. Send a greeting to start chatting!
+      </div>
+    `;
+    return;
+  }
+
+  messages.forEach((m) => appendDmMessage(m));
+  scrollDmToBottom();
+}
+
+// Appends single DM message bubble
+function appendDmMessage(msg) {
+  const container = document.getElementById('dm-chat-messages-list');
+  if (!container) return;
+
+  const emptyHint = container.querySelector('.empty-state-hint');
+  if (emptyHint) emptyHint.remove();
+
+  if (msg.id && container.querySelector(`[data-msg-id="${msg.id}"]`)) {
+    return;
+  }
+
+  const currentUser = getCurrentUser();
+  const myId = currentUser?.id;
+  const isMine = msg.isMine !== undefined ? msg.isMine : (String(msg.senderId) === String(myId));
+
+  const row = document.createElement('div');
+  row.className = `dm-msg-row ${isMine ? 'dm-mine' : 'dm-theirs'}`;
+  if (msg.id) row.setAttribute('data-msg-id', msg.id);
+
+  row.innerHTML = `
+    <div class="dm-bubble-wrap">
+      <div class="dm-bubble" title="${escapeHtml(msg.timestamp || '')}">
+        ${escapeHtml(msg.text)}
+      </div>
+    </div>
+    <span class="dm-msg-time">${escapeHtml(msg.timestamp || '')}</span>
+  `;
+
+  // Double-click to heart reaction
+  const bubble = row.querySelector('.dm-bubble');
+  if (bubble) {
+    bubble.ondblclick = () => {
+      const existing = row.querySelector('.dm-heart-badge');
+      if (existing) {
+        existing.remove();
+      } else {
+        const badge = document.createElement('span');
+        badge.className = 'dm-heart-badge';
+        badge.textContent = '❤️';
+        row.querySelector('.dm-bubble-wrap')?.appendChild(badge);
+      }
+    };
+  }
+
+  container.appendChild(row);
+  scrollDmToBottom();
+
+  // Also update last message in conversation list
+  if (activeChatFriend) {
+    updateFriendLastMessageLocally(activeChatFriend.id, msg.text, msg.createdAt || new Date().toISOString(), isMine);
+  }
+}
+
+function scrollDmToBottom() {
+  const viewport = document.getElementById('dm-chat-viewport');
+  if (viewport) {
+    setTimeout(() => {
+      viewport.scrollTop = viewport.scrollHeight;
+    }, 40);
+  }
+}
+
+function updateFriendLastMessageLocally(friendId, text, createdAt, isMine) {
+  friendsList = friendsList.map((f) => {
+    if (String(f.id) === String(friendId)) {
+      return {
+        ...f,
+        lastMessage: {
+          text,
+          createdAt,
+          isMine,
+        },
+      };
+    }
+    return f;
+  });
 }
 
 // Show/Hide search results view in inbox
@@ -267,7 +614,7 @@ function updateFriendsBadges() {
   });
 }
 
-// Render Friends as Instagram DM Rows
+// Render Friends as Instagram DM Rows (Clicking row opens DM chat)
 function renderFriendsList() {
   const container = document.getElementById('friends-list-container');
   if (!container) return;
@@ -286,10 +633,15 @@ function renderFriendsList() {
   container.innerHTML = friendsList
     .map((friend) => {
       const isOnline = friend.isOnline;
-      const statusText = friend.presence || (isOnline ? 'Active now' : 'Offline');
+
+      let snippetText = isOnline ? 'Active now' : (friend.presence || 'Offline');
+      if (friend.lastMessage && friend.lastMessage.text) {
+        const prefix = friend.lastMessage.isMine ? 'You: ' : '';
+        snippetText = `${prefix}${escapeHtml(friend.lastMessage.text)}`;
+      }
 
       return `
-      <div class="insta-dm-row" onclick="window.FriendsModule?.promptInviteGame(${friend.id}, '${escapeHtml(friend.display_name)}')">
+      <div class="insta-dm-row" onclick="window.FriendsModule?.openDmChat(${friend.id})" title="Chat with ${escapeHtml(friend.display_name)}">
         <div class="insta-dm-avatar-wrap">
           <span class="insta-dm-avatar">${escapeHtml(friend.avatar || '🎮')}</span>
           ${isOnline ? '<span class="insta-dm-online-dot" title="Active now"></span>' : ''}
@@ -300,9 +652,9 @@ function renderFriendsList() {
             <span class="insta-dm-handle">@${escapeHtml(friend.username)}</span>
           </div>
           <div class="insta-dm-snippet-row">
-            <span class="insta-dm-snippet ${isOnline ? 'active-now' : ''}">${escapeHtml(statusText)}</span>
+            <span class="insta-dm-snippet ${friend.lastMessage ? '' : (isOnline ? 'active-now' : '')}">${snippetText}</span>
             <span class="insta-dm-dot-sep">•</span>
-            <span class="insta-dm-tap-hint">Tap to duel</span>
+            <span class="insta-dm-tap-hint">Tap to chat</span>
           </div>
         </div>
         <div class="insta-dm-actions" onclick="event.stopPropagation()">
@@ -341,7 +693,7 @@ export function renderHomeOnlineFriends() {
       <div class="online-friend-chip glass-card">
         <span class="status-dot ${f.presence === 'Online' ? 'online' : 'busy'}"></span>
         <span class="avatar-circle" style="width: 28px; height: 28px; font-size: 0.9rem;">${escapeHtml(f.avatar || '🎮')}</span>
-        <div>
+        <div style="cursor: pointer;" onclick="window.FriendsModule?.openDmChat(${f.id})">
           <div class="friend-chip-name">${escapeHtml(f.display_name)}</div>
           <div class="friend-chip-status">${escapeHtml(f.presence || 'Online')}</div>
         </div>
@@ -464,8 +816,11 @@ async function handleUserSearch(query) {
     container.innerHTML = users
       .map((u) => {
         let actionBtn = '';
+        let rowClickAction = `window.GameApp?.showPlayerProfile(${u.id})`;
+
         if (u.friendStatus === 'friends') {
-          actionBtn = '<span class="insta-status-pill">Friends</span>';
+          rowClickAction = `window.FriendsModule?.openDmChat(${u.id})`;
+          actionBtn = `<button type="button" class="btn-insta-req-confirm" onclick="window.FriendsModule?.openDmChat(${u.id})">Message</button>`;
         } else if (u.friendStatus === 'pending_sent') {
           actionBtn = '<span class="insta-status-pill">Requested</span>';
         } else if (u.friendStatus === 'pending_received') {
@@ -478,17 +833,18 @@ async function handleUserSearch(query) {
         const statusSnippet = isOnline ? 'Active now' : `@${escapeHtml(u.username)}`;
 
         return `
-        <div class="insta-dm-row">
-          <div class="insta-dm-avatar-wrap" onclick="window.GameApp?.showPlayerProfile(${u.id})" title="View Profile" style="cursor: pointer;">
+        <div class="insta-dm-row" onclick="${rowClickAction}">
+          <div class="insta-dm-avatar-wrap">
             <span class="insta-dm-avatar">${escapeHtml(u.avatar || '🎮')}</span>
             ${isOnline ? '<span class="insta-dm-online-dot" title="Active now"></span>' : ''}
           </div>
-          <div class="insta-dm-content" onclick="window.GameApp?.showPlayerProfile(${u.id})" style="cursor: pointer;">
+          <div class="insta-dm-content">
             <div class="insta-dm-name-row">
               <span class="insta-dm-name">${escapeHtml(u.display_name)}</span>
             </div>
             <div class="insta-dm-snippet-row">
               <span class="insta-dm-snippet ${isOnline ? 'active-now' : ''}">${statusSnippet}</span>
+              ${u.friendStatus === 'friends' ? '<span class="insta-dm-dot-sep">•</span><span class="insta-dm-tap-hint">Tap to chat</span>' : ''}
             </div>
           </div>
           <div class="insta-dm-actions" onclick="event.stopPropagation()">
@@ -597,12 +953,24 @@ export function sendDirectGameInvite(friendId, gameType) {
 function updateFriendPresenceLocally(userId, isOnline, status) {
   let changed = false;
   friendsList = friendsList.map((f) => {
-    if (f.id === userId) {
+    if (String(f.id) === String(userId)) {
       changed = true;
       return { ...f, isOnline, presence: status };
     }
     return f;
   });
+
+  if (activeChatFriend && String(activeChatFriend.id) === String(userId)) {
+    activeChatFriend.isOnline = isOnline;
+    activeChatFriend.presence = status;
+    const headerOnlinePip = document.getElementById('dm-chat-header-online-pip');
+    const headerStatus = document.getElementById('dm-chat-header-status');
+    if (headerOnlinePip) headerOnlinePip.classList.toggle('hidden', !isOnline);
+    if (headerStatus) {
+      headerStatus.textContent = isOnline ? 'Active now' : (status || 'Offline');
+      headerStatus.classList.toggle('active', !!isOnline);
+    }
+  }
 
   if (changed) {
     renderFriendsList();
@@ -622,6 +990,8 @@ window.FriendsModule = {
   removeFriend,
   openRequestsPage,
   openInboxPage,
+  openDmChat,
+  closeDmChat,
 };
 
 function escapeHtml(text) {

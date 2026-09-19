@@ -494,6 +494,79 @@
 
           </div>
 
+          <!-- Page 3: Instagram 1-on-1 DM Chat Screen (Opens when tapping a friend) -->
+          <div id="insta-dm-chat-page" class="insta-dm-page insta-dm-chat-page hidden">
+            
+            <!-- DM Chat Top Header (Friend Profile + Actions) -->
+            <div class="insta-dm-chat-header">
+              <div class="insta-dm-chat-header-left">
+                <button type="button" id="btn-back-from-dm-chat" class="insta-requests-back-btn" title="Back to Messages">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                  </svg>
+                </button>
+                <div class="insta-dm-chat-header-user" id="dm-chat-header-user-clickable" title="View Profile">
+                  <div class="insta-dm-chat-avatar-wrap">
+                    <span id="dm-chat-header-avatar" class="insta-dm-avatar-sm">🎮</span>
+                    <span id="dm-chat-header-online-pip" class="insta-dm-online-dot hidden"></span>
+                  </div>
+                  <div class="insta-dm-chat-header-info">
+                    <div class="insta-dm-chat-title-row">
+                      <span id="dm-chat-header-name" class="insta-dm-chat-name">Friend</span>
+                      <span class="insta-verified-badge" title="GameRoom Friend">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                      </span>
+                    </div>
+                    <span id="dm-chat-header-status" class="insta-dm-chat-status">Active now</span>
+                  </div>
+                </div>
+              </div>
+              <div class="insta-dm-chat-header-right">
+                <button type="button" id="btn-dm-chat-duel" class="btn-insta-duel" title="Challenge friend to live duel">
+                  ⚔️ Duel
+                </button>
+                <button type="button" id="btn-dm-chat-profile" class="insta-icon-btn" title="View Friend Profile">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- DM Chat Messages Scroll Viewport -->
+            <div id="dm-chat-viewport" class="insta-dm-chat-viewport">
+              <!-- Top Profile Bio Intro Card (Instagram DM Style) -->
+              <div class="insta-dm-chat-intro">
+                <div class="insta-dm-chat-intro-avatar-wrap">
+                  <span id="dm-chat-intro-avatar" class="insta-dm-chat-intro-avatar">🎮</span>
+                </div>
+                <h3 id="dm-chat-intro-name" class="insta-dm-chat-intro-name">Friend Name</h3>
+                <p id="dm-chat-intro-handle" class="insta-dm-chat-intro-handle">@username • GameRoom Friend</p>
+                <p class="insta-dm-chat-intro-meta">You're connected on GameRoom. Messages and duels are instant.</p>
+                <div class="insta-dm-chat-intro-actions">
+                  <button type="button" id="btn-dm-intro-profile" class="insta-intro-action-btn">View Profile</button>
+                  <button type="button" id="btn-dm-intro-duel" class="insta-intro-action-btn primary">⚔️ Send Duel</button>
+                </div>
+              </div>
+
+              <!-- Stream of Direct Messages -->
+              <div id="dm-chat-messages-list" class="insta-dm-chat-messages-list"></div>
+            </div>
+
+            <!-- DM Chat Bottom Message Input Bar -->
+            <form id="form-dm-chat" class="insta-input-container">
+              <div class="insta-input-pill">
+                <button type="button" class="insta-pill-avatar-btn" id="btn-dm-pill-duel" title="Challenge to Duel">
+                  <span>⚔️</span>
+                </button>
+                <input type="text" id="input-dm-chat" class="insta-text-input" placeholder="Message..." maxlength="300" autocomplete="off" required>
+                <button type="submit" id="btn-send-dm" class="insta-send-btn" title="Send direct message">
+                  <span>Send</span>
+                </button>
+              </div>
+            </form>
+
+          </div>
+
         </section>
 
         <!-- 4. PROFILE SCREEN -->
