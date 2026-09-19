@@ -30,6 +30,15 @@ export function initLobby() {
     };
   });
 
+  // "PLAY VS BOT" buttons
+  document.querySelectorAll('.btn-play-bot').forEach((btn) => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const gameType = btn.dataset.game;
+      startBotGame(gameType);
+    };
+  });
+
   document.querySelectorAll('.game-card-mini').forEach((card) => {
     card.onclick = () => {
       const gameType = card.dataset.game;
@@ -76,6 +85,17 @@ export function initLobby() {
   const btnWaitingInvite = document.getElementById('btn-waiting-invite');
   if (btnWaitingInvite) {
     btnWaitingInvite.onclick = () => openWaitingFriendsInviteModal();
+  }
+
+  const btnWaitingBot = document.getElementById('btn-waiting-add-bot');
+  if (btnWaitingBot) {
+    btnWaitingBot.onclick = () => {
+      if (!activeRoom) return;
+      const socket = getSocket();
+      if (socket) {
+        socket.emit('add_bot_to_room', { roomCode: activeRoom.code });
+      }
+    };
   }
 
   const btnWaitingLeave = document.getElementById('btn-waiting-leave');
@@ -146,6 +166,13 @@ export function createGameRoom(gameType) {
   const socket = getSocket();
   if (!socket) return;
   socket.emit('create_room', { gameType });
+}
+
+// Start instant game with AI Bot
+export function startBotGame(gameType) {
+  const socket = getSocket();
+  if (!socket) return;
+  socket.emit('start_bot_game', { gameType });
 }
 
 // Join room by room code

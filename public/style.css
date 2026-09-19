@@ -4561,3 +4561,199 @@ html.has-stored-auth #main-interface:not(.hidden) {
   box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
 }
 
+/* ==========================================
+   GAME UPGRADES: BOT, AUDIO, EMOTES & ANIMATIONS
+   ========================================== */
+
+/* Game Catalog Play vs Bot & 1v1 Actions */
+.game-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.btn-play-bot {
+  background: rgba(168, 85, 247, 0.16) !important;
+  color: #c084fc !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+  font-weight: 600;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.btn-play-bot:hover {
+  background: rgba(168, 85, 247, 0.32) !important;
+  border-color: #c084fc !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.btn-play-bot:active {
+  transform: translateY(0);
+}
+
+/* Waiting Room Play vs Bot Button */
+.btn-waiting-bot-action {
+  background: linear-gradient(135deg, #9333ea, #7c3aed) !important;
+  border: 1px solid rgba(192, 132, 252, 0.4) !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(147, 51, 234, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-waiting-bot-action:hover {
+  background: linear-gradient(135deg, #a855f7, #9333ea) !important;
+  box-shadow: 0 6px 18px rgba(168, 85, 247, 0.45);
+  transform: translateY(-1px);
+}
+
+/* Game Header Top Bar Controls */
+.game-top-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.btn-audio-toggle {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  color: #f5f5f5;
+  transition: all 0.15s ease;
+}
+
+.btn-audio-toggle:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: scale(1.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-audio-toggle:active {
+  transform: scale(0.92);
+}
+
+/* In-Game Live Quick Emotes Bar */
+.game-quick-emotes-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.6rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.game-quick-emotes-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.btn-game-quick-emote {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e4e4e7;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-game-quick-emote:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.06);
+}
+
+.btn-game-quick-emote:active {
+  transform: scale(0.94);
+}
+
+/* Tic-Tac-Toe Animations */
+.ttt-cell.ttt-pop {
+  animation: tttCellPop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes tttCellPop {
+  0% { transform: scale(0.65); opacity: 0.3; }
+  70% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.ttt-cell.ttt-win-cell {
+  background: rgba(16, 185, 129, 0.22) !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.45) !important;
+  animation: tttWinGlow 1s ease-in-out infinite alternate !important;
+}
+
+@keyframes tttWinGlow {
+  0% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+  100% { box-shadow: 0 0 24px rgba(16, 185, 129, 0.7); }
+}
+
+/* Connect Four Hover & Physics Drop Animations */
+.c4-cell.c4-col-hovered {
+  background: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.2) !important;
+}
+
+.c4-col-arrow.arrow-hovered {
+  color: #38bdf8 !important;
+  transform: translateY(3px) scale(1.2);
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.8));
+}
+
+.c4-cell.c4-drop-animate {
+  animation: c4DropPhysics 0.38s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes c4DropPhysics {
+  0% {
+    transform: translateY(calc(-40px * (var(--drop-row, 1) + 1)));
+    opacity: 0.5;
+  }
+  75% {
+    transform: translateY(2px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Rock Paper Scissors Cinematic Animations */
+.rps-choice-icon.rps-shake {
+  animation: rpsFistShake 0.36s infinite ease-in-out;
+}
+
+@keyframes rpsFistShake {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30% { transform: translateY(-8px) rotate(-8deg); }
+  70% { transform: translateY(4px) rotate(6deg); }
+}
+
+.rps-choice-icon.rps-reveal-impact {
+  animation: rpsImpact 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes rpsImpact {
+  0% { transform: scale(1.6) rotate(-10deg); filter: brightness(1.6); }
+  60% { transform: scale(0.92) rotate(2deg); filter: brightness(1); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+

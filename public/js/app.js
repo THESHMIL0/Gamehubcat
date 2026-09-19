@@ -12,6 +12,8 @@ import { initChat } from './chat.js';
 import { initTicTacToe, updateTicTacToeState } from './games/tictactoe.js';
 import { initRps, updateRpsState } from './games/rps.js';
 import { initConnect4, updateConnect4State } from './games/connect4.js';
+import { isMuted, toggleMute, playVictorySound, playDefeatSound, playDrawSound, playEmoteSound } from './audio.js';
+import { launchConfetti } from './confetti.js';
 
 class GameRoomApp {
   constructor() {
@@ -545,7 +547,7 @@ class GameRoomApp {
       if (!room) return;
       this.updateMatchState(room, payload);
       if (winner || isDraw || room.state === 'FINISHED' || room.gameState?.winner || room.gameState?.isDraw) {
-        const winPlayer = winner || (room.gameState?.winner ? room.players?.find((p) => Number(p.id) === Number(room.gameState.winner)) : null);
+        const winPlayer = winner || (room.gameState?.winner ? room.players?.find((p) => String(p.id) === String(room.gameState.winner)) : null);
         this.handleGameOver(room, winPlayer, isDraw || !!room.gameState?.isDraw, reason);
       }
     };
@@ -640,7 +642,7 @@ class GameRoomApp {
     const p1 = room.players[0] || {};
     const p2 = room.players[1] || {};
 
-    const isMeP1 = Number(p1.id) === Number(me?.id);
+    const isMeP1 = String(p1.id) === String(me?.id);
     const player1 = isMeP1 ? p1 : p2;
     const player2 = isMeP1 ? p2 : p1;
 
@@ -672,8 +674,8 @@ class GameRoomApp {
 
     const me = getCurrentUser();
     const gameState = room.gameState || {};
-    const myId = Number(me?.id);
-    const turnId = Number(gameState.currentTurn);
+    const myId = String(me?.id);
+    const turnId = String(gameState.currentTurn);
     const isMyTurn = turnId === myId && !gameState.winner && !gameState.isDraw;
 
     const turnBadge = document.getElementById('turn-indicator-badge') || document.getElementById('game-turn-badge');
@@ -725,13 +727,16 @@ class GameRoomApp {
     }
 
     if (isDraw) {
+      playDrawSound();
       if (iconEl) iconEl.textContent = '🤝';
       if (titleEl) {
         titleEl.textContent = "IT'S A DRAW!";
         titleEl.style.color = '#facc15';
       }
       if (descEl) descEl.textContent = reason || 'Well fought! Both players played exceptionally.';
-    } else if (winner?.id === me?.id) {
+    } else if (String(winner?.id) === String(me?.id)) {
+      launchConfetti(4500);
+      playVictorySound();
       if (iconEl) iconEl.textContent = '🏆';
       if (titleEl) {
         titleEl.textContent = 'YOU WON!';
@@ -739,6 +744,7 @@ class GameRoomApp {
       }
       if (descEl) descEl.textContent = reason ? `Victory! ${reason}` : 'Congratulations! Great moves!';
     } else {
+      playDefeatSound();
       if (iconEl) iconEl.textContent = '💀';
       if (titleEl) {
         titleEl.textContent = 'YOU LOST!';
@@ -763,6 +769,34 @@ class GameRoomApp {
   // Controls & Dialogs
   // ==========================================
   bindGameControlEvents() {
+    // Sound Mute/Unmute Toggle in Game Top Bar
+    const btnAudioToggle = document.getElementById('btn-toggle-game-audio');
+    if (btnAudioToggle) {
+      btnAudioToggle.textContent = isMuted() ? '🔇' : '🔊';
+      btnAudioToggle.onclick = () => {
+        const muted = toggleMute();
+        btnAudioToggle.textContent = muted ? '🔇' : '🔊';
+        this.showToast(muted ? 'Game sound muted' : 'Game sound enabled', 'info');
+      };
+    }
+
+    // In-game Floating Reaction Emotes Strip
+    document.querySelectorAll('.btn-game-quick-emote').forEach((btn) => {
+      btn.onclick = () => {
+        if (!this.activeMatchRoom) return;
+        const emote = btn.dataset.emote;
+        if (!emote) return;
+        playEmoteSound();
+        const socket = getSocket();
+        if (socket) {
+          socket.emit('game_chat', {
+            roomCode: this.activeMatchRoom.code,
+            text: emote,
+          });
+        }
+      };
+    });
+
     // Leave Game button in top bar
     const btnLeaveActive = document.getElementById('btn-game-back') || document.getElementById('btn-leave-active-game');
     if (btnLeaveActive) {

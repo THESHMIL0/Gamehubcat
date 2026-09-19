@@ -1,14 +1,17 @@
 // ==========================================
-// GameRoom — Tic-Tac-Toe Game Module
+// GameRoom — Upgraded Tic-Tac-Toe Game Module
 // ==========================================
 
 import { getSocket } from '../socket.js';
 import { getCurrentUser } from '../auth.js';
+import { playMoveSound, triggerHaptic } from '../audio.js';
 
 let currentRoom = null;
+let lastKnownBoard = Array(9).fill(null);
 
 export function initTicTacToe(room) {
   currentRoom = room;
+  lastKnownBoard = Array(9).fill(null);
   renderBoard(room.gameState);
 
   const grid = document.getElementById('ttt-grid');
@@ -28,11 +31,13 @@ export function updateTicTacToeState(room, payload = {}) {
   currentRoom = room;
   renderBoard(room.gameState);
 
-  // If winner with winning line, animate line
+  // If winner with winning line, animate line and highlight cells
   if (room.gameState?.winner && room.gameState?.winningLine) {
     drawWinningLine(room.gameState.winningLine);
+    highlightWinningCells(room.gameState.winningLine);
   } else {
     hideWinningLine();
+    clearWinningHighlights();
   }
 }
 
@@ -45,31 +50,39 @@ function handleCellClick(index) {
 
   if (gameState.winner || gameState.isDraw) return;
 
-  const myId = Number(me?.id);
-  const turnId = Number(gameState.currentTurn);
+  const myId = String(me?.id);
+  const turnId = String(gameState.currentTurn);
 
   // Verify turn on client before sending
   if (turnId !== myId) {
-    const opp = currentRoom.players?.find((p) => Number(p.id) !== myId);
+    const opp = currentRoom.players?.find((p) => String(p.id) !== myId);
     window.GameApp?.showToast(opp ? `It's ${opp.display_name}'s turn!` : "It's not your turn!", 'warning');
+    triggerHaptic([30, 40]);
     return;
   }
 
   if (gameState.board && gameState.board[index] !== null) return;
 
-  const myPlayer = currentRoom.players?.find((p) => Number(p.id) === myId);
+  const myPlayer = currentRoom.players?.find((p) => String(p.id) === myId);
   const mySymbol = myPlayer?.symbol || 'X';
 
-  // Optimistic UI update: immediately show player's symbol with responsive feedback
+  // Sound and haptic
+  playMoveSound(mySymbol);
+
+  // Optimistic UI update: immediately show player's symbol with bounce pop
   const cell = document.querySelector(`.ttt-cell[data-idx="${index}"]`);
   if (cell) {
     cell.textContent = mySymbol;
     cell.dataset.symbol = mySymbol;
     cell.disabled = true;
+    cell.classList.remove('ttt-pop');
+    void cell.offsetWidth; // trigger reflow
+    cell.classList.add('ttt-pop');
   }
   if (gameState.board) {
     gameState.board[index] = mySymbol;
   }
+  lastKnownBoard[index] = mySymbol;
 
   const socket = getSocket();
   if (socket) {
@@ -85,17 +98,34 @@ function renderBoard(gameState) {
   const cells = document.querySelectorAll('.ttt-cell');
   const board = gameState.board || Array(9).fill(null);
   const me = getCurrentUser();
-  const myId = Number(me?.id);
-  const turnId = Number(gameState.currentTurn);
+  const myId = String(me?.id);
+  const turnId = String(gameState.currentTurn);
   const isMyTurn = turnId === myId && !gameState.winner && !gameState.isDraw;
+  const myPlayer = currentRoom?.players?.find((p) => String(p.id) === myId);
+  const mySymbol = myPlayer?.symbol || 'X';
+
+  const grid = document.getElementById('ttt-grid');
+  if (grid) {
+    grid.dataset.myTurn = isMyTurn ? 'true' : 'false';
+    grid.dataset.mySymbol = mySymbol;
+  }
 
   cells.forEach((cell, idx) => {
     const val = board[idx];
+    const prevVal = lastKnownBoard[idx];
+
     cell.textContent = val || '';
     cell.dataset.symbol = val || '';
 
+    // Play sound and animate if opponent placed a piece
+    if (val && !prevVal && val !== mySymbol) {
+      playMoveSound(val);
+      cell.classList.remove('ttt-pop');
+      void cell.offsetWidth;
+      cell.classList.add('ttt-pop');
+    }
+
     // Only disable if already marked or game has concluded
-    // Empty cells remain clickable so users receive immediate feedback/toast if tapped out of turn
     if (val !== null || gameState.winner || gameState.isDraw) {
       cell.disabled = true;
       cell.style.cursor = 'default';
@@ -104,16 +134,32 @@ function renderBoard(gameState) {
       cell.style.cursor = isMyTurn ? 'pointer' : 'not-allowed';
     }
   });
+
+  lastKnownBoard = [...board];
 }
 
-// Draw Animated SVG Line through 3 winning cells (Section 28)
+function highlightWinningCells(winningIndices) {
+  clearWinningHighlights();
+  winningIndices.forEach((idx) => {
+    const cell = document.querySelector(`.ttt-cell[data-idx="${idx}"]`);
+    if (cell) {
+      cell.classList.add('ttt-win-cell');
+    }
+  });
+}
+
+function clearWinningHighlights() {
+  document.querySelectorAll('.ttt-cell.ttt-win-cell').forEach((c) => {
+    c.classList.remove('ttt-win-cell');
+  });
+}
+
+// Draw Animated SVG Line through 3 winning cells
 function drawWinningLine(winningIndices) {
   const svg = document.getElementById('ttt-win-line');
   const line = document.getElementById('ttt-line-path');
   if (!svg || !line) return;
 
-  // Grid coordinates (0-2 for row and col, each cell center in 300x300 viewBox)
-  // Centers: col 0 = 50, col 1 = 150, col 2 = 250; rows similarly
   const centers = [
     { x: 50, y: 50 },
     { x: 150, y: 50 },

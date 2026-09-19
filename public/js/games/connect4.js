@@ -1,14 +1,17 @@
 // ==========================================
-// GameRoom — Connect Four Game Module
+// GameRoom — Upgraded Connect Four Game Module
 // ==========================================
 
 import { getSocket } from '../socket.js';
 import { getCurrentUser } from '../auth.js';
+import { playDropSound, triggerHaptic } from '../audio.js';
 
 let currentRoom = null;
+let lastRenderedBoard = null;
 
 export function initConnect4(room) {
   currentRoom = room;
+  lastRenderedBoard = null;
 
   // Build 42 grid cells (6 rows x 7 cols) if not already built
   buildConnect4Grid();
@@ -20,6 +23,8 @@ export function initConnect4(room) {
       const col = parseInt(btn.dataset.col, 10);
       handleColumnClick(col);
     };
+    btn.onmouseenter = () => highlightColumn(parseInt(btn.dataset.col, 10), true);
+    btn.onmouseleave = () => highlightColumn(parseInt(btn.dataset.col, 10), false);
   });
 
   updateConnect4State(room);
@@ -27,7 +32,7 @@ export function initConnect4(room) {
 
 export function updateConnect4State(room, payload = {}) {
   currentRoom = room;
-  renderGrid(room.gameState);
+  renderGrid(room.gameState, payload?.lastMove);
 }
 
 function buildConnect4Grid() {
@@ -42,8 +47,26 @@ function buildConnect4Grid() {
       cell.dataset.row = r;
       cell.dataset.col = c;
       cell.onclick = () => handleColumnClick(c);
+      cell.onmouseenter = () => highlightColumn(c, true);
+      cell.onmouseleave = () => highlightColumn(c, false);
       grid.appendChild(cell);
     }
+  }
+}
+
+function highlightColumn(col, isHovered) {
+  const cells = document.querySelectorAll(`.c4-cell[data-col="${col}"]`);
+  cells.forEach((cell) => {
+    if (isHovered) {
+      cell.classList.add('c4-col-hovered');
+    } else {
+      cell.classList.remove('c4-col-hovered');
+    }
+  });
+  const arrow = document.querySelector(`.c4-col-arrow[data-col="${col}"]`);
+  if (arrow) {
+    if (isHovered) arrow.classList.add('arrow-hovered');
+    else arrow.classList.remove('arrow-hovered');
   }
 }
 
@@ -54,17 +77,21 @@ function handleColumnClick(col) {
   const gameState = currentRoom.gameState;
   if (!gameState) return;
 
-  if (Number(gameState.currentTurn) !== Number(me?.id)) {
-    const opp = currentRoom.players?.find((p) => Number(p.id) !== Number(me?.id));
+  if (String(gameState.currentTurn) !== String(me?.id)) {
+    const opp = currentRoom.players?.find((p) => String(p.id) !== String(me?.id));
     window.GameApp?.showToast(opp ? `It's ${opp.display_name}'s turn!` : "It's not your turn!", 'warning');
+    triggerHaptic([20, 30]);
     return;
   }
 
   // Check if column is already full (top cell filled)
   if (gameState.board && gameState.board[0][col] !== null) {
     window.GameApp?.showToast('That column is full!', 'warning');
+    triggerHaptic(40);
     return;
   }
+
+  playDropSound();
 
   const socket = getSocket();
   if (socket) {
@@ -75,13 +102,13 @@ function handleColumnClick(col) {
   }
 }
 
-function renderGrid(gameState) {
+function renderGrid(gameState, lastMove) {
   if (!gameState || !gameState.board) return;
 
   const board = gameState.board;
   const cells = document.querySelectorAll('.c4-cell');
   const me = getCurrentUser();
-  const isMyTurn = Number(gameState.currentTurn) === Number(me?.id) && !gameState.winner && !gameState.isDraw;
+  const isMyTurn = String(gameState.currentTurn) === String(me?.id) && !gameState.winner && !gameState.isDraw;
 
   // Update hover drop arrows
   const arrowButtons = document.querySelectorAll('.c4-col-arrow');
@@ -95,21 +122,38 @@ function renderGrid(gameState) {
     gameState.winningCells.forEach(([r, c]) => winningLookup.add(`${r}_${c}`));
   }
 
+  let hasNewDrop = false;
+
   // Render each token
   cells.forEach((cell) => {
     const r = parseInt(cell.dataset.row, 10);
     const c = parseInt(cell.dataset.col, 10);
     const val = board[r][c];
+    const prevVal = lastRenderedBoard ? lastRenderedBoard[r][c] : null;
 
     cell.className = 'c4-cell';
+
     if (val === '🔴') {
       cell.classList.add('p1');
     } else if (val === '🟡') {
       cell.classList.add('p2');
     }
 
+    // New drop animation if token was just placed
+    if (val && !prevVal) {
+      hasNewDrop = true;
+      cell.style.setProperty('--drop-row', r);
+      cell.classList.add('c4-drop-animate');
+    }
+
     if (winningLookup.has(`${r}_${c}`)) {
       cell.classList.add('win-highlight');
     }
   });
+
+  if (hasNewDrop) {
+    playDropSound();
+  }
+
+  lastRenderedBoard = board.map((row) => [...row]);
 }

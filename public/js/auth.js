@@ -17,8 +17,16 @@ export function getToken() {
 export function getCurrentUser() {
   try {
     const userStr = localStorage.getItem(USER_KEY);
-    if (!userStr) return null;
-    return JSON.parse(userStr);
+    if (userStr) return JSON.parse(userStr);
+    const guest = getGuestInfo();
+    return {
+      id: guest.id,
+      username: guest.name ? guest.name.toLowerCase() : 'guest',
+      display_name: guest.name || 'Guest',
+      avatar: guest.avatar || '🎮',
+      bio: 'Public Lobby Visitor',
+      isGuest: true,
+    };
   } catch (e) {
     return null;
   }
