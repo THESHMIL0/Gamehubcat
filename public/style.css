@@ -669,7 +669,7 @@ html.has-stored-auth #main-interface:not(.hidden) {
 }
 
 .content-view {
-  display: none;
+  display: none !important;
   animation: fadeIn 0.25s ease-out;
   width: 100%;
   max-width: 100%;
@@ -678,12 +678,16 @@ html.has-stored-auth #main-interface:not(.hidden) {
 }
 
 .content-view.active {
-  display: block;
+  display: block !important;
 }
 
+#view-home.active,
+#view-games.active,
+#view-friends.active,
 #view-profile.active,
-#view-games.active {
-  display: flex;
+#view-waiting.active,
+#view-game.active {
+  display: flex !important;
   flex-direction: column;
   flex: 1;
   height: 100%;
@@ -1182,9 +1186,13 @@ html.has-stored-auth #main-interface:not(.hidden) {
    INSTAGRAM DM STYLE FRIENDS & MESSAGES SECTION
    =================================================== */
 #view-friends {
+  display: none;
+}
+
+#view-friends.active {
   height: 100%;
   width: 100%;
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   overflow: hidden;
   background: #000000;
@@ -1201,9 +1209,12 @@ html.has-stored-auth #main-interface:not(.hidden) {
   background: #000000;
 }
 
-.insta-dm-page.active,
-.insta-dm-page:not(.hidden) {
-  display: flex;
+.insta-dm-page.active {
+  display: flex !important;
+}
+
+.insta-dm-page.hidden {
+  display: none !important;
 }
 
 /* 1. Top Nav Header (Handle + Actions) */

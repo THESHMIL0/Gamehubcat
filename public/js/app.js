@@ -513,7 +513,8 @@ class GameRoomApp {
     }
 
     // Mobile nav visibility (hidden during active game or auth)
-    document.getElementById('mobile-bottom-nav')?.classList.toggle('hidden', isAuth || viewName === 'game');
+    const isAuthView = viewName === 'auth';
+    document.getElementById('mobile-bottom-nav')?.classList.toggle('hidden', isAuthView || viewName === 'game');
 
     // Sync active states on Navigation tabs
     document.querySelectorAll('.nav-tab, .mobile-nav-item').forEach((tab) => {
