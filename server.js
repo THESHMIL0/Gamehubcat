@@ -76,6 +76,27 @@ async function authenticateToken(req, res, next) {
   }
 }
 
+// Optional JWT Token Authentication Middleware (attaches req.user if present, else req.user = null)
+async function optionalAuthenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = (authHeader && authHeader.split(' ')[1]) || req.cookies?.gameroom_token;
+
+  if (!token || token === 'null' || token === 'undefined') {
+    req.user = null;
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await dbGet('SELECT id, username, display_name, avatar, bio, created_at FROM users WHERE id = ?', [decoded.id]);
+    req.user = user || null;
+    next();
+  } catch (err) {
+    req.user = null;
+    next();
+  }
+}
+
 // ==========================================
 // REST API ROUTES
 // ==========================================
@@ -355,51 +376,54 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
   }
 });
 
-// Search Users
-app.get('/api/users/search', authenticateToken, async (req, res) => {
+// Search Users (Publicly searchable with optional friendship enrichment)
+app.get('/api/users/search', optionalAuthenticateToken, async (req, res) => {
   try {
     const q = (req.query.q || '').trim();
     if (!q) {
       return res.json({ users: [] });
     }
 
+    const currentUserId = req.user?.id || 0;
     const users = await dbAll(
       `SELECT id, username, display_name, avatar, bio, created_at 
        FROM users 
        WHERE username LIKE ? AND id != ?
        LIMIT 20`,
-      [`%${q}%`, req.user.id]
+      [`%${q}%`, currentUserId]
     );
 
-    // Attach friendship status and online presence
+    // Attach friendship status and online presence if user is authenticated
     const userIds = users.map((u) => u.id);
     let friendships = [];
-    if (userIds.length > 0) {
+    if (currentUserId && userIds.length > 0) {
       friendships = await dbAll(
         `SELECT id, requester_id, receiver_id, status 
          FROM friends 
          WHERE (requester_id = ? AND receiver_id IN (${userIds.join(',')}))
             OR (receiver_id = ? AND requester_id IN (${userIds.join(',')}))`,
-        [req.user.id, req.user.id]
+        [currentUserId, currentUserId]
       );
     }
 
     const enriched = users.map((u) => {
-      const relation = friendships.find(
-        (f) => (f.requester_id === req.user.id && f.receiver_id === u.id) || (f.receiver_id === req.user.id && f.requester_id === u.id)
-      );
-
       let friendStatus = 'none';
       let friendRequestId = null;
-      if (relation) {
-        if (relation.status === 'accepted') {
-          friendStatus = 'friends';
-        } else if (relation.requester_id === req.user.id) {
-          friendStatus = 'pending_sent';
-        } else {
-          friendStatus = 'pending_received';
+      if (currentUserId) {
+        const relation = friendships.find(
+          (f) => (f.requester_id === currentUserId && f.receiver_id === u.id) || (f.receiver_id === currentUserId && f.requester_id === u.id)
+        );
+
+        if (relation) {
+          if (relation.status === 'accepted') {
+            friendStatus = 'friends';
+          } else if (relation.requester_id === currentUserId) {
+            friendStatus = 'pending_sent';
+          } else {
+            friendStatus = 'pending_received';
+          }
+          friendRequestId = relation.id;
         }
-        friendRequestId = relation.id;
       }
 
       return {
@@ -419,7 +443,7 @@ app.get('/api/users/search', authenticateToken, async (req, res) => {
 });
 
 // Public profile viewer (for player profile popup)
-app.get('/api/users/:userId', authenticateToken, async (req, res) => {
+app.get('/api/users/:userId', optionalAuthenticateToken, async (req, res) => {
   try {
     const targetId = parseInt(req.params.userId, 10);
     const user = await dbGet('SELECT id, username, display_name, avatar, bio, created_at FROM users WHERE id = ?', [targetId]);

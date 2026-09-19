@@ -84,7 +84,20 @@ export function initFriends() {
 // Load friends and pending requests from backend
 export async function loadFriendsData() {
   const token = getToken();
-  if (!token) return;
+  if (!token) {
+    const container = document.getElementById('friends-list-container');
+    if (container) {
+      container.innerHTML = `
+        <div class="empty-state-hint" style="padding: 2rem 1rem; text-align: center;">
+          <div style="font-size: 2.5rem; margin-bottom: 0.6rem;">👥</div>
+          <h3 style="color: #f3f4f6; margin-bottom: 0.4rem; font-size: 1.1rem; font-weight: 700;">Friends & Requests</h3>
+          <p style="color: #9ca3af; font-size: 0.85rem; margin-bottom: 1.2rem; line-height: 1.45;">Log in or create an account to add friends, send game challenge invites, and see who is online!</p>
+          <button type="button" class="btn btn-primary btn-sm" onclick="window.GameApp?.openAuthModal ? window.GameApp.openAuthModal() : null">Log In / Sign Up</button>
+        </div>
+      `;
+    }
+    return;
+  }
 
   try {
     const res = await fetch('/api/friends', {
@@ -298,9 +311,10 @@ async function handleUserSearch() {
 
   try {
     const token = getToken();
-    const res = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`, { headers });
     if (!res.ok) throw new Error('Search failed');
 
     const data = await res.json();
@@ -348,6 +362,16 @@ async function handleUserSearch() {
 // Send Friend Request
 export async function sendFriendRequest(targetUserId) {
   const token = getToken();
+  if (!token) {
+    if (window.GameApp?.showToast) {
+      window.GameApp.showToast('Please log in or sign up to add friends!', 'warning');
+    }
+    if (window.GameApp?.openAuthModal) {
+      window.GameApp.openAuthModal();
+    }
+    return;
+  }
+
   try {
     const res = await fetch('/api/friends/request', {
       method: 'POST',

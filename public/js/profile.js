@@ -451,10 +451,9 @@ async function changePassword() {
 // Show Public Player Profile Popup (Section 67)
 export async function showPlayerProfileModal(userId) {
   const token = getToken();
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
   try {
-    const res = await fetch(`/api/users/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch(`/api/users/${userId}`, { headers });
     if (!res.ok) throw new Error('User not found');
 
     const data = await res.json();
