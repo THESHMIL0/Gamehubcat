@@ -3999,7 +3999,7 @@ html.has-stored-auth #main-interface:not(.hidden) {
   text-align: center;
   padding: 2.2rem 1rem 1.6rem;
   margin-bottom: 1.5rem;
-  border-bottom: 1px solid #1a1a1a;
+  border-bottom: none;
   flex-shrink: 0;
 }
 
