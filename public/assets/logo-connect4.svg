@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="c4-bg" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#14213d"/>
+      <stop offset="100%" stop-color="#0a1120"/>
+    </linearGradient>
+    <linearGradient id="c4-red" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f43f5e"/>
+      <stop offset="100%" stop-color="#be123c"/>
+    </linearGradient>
+    <linearGradient id="c4-yellow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="c4-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#f43f5e" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Base Badge -->
+  <rect x="5" y="5" width="90" height="90" rx="22" fill="url(#c4-bg)" stroke="rgba(59, 130, 246, 0.35)" stroke-width="2"/>
+
+  <!-- Mini Column Grid Holes -->
+  <circle cx="28" cy="28" r="6" fill="#080c16" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"/>
+  <circle cx="50" cy="28" r="6" fill="#080c16" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"/>
+  <circle cx="72" cy="28" r="6" fill="url(#c4-red)" filter="url(#c4-glow)"/>
+
+  <circle cx="28" cy="50" r="6" fill="#080c16" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"/>
+  <circle cx="50" cy="50" r="6" fill="url(#c4-red)" filter="url(#c4-glow)"/>
+  <circle cx="72" cy="50" r="6" fill="url(#c4-yellow)"/>
+
+  <circle cx="28" cy="72" r="6" fill="url(#c4-red)" filter="url(#c4-glow)"/>
+  <circle cx="50" cy="72" r="6" fill="url(#c4-yellow)"/>
+  <circle cx="72" cy="72" r="6" fill="#080c16" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"/>
+
+  <!-- Winning Connecting Laser Line across the red diagonal tokens -->
+  <line x1="28" y1="72" x2="72" y2="28" stroke="#f43f5e" stroke-width="2.5" stroke-dasharray="2 3" opacity="0.8"/>
+  <circle cx="50" cy="50" r="2" fill="#ffffff"/>
+</svg>
