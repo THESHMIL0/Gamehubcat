@@ -470,31 +470,32 @@
                 </div>
               </div>
 
-              <!-- Recent Match History (Last 5 completed games) -->
-              <div class="profile-history-section">
-                <div class="history-section-header">
-                  <div class="history-title-group">
-                    <span class="history-icon-badge">
-                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <!-- Profile Navigation List (Clean & Premium style from reference) -->
+              <div class="profile-menu-section">
+                <!-- 1. Match History Row (Works just like Edit and Settings buttons) -->
+                <button type="button" class="profile-menu-row" id="btn-open-match-history" title="View your recent match history">
+                  <div class="menu-row-left">
+                    <span class="menu-row-icon">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
                       </svg>
                     </span>
-                    <h3 class="history-section-title">Recent Match History</h3>
+                    <span class="menu-row-label">Match history</span>
                   </div>
-                  <span id="history-count-badge" class="history-pill-badge">Last 5 Games</span>
-                </div>
-
-                <div id="profile-match-history-list" class="match-history-list">
-                  <div class="match-history-loading">
-                    <span class="loading-spinner-sm"></span> Loading match history...
+                  <div class="menu-row-right-group">
+                    <span id="menu-history-badge" class="history-pill-badge">5 games</span>
+                    <span class="menu-row-chevron">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"/>
+                      </svg>
+                    </span>
                   </div>
-                </div>
-              </div>
+                </button>
 
-              <!-- Profile Navigation List (Clean & Premium style from reference) -->
-              <div class="profile-menu-section">
-                <!-- 1. Edit Profile Row -->
+                <div class="menu-row-divider"></div>
+
+                <!-- 2. Edit Profile Row -->
                 <button type="button" class="profile-menu-row" id="btn-open-edit-profile" title="Edit your profile details">
                   <div class="menu-row-left">
                     <span class="menu-row-icon">
@@ -1062,6 +1063,42 @@
         <div class="modal-actions" style="margin-top: 1.5rem;">
           <button type="button" class="btn btn-primary btn-block" data-close-modal="modal-account-settings">
             Done
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Match History Modal (Opens from profile menu row, matching Edit and Settings modals) -->
+  <div id="modal-match-history" class="modal-backdrop hidden">
+    <div class="modal-card glass-panel modal-medium">
+      <div class="modal-header">
+        <div class="modal-title-with-icon">
+          <span class="modal-title-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </span>
+          <h3 class="modal-title">Recent Match History</h3>
+        </div>
+        <button type="button" class="modal-close-btn" data-close-modal="modal-match-history">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="match-history-modal-header">
+          <p class="modal-desc" style="margin-bottom: 0;">Your last completed games, opponents, and results.</p>
+          <span id="history-modal-count-badge" class="history-pill-badge">5 games</span>
+        </div>
+
+        <div id="profile-match-history-list" class="match-history-list" style="margin-top: 0.85rem;">
+          <div class="match-history-loading">
+            <span class="loading-spinner-sm"></span> Loading match history...
+          </div>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 1.25rem;">
+          <button type="button" class="btn btn-secondary btn-block" data-close-modal="modal-match-history">
+            Close
           </button>
         </div>
       </div>

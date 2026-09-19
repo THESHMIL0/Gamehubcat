@@ -8,6 +8,18 @@ const AVAILABLE_AVATARS = ['🎮', '⚡', '🔥', '👾', '🚀', '👑', '🎯'
 let selectedAvatar = '🎮';
 
 export function initProfile() {
+  // Open Match History Modal (Reference style, matching Edit Profile and Settings)
+  const btnOpenHistory = document.getElementById('btn-open-match-history');
+  if (btnOpenHistory) {
+    btnOpenHistory.onclick = () => {
+      const user = getCurrentUser();
+      if (user?.id) {
+        loadMatchHistory(user.id);
+      }
+      window.GameApp?.openModal('modal-match-history');
+    };
+  }
+
   // Open Edit Profile Modal
   const btnOpenEdit = document.getElementById('btn-open-edit-profile');
   if (btnOpenEdit) {
@@ -99,56 +111,94 @@ function initPreferences() {
   }
 }
 
-// Load and populate User's Profile
-export async function loadProfileData() {
-  const token = getToken();
-  if (!token) return;
+// Populate profile DOM elements defensively
+function populateProfileUI(user, stats = null) {
+  if (!user) return;
 
-  try {
-    const res = await fetch('/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) return;
+  const headerAvatar = document.getElementById('header-avatar');
+  if (headerAvatar) headerAvatar.textContent = user.avatar || '🎮';
 
-    const data = await res.json();
-    const user = data.user;
-    const stats = data.stats || { games_played: 0, wins: 0, losses: 0, draws: 0 };
+  const avatarEl = document.getElementById('profile-display-avatar');
+  if (avatarEl) avatarEl.textContent = user.avatar || '🎮';
 
-    // Update Header Avatar
-    const headerAvatar = document.getElementById('header-avatar');
-    if (headerAvatar) headerAvatar.textContent = user.avatar || '🎮';
+  const nameEl = document.getElementById('profile-display-name');
+  if (nameEl) nameEl.textContent = user.display_name || user.username || 'Player';
 
-    // Populate Overview
-    document.getElementById('profile-display-avatar').textContent = user.avatar || '🎮';
-    document.getElementById('profile-display-name').textContent = user.display_name;
-    document.getElementById('profile-display-username').textContent = `@${user.username}`;
-    document.getElementById('profile-display-bio').textContent = user.bio || "Let's play!";
+  const userEl = document.getElementById('profile-display-username');
+  if (userEl) userEl.textContent = `@${user.username || 'player'}`;
 
+  const bioEl = document.getElementById('profile-display-bio');
+  if (bioEl) bioEl.textContent = user.bio || "Let's play!";
+
+  const dateEl = document.getElementById('profile-display-date');
+  if (dateEl) {
     const dateStr = user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Recent';
-    document.getElementById('profile-display-date').textContent = dateStr;
+    dateEl.textContent = dateStr;
+  }
 
-    // Populate Stats
+  if (stats) {
     const played = stats.games_played || 0;
     const wins = stats.wins || 0;
     const losses = stats.losses || 0;
     const winRate = played > 0 ? Math.round((wins / played) * 100) : 0;
 
-    document.getElementById('stat-played').textContent = played;
-    document.getElementById('stat-wins').textContent = wins;
-    document.getElementById('stat-losses').textContent = losses;
-    document.getElementById('stat-winrate').textContent = `${winRate}%`;
+    const elPlayed = document.getElementById('stat-played');
+    if (elPlayed) elPlayed.textContent = played;
+    const elWins = document.getElementById('stat-wins');
+    if (elWins) elWins.textContent = wins;
+    const elLosses = document.getElementById('stat-losses');
+    if (elLosses) elLosses.textContent = losses;
+    const elWinrate = document.getElementById('stat-winrate');
+    if (elWinrate) elWinrate.textContent = `${winRate}%`;
+  }
 
-    // Populate Edit Inputs
-    selectedAvatar = user.avatar || '🎮';
-    const inputName = document.getElementById('input-edit-name');
-    const inputBio = document.getElementById('input-edit-bio');
-    if (inputName) inputName.value = user.display_name || '';
-    if (inputBio) inputBio.value = user.bio || '';
+  selectedAvatar = user.avatar || '🎮';
+  const inputName = document.getElementById('input-edit-name');
+  const inputBio = document.getElementById('input-edit-bio');
+  if (inputName && !inputName.value) inputName.value = user.display_name || '';
+  if (inputBio && !inputBio.value) inputBio.value = user.bio || '';
+}
 
-    // Load recent match history for current user
-    await loadMatchHistory(user.id);
+// Load and populate User's Profile
+export async function loadProfileData() {
+  const cachedUser = getCurrentUser();
+  const token = getToken();
+
+  // Instant render from local session if present
+  if (cachedUser) {
+    populateProfileUI(cachedUser);
+  }
+
+  if (!token && !cachedUser) return;
+
+  try {
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const res = await fetch('/api/auth/me', {
+      headers,
+      credentials: 'include',
+    });
+
+    if (res.status === 401 || res.status === 403) {
+      return;
+    }
+
+    if (!res.ok) {
+      return;
+    }
+
+    const data = await res.json();
+    if (data && data.user) {
+      setSession(data.user, data.token || token);
+      populateProfileUI(data.user, data.stats);
+      await loadMatchHistory(data.user.id);
+    }
   } catch (err) {
-    console.error('Failed to load profile:', err);
+    // Network offline or reconnecting; cached session is already displayed
+    console.warn('Profile sync deferred (network offline or reconnecting):', err.message || err);
   }
 }
 
@@ -156,33 +206,50 @@ export async function loadProfileData() {
 export async function loadMatchHistory(currentUserId) {
   const container = document.getElementById('profile-match-history-list');
   const countBadge = document.getElementById('history-count-badge');
-  if (!container) return;
+  const menuBadge = document.getElementById('menu-history-badge');
+  const modalBadge = document.getElementById('history-modal-count-badge');
+  if (!container && !menuBadge) return;
 
   const token = getToken();
-  if (!token) return;
-
   const me = currentUserId ? { id: currentUserId } : getCurrentUser();
   const myId = me?.id ? Number(me.id) : null;
   if (!myId) return;
 
   try {
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch('/api/history', {
-      headers: { Authorization: `Bearer ${token}` },
+      headers,
+      credentials: 'include',
     });
-    if (!res.ok) throw new Error('Failed to fetch history');
+
+    if (!res.ok) {
+      if (container) {
+        container.innerHTML = `
+          <div class="match-history-empty">
+            <span class="match-empty-icon">🎮</span>
+            <div class="match-empty-title">History unavailable</div>
+            <div class="match-empty-desc">Could not load recent matches right now. Please try again in a moment.</div>
+          </div>
+        `;
+      }
+      return;
+    }
 
     const data = await res.json();
-    const allGames = Array.isArray(data.history) ? data.history : [];
+    const allGames = Array.isArray(data?.history) ? data.history : [];
     // Last 5 completed games
     const recentGames = allGames.slice(0, 5);
 
-    if (countBadge) {
-      if (recentGames.length === 0) {
-        countBadge.textContent = '0 games';
-      } else {
-        countBadge.textContent = `${recentGames.length} ${recentGames.length === 1 ? 'game' : 'games'}`;
-      }
-    }
+    const countText = recentGames.length === 0 ? '0 games' : `${recentGames.length} ${recentGames.length === 1 ? 'game' : 'games'}`;
+    if (countBadge) countBadge.textContent = countText;
+    if (menuBadge) menuBadge.textContent = countText;
+    if (modalBadge) modalBadge.textContent = countText;
+
+    if (!container) return;
 
     if (recentGames.length === 0) {
       container.innerHTML = `
@@ -263,13 +330,15 @@ export async function loadMatchHistory(currentUserId) {
       }
     });
   } catch (err) {
-    console.error('Failed to load match history:', err);
-    container.innerHTML = `
-      <div class="match-history-empty">
-        <span class="match-empty-icon">⚠️</span>
-        <div class="match-empty-desc">Could not load match history. Please check connection.</div>
-      </div>
-    `;
+    console.warn('Match history sync deferred:', err.message || err);
+    if (container) {
+      container.innerHTML = `
+        <div class="match-history-empty">
+          <span class="match-empty-icon">⚠️</span>
+          <div class="match-empty-desc">Match history temporarily unavailable. Please check connection.</div>
+        </div>
+      `;
+    }
   }
 }
 

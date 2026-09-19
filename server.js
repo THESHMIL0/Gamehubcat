@@ -616,14 +616,14 @@ app.get('/api/history', authenticateToken, async (req, res) => {
               u1.display_name as p1_name, u1.avatar as p1_avatar,
               u2.display_name as p2_name, u2.avatar as p2_avatar
        FROM game_history h
-       JOIN users u1 ON u1.id = h.player1_id
-       JOIN users u2 ON u2.id = h.player2_id
+       LEFT JOIN users u1 ON u1.id = h.player1_id
+       LEFT JOIN users u2 ON u2.id = h.player2_id
        WHERE h.player1_id = ? OR h.player2_id = ?
        ORDER BY h.created_at DESC
        LIMIT 10`,
       [req.user.id, req.user.id]
     );
-    return res.json({ history });
+    return res.json({ history: history || [] });
   } catch (err) {
     return res.status(500).json({ error: 'Failed to fetch history.' });
   }

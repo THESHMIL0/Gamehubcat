@@ -89,6 +89,7 @@ export async function loadFriendsData() {
   try {
     const res = await fetch('/api/friends', {
       headers: { Authorization: `Bearer ${token}` },
+      credentials: 'include',
     });
 
     if (!res.ok) return;
@@ -103,7 +104,7 @@ export async function loadFriendsData() {
     renderRequestsList();
     renderHomeOnlineFriends();
   } catch (err) {
-    console.error('Failed to load friends data:', err);
+    console.warn('Friends data sync deferred (offline or reconnecting):', err.message || err);
   }
 }
 
