@@ -333,9 +333,9 @@
           </div>
         </section>
 
-        <!-- 4. PROFILE SCREEN (Section 8 & 41) -->
+        <!-- 4. PROFILE SCREEN -->
         <section id="view-profile" class="content-view">
-          <div class="profile-layout">
+          <div class="profile-container">
             <!-- Profile Overview Card -->
             <div class="profile-card glass-panel">
               <div class="profile-avatar-wrapper">
@@ -368,52 +368,53 @@
                 </div>
               </div>
 
+              <!-- Profile Navigation List (Clean & Premium style from reference) -->
+              <div class="profile-menu-section">
+                <!-- 1. Edit Profile Row -->
+                <button type="button" class="profile-menu-row" id="btn-open-edit-profile" title="Edit your profile details">
+                  <div class="menu-row-left">
+                    <span class="menu-row-icon">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </span>
+                    <span class="menu-row-label">Edit profile</span>
+                  </div>
+                  <span class="menu-row-chevron">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                  </span>
+                </button>
+
+                <div class="menu-row-divider"></div>
+
+                <!-- 2. Account Settings Row (Matches uploaded reference image) -->
+                <button type="button" class="profile-menu-row" id="btn-open-account-settings" title="Manage account settings and game preferences">
+                  <div class="menu-row-left">
+                    <span class="menu-row-icon">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                      </svg>
+                    </span>
+                    <span class="menu-row-label">Account settings</span>
+                  </div>
+                  <span class="menu-row-chevron">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                  </span>
+                </button>
+              </div>
+
+              <!-- Profile Logout Action -->
               <div class="profile-actions">
                 <button type="button" id="btn-logout" class="btn btn-danger btn-block">
                   <span class="btn-icon">🚪</span> Log Out
                 </button>
               </div>
-            </div>
-
-            <!-- Profile Settings Form Card -->
-            <div class="settings-card glass-panel">
-              <h3 class="card-title">Edit Profile</h3>
-              <form id="form-edit-profile">
-                <div class="form-group">
-                  <label>Choose Avatar</label>
-                  <div class="avatar-picker-grid" id="avatar-picker-options">
-                    <!-- Populated via JS with 12 avatar emojis -->
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label for="input-edit-name">Display Name</label>
-                  <input type="text" id="input-edit-name" class="input-field" maxlength="30">
-                </div>
-
-                <div class="form-group">
-                  <label for="input-edit-bio">Bio</label>
-                  <textarea id="input-edit-bio" class="input-field textarea" rows="2" maxlength="160"></textarea>
-                </div>
-
-                <div class="divider"></div>
-                <h4 class="subsection-title">Change Password (Optional)</h4>
-
-                <div class="form-group">
-                  <label for="input-curr-pass">Current Password</label>
-                  <input type="password" id="input-curr-pass" class="input-field" placeholder="Required only if changing password">
-                </div>
-                <div class="form-group">
-                  <label for="input-new-pass">New Password</label>
-                  <input type="password" id="input-new-pass" class="input-field" placeholder="Min. 6 characters">
-                </div>
-
-                <div id="profile-save-message" class="form-error hidden"></div>
-
-                <button type="submit" id="btn-save-profile" class="btn btn-primary">
-                  Save Changes
-                </button>
-              </form>
             </div>
           </div>
         </section>
@@ -790,6 +791,148 @@
       <div class="modal-actions">
         <button type="button" id="btn-confirm-leave-yes" class="btn btn-danger">Leave</button>
         <button type="button" id="btn-confirm-leave-no" class="btn btn-secondary">Stay</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div id="modal-edit-profile" class="modal-backdrop hidden">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <div class="modal-title-with-icon">
+          <span class="modal-title-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </span>
+          <h3 class="modal-title">Edit Profile</h3>
+        </div>
+        <button type="button" class="modal-close-btn" data-close-modal="modal-edit-profile">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Update your public display name and bio.</p>
+        <form id="form-edit-profile">
+          <div class="form-group">
+            <label for="input-edit-name">Display Name</label>
+            <input type="text" id="input-edit-name" class="input-field" maxlength="30" placeholder="Display name" required>
+            <span class="field-hint">Maximum 30 characters</span>
+          </div>
+
+          <div class="form-group">
+            <label for="input-edit-bio">Bio</label>
+            <textarea id="input-edit-bio" class="input-field textarea" rows="3" maxlength="160" placeholder="Tell opponents a bit about yourself..."></textarea>
+            <span class="field-hint">Maximum 160 characters</span>
+          </div>
+
+          <div id="profile-save-message" class="form-error hidden"></div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal="modal-edit-profile">Cancel</button>
+            <button type="submit" id="btn-save-profile" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Settings Modal (Matches user reference) -->
+  <div id="modal-account-settings" class="modal-backdrop hidden">
+    <div class="modal-card glass-panel modal-medium">
+      <div class="modal-header">
+        <div class="modal-title-with-icon">
+          <span class="modal-title-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </span>
+          <h3 class="modal-title">Account settings</h3>
+        </div>
+        <button type="button" class="modal-close-btn" data-close-modal="modal-account-settings">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Account Security Group -->
+        <div class="settings-group">
+          <div class="panel-section-header">
+            <h4 class="settings-subheading">Change Password</h4>
+            <p class="panel-section-desc">Keep your GameRoom account secure with a unique password.</p>
+          </div>
+          <form id="form-change-password">
+            <div class="form-group">
+              <label for="input-curr-pass">Current Password</label>
+              <input type="password" id="input-curr-pass" class="input-field" placeholder="Enter current password" required>
+            </div>
+            <div class="form-row-grid">
+              <div class="form-group">
+                <label for="input-new-pass">New Password</label>
+                <input type="password" id="input-new-pass" class="input-field" placeholder="Min. 6 characters" minlength="6" required>
+              </div>
+              <div class="form-group">
+                <label for="input-confirm-pass">Confirm Password</label>
+                <input type="password" id="input-confirm-pass" class="input-field" placeholder="Re-enter new password" minlength="6" required>
+              </div>
+            </div>
+
+            <div id="password-save-message" class="form-error hidden"></div>
+
+            <div class="form-submit-row">
+              <button type="submit" id="btn-save-password" class="btn btn-secondary">
+                Update Password
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Preferences Group -->
+        <div class="settings-group">
+          <div class="panel-section-header">
+            <h4 class="settings-subheading">Game Preferences</h4>
+            <p class="panel-section-desc">Customize sound effects and gameplay visuals.</p>
+          </div>
+          <div class="preferences-list">
+            <div class="pref-item">
+              <div class="pref-info">
+                <span class="pref-label">Sound Effects</span>
+                <span class="pref-desc">Audio cues during turn moves, wins, and draws</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="pref-sound" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="pref-item">
+              <div class="pref-info">
+                <span class="pref-label">Lobby Chat Bubbles</span>
+                <span class="pref-desc">Display animated floating speech bubbles in lobby</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="pref-bubbles" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="pref-item">
+              <div class="pref-info">
+                <span class="pref-label">Game Challenge Alerts</span>
+                <span class="pref-desc">Allow notifications for incoming player challenges</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="pref-invites" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 1.5rem;">
+          <button type="button" class="btn btn-primary btn-block" data-close-modal="modal-account-settings">
+            Done
+          </button>
+        </div>
       </div>
     </div>
   </div>

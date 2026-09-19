@@ -8,9 +8,34 @@ const AVAILABLE_AVATARS = ['🎮', '⚡', '🔥', '👾', '🚀', '👑', '🎯'
 let selectedAvatar = '🎮';
 
 export function initProfile() {
-  renderAvatarPicker();
+  // Open Edit Profile Modal
+  const btnOpenEdit = document.getElementById('btn-open-edit-profile');
+  if (btnOpenEdit) {
+    btnOpenEdit.onclick = () => {
+      const user = getCurrentUser();
+      if (user) {
+        const nameInput = document.getElementById('input-edit-name');
+        const bioInput = document.getElementById('input-edit-bio');
+        if (nameInput) nameInput.value = user.display_name || '';
+        if (bioInput) bioInput.value = user.bio || '';
+      }
+      const msgEl = document.getElementById('profile-save-message');
+      if (msgEl) msgEl.classList.add('hidden');
+      window.GameApp?.openModal('modal-edit-profile');
+    };
+  }
 
-  // Edit Profile Form Submission
+  // Open Account Settings Modal (Reference style)
+  const btnOpenSettings = document.getElementById('btn-open-account-settings');
+  if (btnOpenSettings) {
+    btnOpenSettings.onclick = () => {
+      const msgEl = document.getElementById('password-save-message');
+      if (msgEl) msgEl.classList.add('hidden');
+      window.GameApp?.openModal('modal-account-settings');
+    };
+  }
+
+  // Edit Profile Form Submission (Display Name, Bio)
   const formEdit = document.getElementById('form-edit-profile');
   if (formEdit) {
     formEdit.onsubmit = async (e) => {
@@ -18,6 +43,18 @@ export function initProfile() {
       await saveProfileChanges();
     };
   }
+
+  // Change Password Form Submission
+  const formPass = document.getElementById('form-change-password');
+  if (formPass) {
+    formPass.onsubmit = async (e) => {
+      e.preventDefault();
+      await changePassword();
+    };
+  }
+
+  // Preferences Toggles
+  initPreferences();
 
   // Logout Button
   const btnLogout = document.getElementById('btn-logout');
@@ -31,26 +68,35 @@ export function initProfile() {
   }
 }
 
-// Render Avatar Selection Grid
-function renderAvatarPicker() {
-  const container = document.getElementById('avatar-picker-options');
-  if (!container) return;
+// User Preferences setup
+function initPreferences() {
+  const soundToggle = document.getElementById('pref-sound');
+  const bubblesToggle = document.getElementById('pref-bubbles');
+  const invitesToggle = document.getElementById('pref-invites');
 
-  container.innerHTML = AVAILABLE_AVATARS.map(
-    (emoji) => `
-    <button type="button" class="avatar-opt-btn ${emoji === selectedAvatar ? 'active' : ''}" data-avatar="${emoji}">
-      ${emoji}
-    </button>
-  `
-  ).join('');
-
-  container.querySelectorAll('.avatar-opt-btn').forEach((btn) => {
-    btn.onclick = () => {
-      container.querySelectorAll('.avatar-opt-btn').forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedAvatar = btn.dataset.avatar;
+  if (soundToggle) {
+    soundToggle.checked = localStorage.getItem('gameroom_pref_sound') !== 'false';
+    soundToggle.onchange = () => {
+      localStorage.setItem('gameroom_pref_sound', soundToggle.checked);
+      window.GameApp?.showToast(`Sound effects ${soundToggle.checked ? 'enabled' : 'disabled'}`);
     };
-  });
+  }
+
+  if (bubblesToggle) {
+    bubblesToggle.checked = localStorage.getItem('gameroom_pref_bubbles') !== 'false';
+    bubblesToggle.onchange = () => {
+      localStorage.setItem('gameroom_pref_bubbles', bubblesToggle.checked);
+      window.GameApp?.showToast(`Chat bubbles ${bubblesToggle.checked ? 'enabled' : 'disabled'}`);
+    };
+  }
+
+  if (invitesToggle) {
+    invitesToggle.checked = localStorage.getItem('gameroom_pref_invites') !== 'false';
+    invitesToggle.onchange = () => {
+      localStorage.setItem('gameroom_pref_invites', invitesToggle.checked);
+      window.GameApp?.showToast(`Game challenges ${invitesToggle.checked ? 'allowed' : 'muted'}`);
+    };
+  }
 }
 
 // Load and populate User's Profile
@@ -94,38 +140,37 @@ export async function loadProfileData() {
 
     // Populate Edit Inputs
     selectedAvatar = user.avatar || '🎮';
-    renderAvatarPicker();
-
-    document.getElementById('input-edit-name').value = user.display_name;
-    document.getElementById('input-edit-bio').value = user.bio || '';
-    document.getElementById('input-curr-pass').value = '';
-    document.getElementById('input-new-pass').value = '';
+    const inputName = document.getElementById('input-edit-name');
+    const inputBio = document.getElementById('input-edit-bio');
+    if (inputName) inputName.value = user.display_name || '';
+    if (inputBio) inputBio.value = user.bio || '';
   } catch (err) {
     console.error('Failed to load profile:', err);
   }
 }
 
-// Save profile changes
+// Save profile changes (Display Name, Bio)
 async function saveProfileChanges() {
   const token = getToken();
   const msgEl = document.getElementById('profile-save-message');
-  msgEl.classList.add('hidden');
+  if (msgEl) msgEl.classList.add('hidden');
 
   const displayName = document.getElementById('input-edit-name').value.trim();
   const bio = document.getElementById('input-edit-bio').value.trim();
-  const currentPassword = document.getElementById('input-curr-pass').value;
-  const newPassword = document.getElementById('input-new-pass').value;
+
+  if (!displayName) {
+    if (msgEl) {
+      msgEl.textContent = 'Display name cannot be empty.';
+      msgEl.classList.remove('hidden');
+    }
+    return;
+  }
 
   const payload = {
     display_name: displayName,
     avatar: selectedAvatar,
     bio,
   };
-
-  if (newPassword) {
-    payload.current_password = currentPassword;
-    payload.new_password = newPassword;
-  }
 
   try {
     const res = await fetch('/api/profile', {
@@ -144,14 +189,69 @@ async function saveProfileChanges() {
 
     setSession(data.user);
     window.GameApp?.showToast('Profile updated successfully!', 'success');
+    window.GameApp?.closeModal('modal-edit-profile');
     loadProfileData();
+  } catch (err) {
+    if (msgEl) {
+      msgEl.textContent = err.message;
+      msgEl.classList.remove('hidden');
+    }
+  }
+}
 
-    // Clear password inputs
+// Change Password in Settings
+async function changePassword() {
+  const token = getToken();
+  const msgEl = document.getElementById('password-save-message');
+  if (msgEl) msgEl.classList.add('hidden');
+
+  const currPass = document.getElementById('input-curr-pass').value;
+  const newPass = document.getElementById('input-new-pass').value;
+  const confirmPass = document.getElementById('input-confirm-pass').value;
+
+  if (newPass !== confirmPass) {
+    if (msgEl) {
+      msgEl.textContent = 'New passwords do not match.';
+      msgEl.classList.remove('hidden');
+    }
+    return;
+  }
+
+  if (newPass.length < 6) {
+    if (msgEl) {
+      msgEl.textContent = 'New password must be at least 6 characters.';
+      msgEl.classList.remove('hidden');
+    }
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/profile', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        current_password: currPass,
+        new_password: newPass,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to change password');
+    }
+
+    window.GameApp?.showToast('Password changed successfully!', 'success');
     document.getElementById('input-curr-pass').value = '';
     document.getElementById('input-new-pass').value = '';
+    document.getElementById('input-confirm-pass').value = '';
   } catch (err) {
-    msgEl.textContent = err.message;
-    msgEl.classList.remove('hidden');
+    if (msgEl) {
+      msgEl.textContent = err.message;
+      msgEl.classList.remove('hidden');
+    }
   }
 }
 
