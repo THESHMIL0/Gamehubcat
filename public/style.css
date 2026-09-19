@@ -4355,7 +4355,7 @@ html.has-stored-auth #main-interface:not(.hidden) {
 .insta-input-container {
   padding: 0.55rem 0.85rem 0.75rem;
   background: #000000;
-  border-top: 1px solid #1a1a1a;
+  border-top: none;
   flex-shrink: 0;
   position: sticky;
   bottom: 0;
