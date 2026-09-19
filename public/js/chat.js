@@ -1,9 +1,9 @@
 // ==========================================
-// GameRoom — Real-Time Floating Chat Module
+// GameRoom — Real-Time Public Lobby Chat Module
 // ==========================================
 
 import { getSocket } from './socket.js';
-import { getCurrentUser } from './auth.js';
+import { getCurrentUser, getGuestInfo } from './auth.js';
 
 let activeRoomCode = null;
 
@@ -15,7 +15,7 @@ export function initChat() {
   const socket = getSocket();
   if (!socket) return;
 
-  // 1. Lobby Chat Submission
+  // 1. Public Lobby Chat Form Submission
   const formLobby = document.getElementById('form-lobby-chat');
   const inputLobby = document.getElementById('input-lobby-chat');
 
@@ -26,6 +26,29 @@ export function initChat() {
       if (!text) return;
       socket.emit('lobby_message', { text });
       inputLobby.value = '';
+      inputLobby.focus();
+    };
+  }
+
+  // Quick Reaction Buttons (Pills)
+  const reactionPills = document.querySelectorAll('.reaction-pill');
+  reactionPills.forEach((pill) => {
+    pill.onclick = () => {
+      const msg = pill.getAttribute('data-msg');
+      if (msg && socket.connected) {
+        socket.emit('lobby_message', { text: msg });
+      }
+    };
+  });
+
+  // Clear Local Chat Log button
+  const btnClearChat = document.getElementById('btn-clear-local-chat');
+  if (btnClearChat) {
+    btnClearChat.onclick = () => {
+      const log = document.getElementById('lobby-messages-log');
+      if (log) {
+        log.innerHTML = '<div class="chat-system-notice">Chat history cleared locally.</div>';
+      }
     };
   }
 
@@ -43,7 +66,7 @@ export function initChat() {
     };
   }
 
-  // Socket Listeners
+  // Socket Listeners for Lobby Chat
   socket.off('lobby_message');
   socket.on('lobby_message', (msg) => {
     spawnFloatingBubble('lobby-floating-bubbles', msg);
@@ -54,7 +77,18 @@ export function initChat() {
   socket.on('lobby_history', (history) => {
     const log = document.getElementById('lobby-messages-log');
     if (log) log.innerHTML = '';
-    history.forEach((m) => appendChatMessage('lobby-messages-log', m));
+    if (Array.isArray(history)) {
+      history.forEach((m) => appendChatMessage('lobby-messages-log', m));
+    }
+  });
+
+  // Online Players Count in Lobby
+  socket.off('lobby_online_count');
+  socket.on('lobby_online_count', ({ count }) => {
+    const countEl = document.getElementById('lobby-online-count-text');
+    if (countEl) {
+      countEl.textContent = `${count} Online in Lobby`;
+    }
   });
 
   socket.off('game_chat_message');
@@ -78,16 +112,17 @@ function spawnFloatingBubble(containerId, message) {
   const bubble = document.createElement('div');
   bubble.className = 'chat-bubble-floating';
 
-  // Apply randomized horizontal offset (Section 33)
-  const leftPercent = 20 + Math.floor(Math.random() * 50);
+  // Apply randomized horizontal offset
+  const leftPercent = 15 + Math.floor(Math.random() * 60);
   bubble.style.left = `${leftPercent}%`;
 
   const sender = message.sender || {};
-  const isMe = sender.id === getCurrentUser()?.id;
+  const current = getCurrentUser() || getGuestInfo();
+  const isMe = String(sender.id) === String(current?.id);
 
   bubble.innerHTML = `
-    <span class="chat-bubble-author" style="color: ${isMe ? '#10b981' : '#38bdf8'}">
-      ${escapeHtml(sender.avatar || '🎮')} ${escapeHtml(sender.display_name || 'Player')}:
+    <span class="chat-bubble-author" style="color: ${isMe ? '#10b981' : sender.isGuest ? '#f59e0b' : '#38bdf8'}">
+      ${escapeHtml(sender.avatar || '🐱')} ${escapeHtml(sender.display_name || sender.username || 'Player')}:
     </span>
     <span class="chat-bubble-text">${escapeHtml(message.text)}</span>
   `;
@@ -102,7 +137,7 @@ function spawnFloatingBubble(containerId, message) {
   }, 4200);
 }
 
-// Appends message to chat log list
+// Appends message to public chat log list
 function appendChatMessage(containerId, message) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -111,14 +146,31 @@ function appendChatMessage(containerId, message) {
   item.className = 'chat-log-item';
 
   const sender = message.sender || {};
-  const isMe = sender.id === getCurrentUser()?.id;
+  const current = getCurrentUser() || getGuestInfo();
+  const isMe = String(sender.id) === String(current?.id);
+  const isGuest = !!sender.isGuest || String(sender.id).startsWith('guest_');
+
+  const roleBadge = isGuest
+    ? `<span class="badge-tag badge-guest">Guest</span>`
+    : `<span class="badge-tag badge-member">Member</span>`;
+
+  const challengeBtn = (!isMe && !isGuest && sender.id)
+    ? `<button type="button" class="btn-chat-challenge" title="Challenge to a game" onclick="window.GameApp?.openInviteModal ? window.GameApp.openInviteModal(${sender.id}) : null">⚔️</button>`
+    : '';
 
   item.innerHTML = `
-    <span class="chat-time">${escapeHtml(message.timestamp || '')}</span>
-    <span class="chat-author" style="color: ${isMe ? '#10b981' : '#38bdf8'}" onclick="window.GameApp?.showPlayerProfile(${sender.id})">
-      ${escapeHtml(sender.avatar || '🎮')} ${escapeHtml(sender.display_name || 'Player')}:
-    </span>
-    <span class="chat-text">${escapeHtml(message.text)}</span>
+    <span class="chat-avatar">${escapeHtml(sender.avatar || '🐱')}</span>
+    <div class="chat-content-wrap">
+      <div class="chat-meta-row">
+        <span class="chat-author ${isMe ? 'chat-me' : isGuest ? 'chat-guest' : 'chat-member'}" onclick="window.GameApp?.showPlayerProfile && !${isGuest} ? window.GameApp.showPlayerProfile(${sender.id}) : null">
+          ${escapeHtml(sender.display_name || sender.username || 'Player')}
+        </span>
+        ${roleBadge}
+        <span class="chat-time">${escapeHtml(message.timestamp || '')}</span>
+        ${challengeBtn}
+      </div>
+      <div class="chat-text">${escapeHtml(message.text)}</div>
+    </div>
   `;
 
   container.appendChild(item);
@@ -131,3 +183,4 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+

@@ -171,3 +171,47 @@ export async function fetchCurrentUser() {
   }
 }
 
+// ==========================================
+// Guest / Public Lobby Session Helpers
+// ==========================================
+const GUEST_ID_KEY = 'gameroom_guest_id';
+const GUEST_NAME_KEY = 'gameroom_guest_name';
+const GUEST_AVATAR_KEY = 'gameroom_guest_avatar';
+
+export function getGuestInfo() {
+  try {
+    let id = localStorage.getItem(GUEST_ID_KEY);
+    if (!id) {
+      id = 'guest_' + Math.random().toString(36).substr(2, 7);
+      localStorage.setItem(GUEST_ID_KEY, id);
+    }
+    let name = localStorage.getItem(GUEST_NAME_KEY);
+    if (!name) {
+      name = 'Guest_' + Math.floor(1000 + Math.random() * 9000);
+      localStorage.setItem(GUEST_NAME_KEY, name);
+    }
+    let avatar = localStorage.getItem(GUEST_AVATAR_KEY);
+    if (!avatar) {
+      const avatars = ['🐱', '😺', '🐾', '🎮', '🐯', '😸', '🦊', '⚡'];
+      avatar = avatars[Math.floor(Math.random() * avatars.length)];
+      localStorage.setItem(GUEST_AVATAR_KEY, avatar);
+    }
+    return { id, name, avatar, isGuest: true };
+  } catch (e) {
+    return { id: 'guest_' + Math.random().toString(36).substr(2, 6), name: 'Guest_1234', avatar: '🐱', isGuest: true };
+  }
+}
+
+export function setGuestInfo(name, avatar) {
+  try {
+    if (name) localStorage.setItem(GUEST_NAME_KEY, String(name).trim().slice(0, 20));
+    if (avatar) localStorage.setItem(GUEST_AVATAR_KEY, String(avatar));
+  } catch (e) {}
+}
+
+export function isGuestUser(user) {
+  if (!user) return true;
+  return !!user.isGuest || String(user.id).startsWith('guest_');
+}
+
+

@@ -2,7 +2,7 @@
 // GameRoom — Real-Time Socket.IO Module
 // ==========================================
 
-import { getToken } from './auth.js';
+import { getToken, getGuestInfo } from './auth.js';
 
 let socket = null;
 let isReconnecting = false;
@@ -13,15 +13,25 @@ export function getSocket() {
 
 export function initSocket(onConnect, onDisconnect) {
   const token = getToken();
-  if (!token) return null;
+  const guest = getGuestInfo();
 
   if (socket && socket.connected) {
+    if (onConnect) onConnect(socket);
     return socket;
   }
 
-  // Connect to the same origin with auth token
+  // Connect to origin with token OR as public guest
+  const authPayload = token
+    ? { token }
+    : {
+        isGuest: true,
+        guestId: guest.id,
+        guestName: guest.name,
+        guestAvatar: guest.avatar,
+      };
+
   socket = window.io({
-    auth: { token },
+    auth: authPayload,
     reconnection: true,
     reconnectionAttempts: 20,
     reconnectionDelay: 1000,
@@ -63,6 +73,20 @@ export function initSocket(onConnect, onDisconnect) {
   });
 
   return socket;
+}
+
+export function updateGuestSocketProfile(name, avatar) {
+  if (socket && socket.connected) {
+    socket.emit('update_guest_profile', { name, avatar });
+  }
+}
+
+export function reconnectSocketWithAuth(token, onConnect) {
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
+  return initSocket(onConnect);
 }
 
 export function disconnectSocket() {

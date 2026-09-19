@@ -2,8 +2,8 @@
 // GameRoom — Main Application Orchestrator
 // ==========================================
 
-import { getToken, getCurrentUser, getLastUsername, login, register, resetPassword, fetchCurrentUser, fetchPublicAccounts } from './auth.js';
-import { initSocket, getSocket, disconnectSocket } from './socket.js';
+import { getToken, getCurrentUser, getLastUsername, login, register, resetPassword, fetchCurrentUser, fetchPublicAccounts, getGuestInfo, setGuestInfo, isGuestUser } from './auth.js';
+import { initSocket, getSocket, disconnectSocket, updateGuestSocketProfile, reconnectSocketWithAuth } from './socket.js';
 import { initLobby, setActiveRoom, getActiveRoom, leaveCurrentGameRoom } from './lobby.js';
 import { initFriends, loadFriendsData } from './friends.js';
 import { initProfile, loadProfileData, showPlayerProfileModal } from './profile.js';
@@ -16,7 +16,7 @@ import { initConnect4, updateConnect4State } from './games/connect4.js';
 class GameRoomApp {
   constructor() {
     this.currentUser = null;
-    this.currentView = 'auth';
+    this.currentView = 'home';
     this.activeMatchRoom = null;
   }
 
@@ -25,13 +25,14 @@ class GameRoomApp {
     this.bindNavigationEvents();
     this.bindModalEvents();
     this.bindGameControlEvents();
+    this.bindGuestProfileEvents();
 
     // Check if user has active session in localStorage
     const token = getToken();
     const cachedUser = getCurrentUser();
 
     if (token && cachedUser) {
-      // Immediately authenticate using cached user so UI never flickers to login or logs out on refresh
+      // Immediately authenticate using cached user so UI never flickers
       this.onAuthenticated(cachedUser);
 
       // Verify in background without disrupting the active user session
@@ -39,27 +40,58 @@ class GameRoomApp {
         if (data && data.user) {
           this.currentUser = data.user;
           this.updateHeaderUserInfo(data.user);
+          this.updateLobbyIdentityUI();
         }
       }).catch((e) => {
         console.warn('Session background sync notice:', e);
       });
     } else {
-      // Check if server session exists via cookie
+      // Check if server session exists via cookie or fall back to Public Guest Lobby
       try {
         const data = await fetchCurrentUser();
         if (data && data.user) {
           this.onAuthenticated(data.user);
         } else {
-          document.documentElement.classList.remove('has-stored-auth');
-          this.switchView('auth');
-          this.loadKnownAccountsHelper();
+          this.initGuestSession();
         }
       } catch (e) {
-        document.documentElement.classList.remove('has-stored-auth');
-        this.switchView('auth');
-        this.loadKnownAccountsHelper();
+        this.initGuestSession();
       }
     }
+  }
+
+  initGuestSession() {
+    const guest = getGuestInfo();
+    this.currentUser = {
+      id: guest.id,
+      username: guest.name,
+      display_name: guest.name,
+      avatar: guest.avatar,
+      isGuest: true,
+    };
+
+    this.updateHeaderUserInfo(this.currentUser);
+    this.updateLobbyIdentityUI();
+
+    // Ensure Main Interface is shown and auth modal is closed
+    document.getElementById('main-interface')?.classList.remove('hidden');
+    document.getElementById('modal-auth')?.classList.add('hidden');
+
+    this.switchView('home');
+
+    // Connect socket as Public Lobby Guest
+    initSocket(
+      (socket) => {
+        this.setupSocketGameListeners(socket);
+        initChat();
+        initInvitations();
+        initFriends();
+        initLobby();
+      },
+      () => {
+        // Disconnected
+      }
+    );
   }
 
   // ==========================================
@@ -267,18 +299,116 @@ class GameRoomApp {
     const nameEl = document.getElementById('header-username') || document.getElementById('header-display-name');
     if (nameEl) nameEl.textContent = user.display_name || user.username;
     const avatarEl = document.getElementById('header-avatar');
-    if (avatarEl) avatarEl.textContent = user.avatar || '🎮';
+    if (avatarEl) avatarEl.textContent = user.avatar || '🐱';
+
+    const isGuest = isGuestUser(user);
+    const authBtn = document.getElementById('btn-header-auth');
+    if (authBtn) {
+      authBtn.classList.toggle('hidden', !isGuest);
+    }
+  }
+
+  updateLobbyIdentityUI() {
+    const user = this.currentUser || getGuestInfo();
+    const avatarEl = document.getElementById('lobby-identity-avatar');
+    const nameEl = document.getElementById('lobby-identity-name');
+    const tagEl = document.getElementById('lobby-identity-tag');
+    const chatAvatarEl = document.getElementById('chat-sender-avatar');
+
+    if (avatarEl) avatarEl.textContent = user.avatar || '🐱';
+    if (nameEl) nameEl.textContent = user.display_name || user.username || 'Guest';
+    if (chatAvatarEl) chatAvatarEl.textContent = user.avatar || '🐱';
+
+    const isGuest = isGuestUser(user);
+    if (tagEl) {
+      tagEl.textContent = isGuest ? 'Guest' : 'Member';
+      tagEl.className = isGuest ? 'identity-tag badge-guest' : 'identity-tag badge-member';
+    }
+
+    const editNameBtn = document.getElementById('btn-edit-guest-name');
+    if (editNameBtn) {
+      editNameBtn.style.display = isGuest ? 'inline-flex' : 'none';
+    }
+
+    const lobbyAuthBtn = document.getElementById('btn-lobby-auth');
+    if (lobbyAuthBtn) {
+      lobbyAuthBtn.style.display = isGuest ? 'inline-flex' : 'none';
+    }
+  }
+
+  bindGuestProfileEvents() {
+    const btnEdit = document.getElementById('btn-edit-guest-name');
+    if (btnEdit) {
+      btnEdit.onclick = () => {
+        const modal = document.getElementById('modal-guest-profile');
+        const input = document.getElementById('input-guest-nickname');
+        if (input) input.value = this.currentUser?.display_name || '';
+        if (modal) modal.classList.remove('hidden');
+      };
+    }
+
+    const avatarBtns = document.querySelectorAll('#guest-avatar-picker .avatar-pick-btn');
+    avatarBtns.forEach((btn) => {
+      btn.onclick = () => {
+        avatarBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+      };
+    });
+
+    const btnSave = document.getElementById('btn-save-guest-profile');
+    if (btnSave) {
+      btnSave.onclick = () => {
+        const input = document.getElementById('input-guest-nickname');
+        const activeAvatarBtn = document.querySelector('#guest-avatar-picker .avatar-pick-btn.active');
+        const name = (input?.value || '').trim();
+        const avatar = activeAvatarBtn?.getAttribute('data-avatar') || '🐱';
+
+        if (!name || name.length < 2) {
+          this.showToast('Please enter at least 2 characters for your name.', 'warning');
+          return;
+        }
+
+        setGuestInfo(name, avatar);
+        if (this.currentUser && isGuestUser(this.currentUser)) {
+          this.currentUser.display_name = name;
+          this.currentUser.username = name;
+          this.currentUser.avatar = avatar;
+        }
+        updateGuestSocketProfile(name, avatar);
+        this.updateHeaderUserInfo(this.currentUser);
+        this.updateLobbyIdentityUI();
+        this.closeModal('modal-guest-profile');
+        this.showToast(`Updated name to ${name}!`, 'success');
+      };
+    }
+
+    // Header and Lobby Auth button triggers
+    const btnHeaderAuth = document.getElementById('btn-header-auth');
+    if (btnHeaderAuth) {
+      btnHeaderAuth.onclick = () => this.openAuthModal();
+    }
+
+    const btnLobbyAuth = document.getElementById('btn-lobby-auth');
+    if (btnLobbyAuth) {
+      btnLobbyAuth.onclick = () => this.openAuthModal();
+    }
+  }
+
+  openAuthModal() {
+    this.openModal('modal-auth');
+    this.clearAuthErrors();
+    this.loadKnownAccountsHelper();
   }
 
   onAuthenticated(user) {
     this.currentUser = user;
 
-    // Update Header
-    const nameEl = document.getElementById('header-username') || document.getElementById('header-display-name');
-    if (nameEl) nameEl.textContent = user.display_name || user.username;
-    
-    const avatarEl = document.getElementById('header-avatar');
-    if (avatarEl) avatarEl.textContent = user.avatar || '🎮';
+    // Close auth modal
+    this.closeModal('modal-auth');
+
+    // Update Header and Lobby
+    this.updateHeaderUserInfo(user);
+    this.updateLobbyIdentityUI();
 
     // Show Main Interface
     document.getElementById('main-interface')?.classList.remove('hidden');
@@ -287,23 +417,20 @@ class GameRoomApp {
     // Switch to Home View
     this.switchView('home');
 
-    // Initialize Real-time modules
-    initSocket(
-      (socket) => {
-        this.setupSocketGameListeners(socket);
-        initChat();
-        initInvitations();
-        initFriends();
-        initLobby();
-      },
-      () => {
-        // Disconnected
-      }
-    );
+    // Reconnect Socket with token
+    const token = getToken();
+    reconnectSocketWithAuth(token, (socket) => {
+      this.setupSocketGameListeners(socket);
+      initChat();
+      initInvitations();
+      initFriends();
+      initLobby();
+    });
 
     initProfile();
     loadProfileData();
     loadFriendsData();
+    this.showToast(`Welcome back, ${user.display_name || user.username}!`, 'success');
   }
 
   // ==========================================
@@ -348,11 +475,13 @@ class GameRoomApp {
   }
 
   switchView(viewName) {
-    this.currentView = viewName;
+    if (viewName === 'auth') {
+      this.openAuthModal();
+      return;
+    }
 
-    const isAuth = viewName === 'auth';
-    document.getElementById('view-auth')?.classList.toggle('hidden', !isAuth);
-    document.getElementById('main-interface')?.classList.toggle('hidden', isAuth);
+    this.currentView = viewName;
+    document.getElementById('main-interface')?.classList.remove('hidden');
 
     // Hide all content views, activate target view
     document.querySelectorAll('.content-view').forEach((v) => v.classList.remove('active'));

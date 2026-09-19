@@ -8,7 +8,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { dbRun, dbGet, dbAll, initDb, getPublicAccounts } from './database.js';
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'gameroom_super_secret_jwt_key_production_ready';
 
 const app = express();
@@ -691,21 +691,54 @@ function notifyFriendStatusChange(user1, user2, status) {
   sendSocketToUser(user2, 'friend_status_updated', { friendId: user1, status });
 }
 
-// Socket authentication middleware
-io.use((socket, next) => {
+// Helper: Broadcast current public lobby count
+function emitLobbyOnlineCount() {
+  const count = connectedUsers.size || 1;
+  io.to('lobby').emit('lobby_online_count', { count });
+}
+
+// Socket authentication & guest middleware (Allows public lobby access)
+io.use(async (socket, next) => {
   const token = socket.handshake.auth?.token || socket.handshake.query?.token;
-  if (!token) {
-    return next(new Error('Authentication token missing'));
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const user = await dbGet('SELECT id, username, display_name, avatar, bio FROM users WHERE id = ?', [decoded.id]);
+      if (user) {
+        socket.userId = user.id;
+        socket.username = user.username;
+        socket.user = { ...user, isGuest: false };
+        socket.isGuest = false;
+        return next();
+      }
+    } catch (err) {
+      // Invalid/expired token - gracefully fallback to guest so visitors can still chat!
+    }
   }
 
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    socket.userId = decoded.id;
-    socket.username = decoded.username;
-    next();
-  } catch (err) {
-    next(new Error('Invalid socket token'));
+  // Fallback: Public Lobby Guest Session
+  const guestAuth = socket.handshake.auth || {};
+  let guestName = sanitizeText(guestAuth.guestName || '').slice(0, 20);
+  if (!guestName || guestName.length < 2) {
+    guestName = 'Guest_' + Math.floor(1000 + Math.random() * 9000);
   }
+  const guestAvatar = guestAuth.guestAvatar || '🐱';
+  const guestId = guestAuth.guestId || ('guest_' + Math.random().toString(36).substr(2, 7));
+
+  socket.userId = guestId;
+  socket.username = guestName;
+  socket.isGuest = true;
+  socket.user = {
+    id: guestId,
+    username: guestName,
+    display_name: guestName,
+    avatar: guestAvatar,
+    bio: 'Public Lobby Visitor',
+    isGuest: true,
+  };
+
+  next();
 });
 
 // Socket.IO Event Handlers
@@ -713,22 +746,17 @@ io.on('connection', async (socket) => {
   const userId = socket.userId;
   socketToUser.set(socket.id, userId);
 
-  // Fetch full user profile
-  const user = await dbGet('SELECT id, username, display_name, avatar, bio FROM users WHERE id = ?', [userId]);
-  if (!user) {
-    socket.disconnect(true);
-    return;
-  }
-
-  socket.user = user;
+  // Use prepared user from middleware
+  const user = socket.user;
 
   // Track connected user
   if (!connectedUsers.has(userId)) {
     connectedUsers.set(userId, {
       socketIds: new Set([socket.id]),
       user,
-      status: 'Online',
+      status: 'Online in Lobby',
       roomCode: null,
+      isGuest: socket.isGuest,
     });
   } else {
     connectedUsers.get(userId).socketIds.add(socket.id);
@@ -737,18 +765,44 @@ io.on('connection', async (socket) => {
   // Join global lobby room for live lobby chat & presence broadcasts
   socket.join('lobby');
 
-  // Broadcast presence to friends and lobby
-  broadcastPresenceUpdate(userId);
+  // Broadcast updated lobby online count
+  emitLobbyOnlineCount();
+
+  // Broadcast presence for registered users
+  if (!socket.isGuest) {
+    broadcastPresenceUpdate(userId);
+  }
 
   // Send initial recent lobby chat to newly connected socket
-  socket.emit('lobby_history', lobbyChatHistory.slice(-25));
+  socket.emit('lobby_history', lobbyChatHistory.slice(-35));
+
+  // Handle Guest Profile / Nickname Update on the fly
+  socket.on('update_guest_profile', (data) => {
+    if (!socket.isGuest) return;
+    const newName = sanitizeText(data?.name || '').slice(0, 20);
+    const newAvatar = data?.avatar || '🐱';
+    if (newName && newName.length >= 2) {
+      socket.username = newName;
+      socket.user.username = newName;
+      socket.user.display_name = newName;
+    }
+    if (newAvatar) {
+      socket.user.avatar = newAvatar;
+    }
+    const tracked = connectedUsers.get(userId);
+    if (tracked) {
+      tracked.user = socket.user;
+    }
+    socket.emit('guest_profile_updated', socket.user);
+    emitLobbyOnlineCount();
+  });
 
   // Handle Lobby Chat Message
   socket.on('lobby_message', (data) => {
     try {
       const now = Date.now();
       const lastMsg = chatRateLimits.get(userId) || 0;
-      if (now - lastMsg < 400) {
+      if (now - lastMsg < 350) {
         return socket.emit('chat_error', { message: 'Slow down! Sending messages too quickly.' });
       }
       chatRateLimits.set(userId, now);
@@ -1221,9 +1275,14 @@ io.on('connection', async (socket) => {
       userData.socketIds.delete(socket.id);
       if (userData.socketIds.size === 0) {
         connectedUsers.delete(userId);
-        broadcastPresenceUpdate(userId);
+        if (!socket.isGuest) {
+          broadcastPresenceUpdate(userId);
+        }
       }
     }
+
+    // Broadcast updated lobby online count
+    emitLobbyOnlineCount();
 
     // Handle game room disconnect
     handlePlayerSocketDisconnect(socket);
@@ -1746,6 +1805,11 @@ function checkConnectFourWin(board, r, c, symbol) {
 // Database stats helper
 async function recordGameResult(gameType, p1Id, p2Id, winnerId, result) {
   try {
+    // Only record in database for registered member accounts (numeric IDs)
+    if (typeof p1Id !== 'number' || typeof p2Id !== 'number') {
+      return;
+    }
+
     // Insert history
     await dbRun(
       'INSERT INTO game_history (game_type, player1_id, player2_id, winner_id, result) VALUES (?, ?, ?, ?, ?)',
@@ -1753,7 +1817,7 @@ async function recordGameResult(gameType, p1Id, p2Id, winnerId, result) {
     );
 
     // Update stats
-    if (result === 'win' && winnerId) {
+    if (result === 'win' && winnerId && typeof winnerId === 'number') {
       const loserId = winnerId === p1Id ? p2Id : p1Id;
       await dbRun('UPDATE stats SET games_played = games_played + 1, wins = wins + 1 WHERE user_id = ?', [winnerId]);
       await dbRun('UPDATE stats SET games_played = games_played + 1, losses = losses + 1 WHERE user_id = ?', [loserId]);

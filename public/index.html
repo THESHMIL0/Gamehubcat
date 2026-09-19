@@ -31,10 +31,11 @@
   <div id="app" class="app-root">
 
     <!-- ========================================== -->
-    <!-- AUTHENTICATION VIEW (Login / Register)     -->
+    <!-- AUTHENTICATION MODAL (Login / Register)    -->
     <!-- ========================================== -->
-    <section id="view-auth" class="view view-auth">
-      <div class="auth-card glass-panel">
+    <div id="modal-auth" class="modal-backdrop hidden">
+      <div class="auth-card glass-panel auth-modal-card">
+        <button type="button" class="modal-close-btn auth-close-btn" data-close-modal="modal-auth" title="Close">✕</button>
         <div class="auth-header">
           <div class="brand-badge">
             <span class="brand-icon">
@@ -127,12 +128,15 @@
           <div id="known-accounts-list" style="display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center;"></div>
         </div>
       </div>
-    </section>
+    </div>
+
+    <!-- Legacy / Standalone View Auth Container for fallback -->
+    <section id="view-auth" class="view view-auth hidden"></section>
 
     <!-- ========================================== -->
-    <!-- LOGGED IN MAIN INTERFACE                   -->
+    <!-- PUBLIC MAIN INTERFACE (Open to all visitors)-->
     <!-- ========================================== -->
-    <div id="main-interface" class="main-interface hidden">
+    <div id="main-interface" class="main-interface">
 
       <!-- Top Navigation Header -->
       <header id="main-header" class="main-header glass-panel">
@@ -174,9 +178,14 @@
             <span class="status-label" id="connection-status-text">Connected</span>
           </div>
 
+          <!-- Log In / Sign Up Button for Guests -->
+          <button type="button" id="btn-header-auth" class="btn btn-sm btn-primary header-auth-btn">
+            <span>Log In / Sign Up</span>
+          </button>
+
           <!-- Circular Profile Avatar Button -->
           <button id="header-avatar-btn" class="header-avatar-btn" title="View Profile">
-            <span id="header-avatar" class="avatar-circle">🎮</span>
+            <span id="header-avatar" class="avatar-circle">🐱</span>
           </button>
         </div>
       </header>
@@ -184,93 +193,164 @@
       <!-- Main Content Views Container -->
       <main id="view-container" class="view-container">
 
-        <!-- 1. HOME SCREEN (Section 9 & 65) -->
-        <section id="view-home" class="content-view active">
-          <!-- Compact Quick Room Code Join Strip -->
-          <div class="quick-join-strip glass-panel">
-            <input type="text" id="input-quick-room-code" placeholder="ENTER ROOM CODE..." maxlength="6" class="input-field code-input" uppercase>
-            <button type="button" id="btn-quick-join" class="btn btn-primary btn-sm">Join Room</button>
-          </div>
-
-          <!-- Compact Quick Games Grid -->
-          <div class="section-card glass-panel home-games-section">
-            <div class="section-header compact">
-              <h3 class="section-title">Games</h3>
-            </div>
-            <div class="games-grid-compact">
-              <!-- Tic-Tac-Toe -->
-              <div class="game-card-mini glass-card" data-game="tictactoe">
-                <div class="mini-icon-wrap">
-                  <img src="/assets/logo-tictactoe.svg" alt="Tic-Tac-Toe" class="game-logo-badge">
-                </div>
-                <div class="mini-info">
-                  <h4>Tic-Tac-Toe</h4>
-                  <span class="mini-sub">3x3 Duel</span>
-                </div>
-                <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="tictactoe">
-                  Play
-                </button>
+        <!-- 1. HOME SCREEN: PUBLIC CHAT LOBBY -->
+        <section id="view-home" class="content-view active view-home-lobby">
+          
+          <!-- Top Hero Strip: Public Lobby Info & Chatter Status -->
+          <div class="lobby-hero-bar glass-panel">
+            <div class="lobby-hero-left">
+              <div class="lobby-badge-pulse">
+                <span class="live-pulse-dot"></span>
+                <span class="lobby-badge-text">PUBLIC LOBBY</span>
               </div>
+              <h2 class="lobby-headline">Live Public Chat</h2>
+              <span class="lobby-online-indicator">
+                <span class="online-users-dot"></span>
+                <span id="lobby-online-count-text">1 Online in Lobby</span>
+              </span>
+            </div>
 
-              <!-- Rock Paper Scissors -->
-              <div class="game-card-mini glass-card" data-game="rps">
-                <div class="mini-icon-wrap">
-                  <img src="/assets/logo-rps.svg" alt="Rock Paper Scissors" class="game-logo-badge">
+            <div class="lobby-hero-right">
+              <div class="lobby-user-identity-chip" id="lobby-user-identity-chip">
+                <span class="identity-avatar" id="lobby-identity-avatar">🐱</span>
+                <div class="identity-meta">
+                  <div class="identity-name-row">
+                    <span class="identity-name" id="lobby-identity-name">Guest</span>
+                    <span class="identity-tag badge-guest" id="lobby-identity-tag">Guest</span>
+                  </div>
+                  <button type="button" class="btn-text-action" id="btn-edit-guest-name">Edit Name ✏️</button>
                 </div>
-                <div class="mini-info">
-                  <h4>RPS</h4>
-                  <span class="mini-sub">Best of 5</span>
-                </div>
-                <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="rps">
-                  Play
-                </button>
               </div>
-
-              <!-- Connect Four -->
-              <div class="game-card-mini glass-card" data-game="connect4">
-                <div class="mini-icon-wrap">
-                  <img src="/assets/logo-connect4.svg" alt="Connect Four" class="game-logo-badge">
-                </div>
-                <div class="mini-info">
-                  <h4>Connect 4</h4>
-                  <span class="mini-sub">4 in a row</span>
-                </div>
-                <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="connect4">
-                  Play
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Friends Online Section -->
-          <div class="section-card glass-panel home-friends-section">
-            <div class="section-header compact">
-              <h3 class="section-title">Online Friends</h3>
-              <button type="button" class="btn btn-sm btn-ghost" id="btn-view-all-friends">All Friends →</button>
-            </div>
-            <div id="home-online-friends-list" class="friends-horizontal-list">
-              <div class="empty-state-hint">Loading friends...</div>
-            </div>
-          </div>
-
-          <!-- General Home / Lobby Chat -->
-          <div class="section-card glass-panel lobby-chat-container">
-            <div class="section-header compact">
-              <h3 class="section-title">Lobby Chat</h3>
-              <span class="live-pulse-badge">Live</span>
-            </div>
-            <div class="lobby-chat-wrapper">
-              <!-- Floating bubbles container -->
-              <div id="lobby-floating-bubbles" class="floating-bubbles-area"></div>
-              <!-- Recent Messages Log list -->
-              <div id="lobby-messages-log" class="chat-log-list"></div>
-            </div>
-            <form id="form-lobby-chat" class="chat-input-bar">
-              <input type="text" id="input-lobby-chat" class="input-field chat-input" placeholder="Say something..." maxlength="150" autocomplete="off">
-              <button type="submit" class="btn btn-primary btn-icon-only btn-sm" title="Send message">
-                <span>➤</span>
+              <button type="button" class="btn btn-sm btn-outline-primary" id="btn-lobby-auth">
+                <span>Log In / Sign Up</span>
               </button>
-            </form>
+            </div>
+          </div>
+
+          <!-- Main Home Grid: Expansive Chat (Main) + Quick Play & Room Join (Sidebar) -->
+          <div class="lobby-main-grid">
+
+            <!-- Primary Centerpiece: Full Public Chat Section -->
+            <div class="section-card glass-panel public-lobby-chat-card">
+              <div class="lobby-chat-top-header">
+                <div class="chat-header-title-wrap">
+                  <span class="chat-header-icon">💬</span>
+                  <div>
+                    <h3 class="chat-header-title">Public Lobby Stream</h3>
+                    <p class="chat-header-sub">Anyone can chat, talk games, or share room codes!</p>
+                  </div>
+                </div>
+                <div class="chat-header-actions">
+                  <span class="live-pulse-badge">Live</span>
+                  <button type="button" class="btn btn-xs btn-ghost" id="btn-clear-local-chat" title="Clear local chat view">Clear</button>
+                </div>
+              </div>
+
+              <!-- Live Messages Scroll Container -->
+              <div class="public-chat-viewport">
+                <!-- Floating bubbles overlay -->
+                <div id="lobby-floating-bubbles" class="floating-bubbles-area"></div>
+                <!-- Chat Messages Stream -->
+                <div id="lobby-messages-log" class="public-messages-log">
+                  <div class="chat-welcome-notice">
+                    <span class="welcome-icon">🐾</span>
+                    <div>
+                      <strong>Welcome to the Public Lobby!</strong>
+                      <p>Send a message below, react with emojis, or challenge someone to a match.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Clickable Reactions / Quick Chat Bar -->
+              <div class="quick-reactions-strip">
+                <span class="reactions-label">Quick:</span>
+                <button type="button" class="reaction-pill" data-msg="👋 Hello everyone!">👋 Hello!</button>
+                <button type="button" class="reaction-pill" data-msg="🐱 Meow!">🐱 Meow!</button>
+                <button type="button" class="reaction-pill" data-msg="⚔️ Anyone want to play Tic-Tac-Toe?">⚔️ TicTacToe?</button>
+                <button type="button" class="reaction-pill" data-msg="🎮 Looking for a Connect 4 opponent!">🎮 Connect 4?</button>
+                <button type="button" class="reaction-pill" data-msg="✊ RPS duel anyone?">✊ RPS?</button>
+                <button type="button" class="reaction-pill" data-msg="🔥 GG!">🔥 GG!</button>
+                <button type="button" class="reaction-pill" data-msg="😂 LOL">😂 LOL</button>
+              </div>
+
+              <!-- Public Chat Input Bar -->
+              <form id="form-lobby-chat" class="public-chat-input-bar">
+                <div class="input-with-avatar">
+                  <span class="input-sender-avatar" id="chat-sender-avatar">🐱</span>
+                  <input type="text" id="input-lobby-chat" class="input-field public-chat-input" placeholder="Type a message to the public lobby... (Press Enter)" maxlength="150" autocomplete="off" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-send-chat" title="Send message">
+                  <span>Send</span>
+                  <span class="send-arrow">➤</span>
+                </button>
+              </form>
+            </div>
+
+            <!-- Sidebar: Quick Play & Join by Code -->
+            <div class="lobby-side-panel">
+              <!-- Quick Room Code Join Card -->
+              <div class="section-card glass-panel side-join-card">
+                <div class="side-card-header">
+                  <span class="side-icon">🔑</span>
+                  <h4>Join by Room Code</h4>
+                </div>
+                <p class="side-card-desc">Got a code from lobby chat? Enter it here:</p>
+                <div class="quick-join-strip-compact">
+                  <input type="text" id="input-quick-room-code" placeholder="ROOM CODE..." maxlength="6" class="input-field code-input" uppercase>
+                  <button type="button" id="btn-quick-join" class="btn btn-primary btn-sm">Join</button>
+                </div>
+              </div>
+
+              <!-- Quick Play Games -->
+              <div class="section-card glass-panel side-games-card">
+                <div class="side-card-header">
+                  <span class="side-icon">🎮</span>
+                  <h4>Play Mini-Games</h4>
+                </div>
+                <div class="side-games-list">
+                  <div class="side-game-item glass-card" data-game="tictactoe">
+                    <img src="/assets/logo-tictactoe.svg" alt="Tic-Tac-Toe" class="side-game-img">
+                    <div class="side-game-meta">
+                      <span class="side-game-name">Tic-Tac-Toe</span>
+                      <span class="side-game-tag">3x3 Duel</span>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-xs btn-game-play" data-game="tictactoe">Host</button>
+                  </div>
+
+                  <div class="side-game-item glass-card" data-game="rps">
+                    <img src="/assets/logo-rps.svg" alt="Rock Paper Scissors" class="side-game-img">
+                    <div class="side-game-meta">
+                      <span class="side-game-name">Rock Paper Scissors</span>
+                      <span class="side-game-tag">Best of 5</span>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-xs btn-game-play" data-game="rps">Host</button>
+                  </div>
+
+                  <div class="side-game-item glass-card" data-game="connect4">
+                    <img src="/assets/logo-connect4.svg" alt="Connect Four" class="side-game-img">
+                    <div class="side-game-meta">
+                      <span class="side-game-name">Connect 4</span>
+                      <span class="side-game-tag">4 in a row</span>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-xs btn-game-play" data-game="connect4">Host</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Online Friends Card (For Logged-in Members) -->
+              <div class="section-card glass-panel side-friends-card" id="home-friends-card">
+                <div class="side-card-header">
+                  <span class="side-icon">👥</span>
+                  <h4>Online Friends</h4>
+                  <button type="button" class="btn btn-xs btn-ghost" id="btn-view-all-friends">All →</button>
+                </div>
+                <div id="home-online-friends-list" class="friends-side-list">
+                  <div class="empty-state-hint">Log in to add friends and send direct invites!</div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </section>
 
@@ -1101,6 +1181,34 @@
             Close
           </button>
         </div>
+      </div>
+    </div>
+  <!-- Guest Nickname & Avatar Editor Modal -->
+  <div id="modal-guest-profile" class="modal-backdrop hidden">
+    <div class="modal-card glass-panel modal-sm">
+      <div class="modal-header">
+        <h3 class="modal-title">Choose Chat Identity</h3>
+        <button type="button" class="modal-close-btn" data-close-modal="modal-guest-profile">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Pick an Avatar</label>
+          <div class="avatar-picker-grid" id="guest-avatar-picker">
+            <button type="button" class="avatar-pick-btn active" data-avatar="🐱">🐱</button>
+            <button type="button" class="avatar-pick-btn" data-avatar="😺">😺</button>
+            <button type="button" class="avatar-pick-btn" data-avatar="🐾">🐾</button>
+            <button type="button" class="avatar-pick-btn" data-avatar="🎮">🎮</button>
+            <button type="button" class="avatar-pick-btn" data-avatar="🐯">🐯</button>
+            <button type="button" class="avatar-pick-btn" data-avatar="🦊">🦊</button>
+            <button type="button" class="avatar-pick-btn" data-avatar="⚡">⚡</button>
+            <button type="button" class="avatar-pick-btn" data-avatar="🚀">🚀</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="input-guest-nickname">Display Name</label>
+          <input type="text" id="input-guest-nickname" class="input-field" maxlength="20" placeholder="e.g. CatLover_42">
+        </div>
+        <button type="button" id="btn-save-guest-profile" class="btn btn-primary btn-block">Save Name</button>
       </div>
     </div>
   </div>
