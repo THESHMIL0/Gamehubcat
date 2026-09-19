@@ -576,7 +576,7 @@ class GameRoomApp {
       hintEl.classList.add('hidden');
     }
     if (btnRematch) {
-      btnRematch.textContent = 'Play Again / Rematch';
+      btnRematch.textContent = 'Play Again';
       btnRematch.className = 'btn btn-primary';
       btnRematch.disabled = false;
     }
