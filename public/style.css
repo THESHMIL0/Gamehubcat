@@ -35,7 +35,7 @@
   --radius-lg: 20px;
   --radius-full: 9999px;
 
-  --header-height: 64px;
+  --header-height: 0px;
   --nav-height: 64px;
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -507,23 +507,12 @@ html.has-stored-auth #main-interface:not(.hidden) {
    MAIN INTERFACE & NAVIGATION
    =================================================== */
 .main-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 0.9rem;
-  border-radius: 0;
-  border-top: none;
-  border-left: none;
-  border-right: none;
-  border-bottom: 1px solid #1f1f1f;
-  background: rgba(14, 14, 18, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  flex-shrink: 0;
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
 }
 
 .header-left {
@@ -642,16 +631,16 @@ html.has-stored-auth #main-interface:not(.hidden) {
   min-width: 0;
 }
 
-/* Clean mobile phone layout for views between header (52px) and bottom nav (60px) */
+/* Clean mobile phone layout for views with bottom nav (60px) and zero top header */
 .view-container.active-view-profile,
 .view-container.active-view-games,
 .view-container:has(#view-profile.active),
 .view-container[data-active-view="profile"],
 .view-container:has(#view-games.active),
 .view-container[data-active-view="games"] {
-  min-height: calc(100dvh - 52px - 60px);
-  height: calc(100dvh - 52px - 60px);
-  max-height: calc(100dvh - 52px - 60px);
+  min-height: calc(100dvh - 60px);
+  height: calc(100dvh - 60px);
+  max-height: calc(100dvh - 60px);
   padding: 0.5rem 0.65rem;
   display: flex;
   flex-direction: column;
@@ -662,9 +651,9 @@ html.has-stored-auth #main-interface:not(.hidden) {
 .view-container.active-view-home,
 .view-container:has(#view-home.active),
 .view-container[data-active-view="home"] {
-  min-height: calc(100dvh - 52px - 60px) !important;
-  height: calc(100dvh - 52px - 60px) !important;
-  max-height: calc(100dvh - 52px - 60px) !important;
+  min-height: calc(100dvh - 60px) !important;
+  height: calc(100dvh - 60px) !important;
+  max-height: calc(100dvh - 60px) !important;
   padding: 0 !important;
   margin: 0 !important;
   display: flex !important;
@@ -675,7 +664,7 @@ html.has-stored-auth #main-interface:not(.hidden) {
 .view-container.active-view-friends,
 .view-container:has(#view-friends.active),
 .view-container[data-active-view="friends"] {
-  min-height: calc(100dvh - 52px - 60px);
+  min-height: calc(100dvh - 60px);
   padding: 0.65rem 0.65rem 70px;
   box-sizing: border-box;
   overflow-y: auto;
@@ -3299,12 +3288,12 @@ html.has-stored-auth #main-interface:not(.hidden) {
   }
 
   .main-header {
-    padding: 0 1rem;
-    height: 56px;
+    display: none !important;
+    height: 0 !important;
   }
 
   :root {
-    --header-height: 56px;
+    --header-height: 0px;
     --nav-height: 58px;
   }
 

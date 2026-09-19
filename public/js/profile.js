@@ -2,7 +2,7 @@
 // GameRoom — Profile & Player Details Module
 // ==========================================
 
-import { getToken, getCurrentUser, setSession, logout } from './auth.js';
+import { getToken, getCurrentUser, setSession, logout, isGuestUser } from './auth.js';
 
 const AVAILABLE_AVATARS = ['🎮', '⚡', '🔥', '👾', '🚀', '👑', '🎯', '🐱', '🐺', '🦊', '🐉', '🏆'];
 let selectedAvatar = '🎮';
@@ -68,7 +68,14 @@ export function initProfile() {
   // Preferences Toggles
   initPreferences();
 
-  // Logout Button
+  // Auth & Logout Buttons
+  const btnAuth = document.getElementById('btn-profile-auth');
+  if (btnAuth) {
+    btnAuth.onclick = () => {
+      window.GameApp?.openModal('modal-auth');
+    };
+  }
+
   const btnLogout = document.getElementById('btn-logout');
   if (btnLogout) {
     btnLogout.onclick = async () => {
@@ -157,6 +164,12 @@ function populateProfileUI(user, stats = null) {
   const inputBio = document.getElementById('input-edit-bio');
   if (inputName && !inputName.value) inputName.value = user.display_name || '';
   if (inputBio && !inputBio.value) inputBio.value = user.bio || '';
+
+  const isGuest = isGuestUser(user);
+  const btnAuthEl = document.getElementById('btn-profile-auth');
+  const btnLogoutEl = document.getElementById('btn-logout');
+  if (btnAuthEl) btnAuthEl.classList.toggle('hidden', !isGuest);
+  if (btnLogoutEl) btnLogoutEl.classList.toggle('hidden', isGuest);
 }
 
 // Load and populate User's Profile
