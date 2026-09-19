@@ -263,6 +263,10 @@ export async function openDmChat(friendId) {
     chatPage.classList.add('active');
   }
 
+  // Instagram Experience: Hide mobile bottom navigation so DM input box is 100% visible at the bottom
+  document.body.classList.add('in-dm-chat');
+  document.getElementById('mobile-bottom-nav')?.classList.add('hidden');
+
   // Populate Header
   const headerAvatar = document.getElementById('dm-chat-header-avatar');
   const headerOnlinePip = document.getElementById('dm-chat-header-online-pip');
@@ -352,6 +356,10 @@ export function closeDmChat() {
     inbox.classList.remove('hidden');
     inbox.classList.add('active');
   }
+
+  // Restore mobile bottom nav when leaving DM chat back to inbox
+  document.body.classList.remove('in-dm-chat');
+  document.getElementById('mobile-bottom-nav')?.classList.remove('hidden');
 
   loadFriendsData();
 }
@@ -624,7 +632,10 @@ function renderFriendsList() {
       <div class="insta-dm-empty">
         <div class="insta-dm-empty-icon">💬</div>
         <h4>Your Messages</h4>
-        <p>Send invites and challenge friends to live duels right from your inbox. Search for players above to get started!</p>
+        <p>Send direct messages and challenge players to live duels right from your inbox.</p>
+        <button type="button" class="btn-insta-req-confirm" style="margin-top: 14px; padding: 10px 22px; font-size: 0.9rem;" onclick="const inp = document.getElementById('input-friends-search'); if (inp) { inp.focus(); }">
+          🔍 Search Players to Chat
+        </button>
       </div>
     `;
     return;
@@ -816,17 +827,25 @@ async function handleUserSearch(query) {
     container.innerHTML = users
       .map((u) => {
         let actionBtn = '';
-        let rowClickAction = `window.GameApp?.showPlayerProfile(${u.id})`;
+        const rowClickAction = `window.FriendsModule?.openDmChat(${u.id})`;
 
         if (u.friendStatus === 'friends') {
-          rowClickAction = `window.FriendsModule?.openDmChat(${u.id})`;
           actionBtn = `<button type="button" class="btn-insta-req-confirm" onclick="window.FriendsModule?.openDmChat(${u.id})">Message</button>`;
         } else if (u.friendStatus === 'pending_sent') {
-          actionBtn = '<span class="insta-status-pill">Requested</span>';
+          actionBtn = `
+            <button type="button" class="btn-insta-req-confirm" onclick="window.FriendsModule?.openDmChat(${u.id})">Message</button>
+            <span class="insta-status-pill">Requested</span>
+          `;
         } else if (u.friendStatus === 'pending_received') {
-          actionBtn = `<button type="button" class="btn-insta-req-confirm" onclick="window.FriendsModule?.respondFriendRequest(${u.friendRequestId}, 'accept')">Confirm</button>`;
+          actionBtn = `
+            <button type="button" class="btn-insta-req-confirm" onclick="window.FriendsModule?.openDmChat(${u.id})">Message</button>
+            <button type="button" class="btn-insta-req-confirm" onclick="window.FriendsModule?.respondFriendRequest(${u.friendRequestId}, 'accept')">Confirm</button>
+          `;
         } else {
-          actionBtn = `<button type="button" class="btn-insta-req-confirm" onclick="window.FriendsModule?.sendFriendRequest(${u.id})">+ Follow / Add</button>`;
+          actionBtn = `
+            <button type="button" class="btn-insta-req-confirm" onclick="window.FriendsModule?.openDmChat(${u.id})">Message</button>
+            <button type="button" class="btn-insta-req-confirm" onclick="window.FriendsModule?.sendFriendRequest(${u.id})">+ Add</button>
+          `;
         }
 
         const isOnline = u.isOnline;
@@ -844,7 +863,8 @@ async function handleUserSearch(query) {
             </div>
             <div class="insta-dm-snippet-row">
               <span class="insta-dm-snippet ${isOnline ? 'active-now' : ''}">${statusSnippet}</span>
-              ${u.friendStatus === 'friends' ? '<span class="insta-dm-dot-sep">•</span><span class="insta-dm-tap-hint">Tap to chat</span>' : ''}
+              <span class="insta-dm-dot-sep">•</span>
+              <span class="insta-dm-tap-hint">Tap to chat</span>
             </div>
           </div>
           <div class="insta-dm-actions" onclick="event.stopPropagation()">

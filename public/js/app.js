@@ -512,9 +512,16 @@ class GameRoomApp {
       viewContainer.className = `view-container active-view-${viewName}`;
     }
 
-    // Mobile nav visibility (hidden during active game or auth)
+    // If navigating away from friends view, close active DM chat
+    if (viewName !== 'friends') {
+      document.body.classList.remove('in-dm-chat');
+      window.FriendsModule?.closeDmChat?.();
+    }
+
+    // Mobile nav visibility (hidden during active game, auth, or active 1v1 DM chat)
     const isAuthView = viewName === 'auth';
-    document.getElementById('mobile-bottom-nav')?.classList.toggle('hidden', isAuthView || viewName === 'game');
+    const isInDm = viewName === 'friends' && document.body.classList.contains('in-dm-chat');
+    document.getElementById('mobile-bottom-nav')?.classList.toggle('hidden', isAuthView || viewName === 'game' || isInDm);
 
     // Sync active states on Navigation tabs
     document.querySelectorAll('.nav-tab, .mobile-nav-item').forEach((tab) => {

@@ -267,6 +267,14 @@
       "text": "Hey! Are you ready for a duel? 🎮",
       "created_at": "2026-09-19T19:45:39.114Z",
       "read": 0
+    },
+    {
+      "id": 2,
+      "sender_id": 7,
+      "receiver_id": 8,
+      "text": "Hello! Ready for a match?",
+      "created_at": "2026-09-19T20:02:51.862Z",
+      "read": 0
     }
   ],
   "seq": {
@@ -274,6 +282,6 @@
     "stats": 11,
     "friends": 5,
     "game_history": 7,
-    "direct_messages": 2
+    "direct_messages": 3
   }
 }

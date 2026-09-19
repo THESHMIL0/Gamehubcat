@@ -668,6 +668,30 @@ html.has-stored-auth #main-interface:not(.hidden) {
   overflow: hidden !important;
 }
 
+body.in-dm-chat .view-container,
+.view-container:has(#insta-dm-chat-page.active) {
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 100dvh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+body.in-dm-chat #view-friends,
+#view-friends:has(#insta-dm-chat-page.active) {
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 100dvh !important;
+}
+
+body.in-dm-chat #mobile-bottom-nav,
+body.in-dm-chat .mobile-bottom-nav,
+body:has(#insta-dm-chat-page.active) #mobile-bottom-nav,
+body:has(#insta-dm-chat-page.active) .mobile-bottom-nav {
+  display: none !important;
+}
+
 .content-view {
   display: none !important;
   animation: fadeIn 0.25s ease-out;
@@ -1774,9 +1798,13 @@ html.has-stored-auth #main-interface:not(.hidden) {
   display: flex;
   flex-direction: column;
   height: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
   width: 100%;
   background: #000000;
   overflow: hidden;
+  position: relative;
+  z-index: 50;
   animation: slideInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1998,6 +2026,20 @@ html.has-stored-auth #main-interface:not(.hidden) {
   font-size: 0.75rem;
   padding: 1px 3px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* Instagram 1v1 DM Chat Message Box (Sticky at bottom, completely above fold) */
+#form-dm-chat {
+  display: flex !important;
+  flex-shrink: 0;
+  width: 100%;
+  background: #000000;
+  padding: 0.65rem 0.85rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
+  position: relative;
+  bottom: 0;
+  z-index: 70;
+  box-sizing: border-box;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .empty-state-hint {
@@ -4018,15 +4060,25 @@ html.has-stored-auth #main-interface:not(.hidden) {
   .view-container:has(#view-profile.active),
   .view-container[data-active-view="profile"],
   .view-container:has(#view-games.active),
-  .view-container[data-active-view="games"] {
+  .view-container[data-active-view="games"],
+  .view-container:has(#view-friends.active):not(:has(#insta-dm-chat-page.active)),
+  .view-container[data-active-view="friends"]:not(.in-dm-chat) {
     min-height: calc(100dvh - var(--header-height) - var(--nav-height));
     height: calc(100dvh - var(--header-height) - var(--nav-height));
     max-height: calc(100dvh - var(--header-height) - var(--nav-height));
-    padding: 0.45rem 0.65rem;
+    padding: 0 !important;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
     overflow: hidden;
+  }
+
+  body.in-dm-chat .view-container,
+  .view-container:has(#insta-dm-chat-page.active) {
+    min-height: 100dvh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding: 0 !important;
   }
 
   .quick-join-strip {
@@ -4339,15 +4391,25 @@ html.has-stored-auth #main-interface:not(.hidden) {
   .view-container:has(#view-profile.active),
   .view-container[data-active-view="profile"],
   .view-container:has(#view-games.active),
-  .view-container[data-active-view="games"] {
+  .view-container[data-active-view="games"],
+  .view-container:has(#view-friends.active):not(:has(#insta-dm-chat-page.active)),
+  .view-container[data-active-view="friends"]:not(.in-dm-chat) {
     min-height: calc(100dvh - var(--header-height) - var(--nav-height));
     height: calc(100dvh - var(--header-height) - var(--nav-height));
     max-height: calc(100dvh - var(--header-height) - var(--nav-height));
-    padding: 0.35rem 0.5rem;
+    padding: 0 !important;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
     overflow: hidden;
+  }
+
+  body.in-dm-chat .view-container,
+  .view-container:has(#insta-dm-chat-page.active) {
+    min-height: 100dvh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding: 0 !important;
   }
 
   .profile-card,
