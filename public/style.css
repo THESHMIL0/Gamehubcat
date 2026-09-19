@@ -4323,24 +4323,9 @@ html.has-stored-auth #main-interface:not(.hidden) {
   transform: scale(1.05);
 }
 
-/* Quick Emoji Reactions Strip (Stationary above message input bar) */
+/* Quick Emoji Reactions Strip (Removed per user request) */
 .insta-quick-reactions {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.4rem 0.85rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  border-top: 1px solid #1a1a1a;
-  background: #0a0a0a;
-  flex-shrink: 0;
-  position: sticky;
-  bottom: 58px;
-  z-index: 20;
-}
-
-.insta-quick-reactions::-webkit-scrollbar {
-  display: none;
+  display: none !important;
 }
 
 .reaction-pill.insta-pill {
@@ -4631,21 +4616,9 @@ html.has-stored-auth #main-interface:not(.hidden) {
   transform: scale(0.92);
 }
 
-/* In-Game Live Quick Emotes Bar */
+/* In-Game Live Quick Emotes Bar (Removed per user request) */
 .game-quick-emotes-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.6rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(0, 0, 0, 0.2);
-  flex-shrink: 0;
-}
-
-.game-quick-emotes-bar::-webkit-scrollbar {
-  display: none;
+  display: none !important;
 }
 
 .btn-game-quick-emote {
