@@ -56,37 +56,62 @@ html {
 
 body {
   font-family: var(--font-family);
-  background-color: var(--bg-primary);
+  background-color: #06080e;
   color: var(--text-main);
   line-height: 1.5;
   width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
   min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  overflow-x: hidden;
   position: relative;
   background-image: 
-    radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.07) 0%, transparent 40%),
-    radial-gradient(circle at 85% 75%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 50% 15%, rgba(120, 87, 255, 0.1) 0%, transparent 45%),
+    radial-gradient(circle at 50% 85%, rgba(16, 185, 129, 0.08) 0%, transparent 45%),
     radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.04) 0%, transparent 60%);
   background-attachment: fixed;
 }
 
 .app-root {
   width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
   min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .main-interface {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 100%;
+  max-width: 440px; /* Modern smartphone screen width on laptop too */
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
-  overflow-x: hidden;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: #000000;
+  border-left: 1px solid rgba(255, 255, 255, 0.09);
+  border-right: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.85), 0 0 20px rgba(16, 185, 129, 0.04);
+  position: relative;
+  overflow: hidden;
   box-sizing: border-box;
+}
+
+@media (max-width: 440px) {
+  .main-interface {
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
+  }
 }
 
 /* Glass Panels */
@@ -441,6 +466,8 @@ html.has-stored-auth #main-interface:not(.hidden) {
   display: flex !important;
   flex-direction: column !important;
   width: 100% !important;
+  max-width: 440px !important;
+  margin: 0 auto !important;
 }
 
 /* Known Accounts Quick Pick Chips */
@@ -482,38 +509,43 @@ html.has-stored-auth #main-interface:not(.hidden) {
   position: sticky;
   top: 0;
   z-index: 50;
-  height: var(--header-height);
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.5rem;
+  padding: 0 0.9rem;
   border-radius: 0;
   border-top: none;
   border-left: none;
   border-right: none;
+  border-bottom: 1px solid #1f1f1f;
+  background: rgba(14, 14, 18, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  flex-shrink: 0;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 0.75rem;
 }
 
 .header-brand {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.55rem;
   text-decoration: none;
   color: var(--text-main);
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   letter-spacing: 0.5px;
   transition: var(--transition);
 }
 
 .header-brand .brand-logo-img {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
 }
 
@@ -527,18 +559,11 @@ html.has-stored-auth #main-interface:not(.hidden) {
 }
 
 .header-welcome {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-.header-welcome strong {
-  color: var(--text-main);
+  display: none !important;
 }
 
 .desktop-nav {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  display: none !important;
 }
 
 .nav-tab .nav-svg,
@@ -599,27 +624,54 @@ html.has-stored-auth #main-interface:not(.hidden) {
   transform: scale(1.05);
 }
 
-/* Views Container */
+/* Views Container (Mobile Phone Layout) */
 .view-container {
   width: 100%;
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 1.25rem 1.5rem;
-  min-height: calc(100vh - var(--header-height));
+  max-width: 100%;
+  margin: 0;
+  padding: 0 0 60px 0; /* 60px room for bottom mobile navigation */
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
   box-sizing: border-box;
+  position: relative;
   min-width: 0;
 }
 
-/* Full-Fit Zero-Scroll layout when Profile or Games view is active */
+/* Clean mobile phone layout for views between header (52px) and bottom nav (60px) */
 .view-container:has(#view-profile.active),
 .view-container[data-active-view="profile"],
 .view-container:has(#view-games.active),
 .view-container[data-active-view="games"] {
-  min-height: calc(100vh - var(--header-height));
-  height: calc(100vh - var(--header-height));
-  padding: 0.75rem 1rem;
+  min-height: calc(100dvh - 52px - 60px);
+  height: calc(100dvh - 52px - 60px);
+  max-height: calc(100dvh - 52px - 60px);
+  padding: 0.5rem 0.65rem;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.view-container:has(#view-home.active),
+.view-container[data-active-view="home"] {
+  min-height: calc(100dvh - 52px - 60px);
+  height: calc(100dvh - 52px - 60px);
+  max-height: calc(100dvh - 52px - 60px);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.view-container:has(#view-friends.active),
+.view-container[data-active-view="friends"] {
+  min-height: calc(100dvh - 52px - 60px);
+  padding: 0.65rem 0.65rem 70px;
   box-sizing: border-box;
 }
 
@@ -2859,23 +2911,37 @@ html.has-stored-auth #main-interface:not(.hidden) {
 }
 
 /* ===================================================
-   MOBILE BOTTOM NAVIGATION
+   MOBILE BOTTOM NAVIGATION (Active everywhere for phone view)
    =================================================== */
 .mobile-bottom-nav {
-  display: none;
+  display: flex !important;
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
-  height: var(--nav-height);
-  z-index: 50;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
+  height: 60px;
+  z-index: 60;
   border-radius: 0;
+  border-top: 1px solid #262626;
   border-bottom: none;
-  border-left: none;
-  border-right: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.09);
+  border-right: 1px solid rgba(255, 255, 255, 0.09);
   padding: 0 0.5rem;
   justify-content: space-around;
   align-items: center;
+  background: rgba(14, 14, 18, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-sizing: border-box;
+}
+
+@media (max-width: 440px) {
+  .mobile-bottom-nav {
+    border-left: none;
+    border-right: none;
+  }
 }
 
 .mobile-nav-item {
@@ -3103,14 +3169,15 @@ html.has-stored-auth #main-interface:not(.hidden) {
 /* Real-Time Invitation Popup (Sections 20 & 25) */
 .invitation-container {
   position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  max-width: 410px;
   z-index: 120;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  max-width: 360px;
-  width: 100%;
   pointer-events: none;
 }
 
@@ -3156,13 +3223,17 @@ html.has-stored-auth #main-interface:not(.hidden) {
 /* Toast Notifications */
 .toast-container {
   position: fixed;
-  bottom: 5rem;
-  right: 1.5rem;
+  bottom: 68px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 400px;
   z-index: 150;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   pointer-events: none;
+  align-items: center;
 }
 
 .toast {
@@ -3703,24 +3774,17 @@ html.has-stored-auth #main-interface:not(.hidden) {
 .view-insta-gc.active {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-start;
   width: 100%;
-  max-width: 860px;
-  margin: 0 auto;
-  height: calc(100vh - 110px);
-  min-height: 580px;
-  padding: 0.5rem 0.75rem 1rem;
+  max-width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
   box-sizing: border-box;
-}
-
-@media (max-width: 768px) {
-  .view-insta-gc.active {
-    max-width: 100%;
-    height: calc(100vh - 75px);
-    padding: 0;
-    min-height: auto;
-  }
+  flex: 1;
+  overflow: hidden;
 }
 
 .insta-gc-card {
@@ -3729,20 +3793,12 @@ html.has-stored-auth #main-interface:not(.hidden) {
   display: flex;
   flex-direction: column;
   background: #000000;
-  border: 1px solid #262626;
-  border-radius: 16px;
+  border: none;
+  border-radius: 0;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.7);
-}
-
-@media (max-width: 768px) {
-  .insta-gc-card {
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-  }
+  box-shadow: none;
+  flex: 1;
 }
 
 /* Instagram Header */
