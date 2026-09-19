@@ -246,22 +246,33 @@ class GameRoomApp {
       this.startGameMatch(room);
     });
 
-    socket.off('game_update');
-    socket.on('game_update', ({ room, payload }) => {
+    // Handle game state changes from both 'game_state' and 'game_update'
+    const handleGameUpdate = ({ room, payload, winner, isDraw, reason }) => {
+      if (!room) return;
       this.updateMatchState(room, payload);
-    });
+      if (winner || isDraw || room.state === 'FINISHED' || room.gameState?.winner || room.gameState?.isDraw) {
+        const winPlayer = winner || (room.gameState?.winner ? room.players?.find((p) => Number(p.id) === Number(room.gameState.winner)) : null);
+        this.handleGameOver(room, winPlayer, isDraw || !!room.gameState?.isDraw, reason);
+      }
+    };
+
+    socket.off('game_state');
+    socket.on('game_state', handleGameUpdate);
+
+    socket.off('game_update');
+    socket.on('game_update', handleGameUpdate);
 
     socket.off('game_over');
     socket.on('game_over', ({ room, winner, isDraw, reason }) => {
       this.handleGameOver(room, winner, isDraw, reason);
     });
 
-    socket.off('rematch_offered');
-    socket.on('rematch_offered', ({ user }) => {
+    const handleRematchPrompt = (data = {}) => {
       const hint = document.getElementById('result-rematch-status') || document.getElementById('rematch-status-hint');
       const btnRematch = document.getElementById('btn-result-rematch') || document.getElementById('btn-rematch');
+      const senderName = data.user?.display_name || data.userName || 'Opponent';
       if (hint) {
-        hint.textContent = `${user.display_name} wants a rematch!`;
+        hint.textContent = `${senderName} wants a rematch!`;
         hint.classList.remove('hidden');
       }
       if (btnRematch) {
@@ -269,15 +280,26 @@ class GameRoomApp {
         btnRematch.className = 'btn btn-primary';
         btnRematch.disabled = false;
       }
-    });
+    };
 
-    socket.off('rematch_started');
-    socket.on('rematch_started', ({ room }) => {
+    socket.off('rematch_offered');
+    socket.on('rematch_offered', handleRematchPrompt);
+
+    socket.off('rematch_requested');
+    socket.on('rematch_requested', handleRematchPrompt);
+
+    const handleRematchStarted = ({ room }) => {
       this.closeModal('modal-game-result');
       this.closeModal('modal-game-over');
       this.showToast('Rematch started! New round.', 'success');
       this.startGameMatch(room);
-    });
+    };
+
+    socket.off('game_restart');
+    socket.on('game_restart', handleRematchStarted);
+
+    socket.off('rematch_started');
+    socket.on('rematch_started', handleRematchStarted);
   }
 
   startGameMatch(room) {
@@ -324,7 +346,7 @@ class GameRoomApp {
     const p1 = room.players[0] || {};
     const p2 = room.players[1] || {};
 
-    const isMeP1 = p1.id === me?.id;
+    const isMeP1 = Number(p1.id) === Number(me?.id);
     const player1 = isMeP1 ? p1 : p2;
     const player2 = isMeP1 ? p2 : p1;
 
@@ -335,6 +357,8 @@ class GameRoomApp {
     if (p1Nm) p1Nm.textContent = player1.display_name || 'You';
     const p1Sy = document.getElementById('p1-symbol-badge') || document.getElementById('match-p1-symbol');
     if (p1Sy) p1Sy.textContent = player1.symbol || '1';
+    const p1Sc = document.getElementById('p1-score');
+    if (p1Sc) p1Sc.textContent = `Score: ${player1.score || 0}`;
 
     // Opponent
     const p2Av = document.getElementById('p2-avatar') || document.getElementById('match-p2-avatar');
@@ -343,15 +367,20 @@ class GameRoomApp {
     if (p2Nm) p2Nm.textContent = player2.display_name || 'Opponent';
     const p2Sy = document.getElementById('p2-symbol-badge') || document.getElementById('match-p2-symbol');
     if (p2Sy) p2Sy.textContent = player2.symbol || '2';
+    const p2Sc = document.getElementById('p2-score');
+    if (p2Sc) p2Sc.textContent = `Score: ${player2.score || 0}`;
   }
 
   updateMatchState(room, payload = {}) {
     this.activeMatchRoom = room;
     setActiveRoom(room);
+    this.renderPlayersMatchBar(room);
 
     const me = getCurrentUser();
     const gameState = room.gameState || {};
-    const isMyTurn = gameState.currentTurn === me?.id && !gameState.winner && !gameState.isDraw;
+    const myId = Number(me?.id);
+    const turnId = Number(gameState.currentTurn);
+    const isMyTurn = turnId === myId && !gameState.winner && !gameState.isDraw;
 
     const turnBadge = document.getElementById('turn-indicator-badge') || document.getElementById('game-turn-badge');
     const turnText = document.getElementById('turn-indicator-text') || turnBadge;
@@ -477,6 +506,7 @@ class GameRoomApp {
         if (!this.activeMatchRoom) return;
         const socket = getSocket();
         if (socket) {
+          socket.emit('game_rematch', { roomCode: this.activeMatchRoom.code });
           socket.emit('request_rematch', { roomCode: this.activeMatchRoom.code });
           const hint = document.getElementById('result-rematch-status') || document.getElementById('rematch-status-hint');
           if (hint) {

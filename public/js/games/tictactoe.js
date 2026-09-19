@@ -41,14 +41,35 @@ function handleCellClick(index) {
 
   const me = getCurrentUser();
   const gameState = currentRoom.gameState;
+  if (!gameState) return;
+
+  if (gameState.winner || gameState.isDraw) return;
+
+  const myId = Number(me?.id);
+  const turnId = Number(gameState.currentTurn);
 
   // Verify turn on client before sending
-  if (gameState.currentTurn !== me.id) {
-    window.GameApp?.showToast("It's not your turn!", 'warning');
+  if (turnId !== myId) {
+    const opp = currentRoom.players?.find((p) => Number(p.id) !== myId);
+    window.GameApp?.showToast(opp ? `It's ${opp.display_name}'s turn!` : "It's not your turn!", 'warning');
     return;
   }
 
-  if (gameState.board[index] !== null) return;
+  if (gameState.board && gameState.board[index] !== null) return;
+
+  const myPlayer = currentRoom.players?.find((p) => Number(p.id) === myId);
+  const mySymbol = myPlayer?.symbol || 'X';
+
+  // Optimistic UI update: immediately show player's symbol with responsive feedback
+  const cell = document.querySelector(`.ttt-cell[data-idx="${index}"]`);
+  if (cell) {
+    cell.textContent = mySymbol;
+    cell.dataset.symbol = mySymbol;
+    cell.disabled = true;
+  }
+  if (gameState.board) {
+    gameState.board[index] = mySymbol;
+  }
 
   const socket = getSocket();
   if (socket) {
@@ -64,17 +85,23 @@ function renderBoard(gameState) {
   const cells = document.querySelectorAll('.ttt-cell');
   const board = gameState.board || Array(9).fill(null);
   const me = getCurrentUser();
-  const isMyTurn = gameState.currentTurn === me?.id && !gameState.winner && !gameState.isDraw;
+  const myId = Number(me?.id);
+  const turnId = Number(gameState.currentTurn);
+  const isMyTurn = turnId === myId && !gameState.winner && !gameState.isDraw;
 
   cells.forEach((cell, idx) => {
     const val = board[idx];
     cell.textContent = val || '';
     cell.dataset.symbol = val || '';
 
-    if (val !== null || !isMyTurn) {
+    // Only disable if already marked or game has concluded
+    // Empty cells remain clickable so users receive immediate feedback/toast if tapped out of turn
+    if (val !== null || gameState.winner || gameState.isDraw) {
       cell.disabled = true;
+      cell.style.cursor = 'default';
     } else {
       cell.disabled = false;
+      cell.style.cursor = isMyTurn ? 'pointer' : 'not-allowed';
     }
   });
 }

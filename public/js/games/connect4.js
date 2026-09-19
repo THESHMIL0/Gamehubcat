@@ -52,9 +52,11 @@ function handleColumnClick(col) {
 
   const me = getCurrentUser();
   const gameState = currentRoom.gameState;
+  if (!gameState) return;
 
-  if (gameState.currentTurn !== me?.id) {
-    window.GameApp?.showToast("It's not your turn!", 'warning');
+  if (Number(gameState.currentTurn) !== Number(me?.id)) {
+    const opp = currentRoom.players?.find((p) => Number(p.id) !== Number(me?.id));
+    window.GameApp?.showToast(opp ? `It's ${opp.display_name}'s turn!` : "It's not your turn!", 'warning');
     return;
   }
 
@@ -79,7 +81,7 @@ function renderGrid(gameState) {
   const board = gameState.board;
   const cells = document.querySelectorAll('.c4-cell');
   const me = getCurrentUser();
-  const isMyTurn = gameState.currentTurn === me?.id && !gameState.winner && !gameState.isDraw;
+  const isMyTurn = Number(gameState.currentTurn) === Number(me?.id) && !gameState.winner && !gameState.isDraw;
 
   // Update hover drop arrows
   const arrowButtons = document.querySelectorAll('.c4-col-arrow');

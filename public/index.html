@@ -142,102 +142,77 @@
 
         <!-- 1. HOME SCREEN (Section 9 & 65) -->
         <section id="view-home" class="content-view active">
-          <!-- Quick Welcome & Online Friends Bar -->
-          <div class="home-hero-card glass-panel">
-            <div class="hero-left">
-              <h2 class="hero-title">Ready for a match?</h2>
-              <p class="hero-desc">Play head-to-head multiplayer games in real time with live floating chat.</p>
+          <!-- Compact Quick Room Code Join Strip -->
+          <div class="quick-join-strip glass-panel">
+            <input type="text" id="input-quick-room-code" placeholder="ENTER ROOM CODE..." maxlength="6" class="input-field code-input" uppercase>
+            <button type="button" id="btn-quick-join" class="btn btn-primary btn-sm">Join Room</button>
+          </div>
+
+          <!-- Compact Quick Games Grid -->
+          <div class="section-card glass-panel home-games-section">
+            <div class="section-header compact">
+              <h3 class="section-title">Games</h3>
             </div>
-            <!-- Quick Room Code Join Box -->
-            <div class="hero-join-box">
-              <label for="input-quick-room-code" class="join-label">Have a Room Code?</label>
-              <div class="join-input-group">
-                <input type="text" id="input-quick-room-code" placeholder="e.g. ABC123" maxlength="6" class="input-field code-input" uppercase>
-                <button type="button" id="btn-quick-join" class="btn btn-primary">Join Room</button>
+            <div class="games-grid-compact">
+              <!-- Tic-Tac-Toe -->
+              <div class="game-card-mini glass-card" data-game="tictactoe">
+                <div class="mini-icon-wrap">
+                  <img src="/assets/logo-tictactoe.svg" alt="Tic-Tac-Toe" class="game-logo-badge">
+                </div>
+                <div class="mini-info">
+                  <h4>Tic-Tac-Toe</h4>
+                  <span class="mini-sub">3x3 Duel</span>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="tictactoe">
+                  Play
+                </button>
+              </div>
+
+              <!-- Rock Paper Scissors -->
+              <div class="game-card-mini glass-card" data-game="rps">
+                <div class="mini-icon-wrap">
+                  <img src="/assets/logo-rps.svg" alt="Rock Paper Scissors" class="game-logo-badge">
+                </div>
+                <div class="mini-info">
+                  <h4>RPS</h4>
+                  <span class="mini-sub">Best of 5</span>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="rps">
+                  Play
+                </button>
+              </div>
+
+              <!-- Connect Four -->
+              <div class="game-card-mini glass-card" data-game="connect4">
+                <div class="mini-icon-wrap">
+                  <img src="/assets/logo-connect4.svg" alt="Connect Four" class="game-logo-badge">
+                </div>
+                <div class="mini-info">
+                  <h4>Connect 4</h4>
+                  <span class="mini-sub">4 in a row</span>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="connect4">
+                  Play
+                </button>
               </div>
             </div>
           </div>
 
           <!-- Friends Online Section -->
-          <div class="section-card glass-panel">
-            <div class="section-header">
-              <h3 class="section-title">
-                <span class="title-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                </span> Friends Online
-              </h3>
-              <button type="button" class="btn btn-sm btn-ghost" id="btn-view-all-friends">View All Friends →</button>
+          <div class="section-card glass-panel home-friends-section">
+            <div class="section-header compact">
+              <h3 class="section-title">Online Friends</h3>
+              <button type="button" class="btn btn-sm btn-ghost" id="btn-view-all-friends">All Friends →</button>
             </div>
             <div id="home-online-friends-list" class="friends-horizontal-list">
-              <div class="empty-state-hint">Loading friends online...</div>
+              <div class="empty-state-hint">Loading friends...</div>
             </div>
           </div>
 
-          <!-- Main Games Grid -->
-          <div class="section-card glass-panel">
-            <div class="section-header">
-              <h3 class="section-title">
-                <span class="title-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                </span> Featured Games
-              </h3>
-            </div>
-            <div class="games-grid">
-              <!-- Tic-Tac-Toe -->
-              <div class="game-card glass-card" data-game="tictactoe">
-                <div class="game-card-badge">2 Players</div>
-                <div class="game-card-icon">
-                  <img src="/assets/logo-tictactoe.svg" alt="Tic-Tac-Toe" class="game-logo-badge">
-                </div>
-                <h4 class="game-card-title">Tic-Tac-Toe</h4>
-                <p class="game-card-desc">The classic 3x3 strategy duel. Place your X or O and connect three in a row.</p>
-                <div class="game-card-actions">
-                  <button type="button" class="btn btn-primary btn-game-play" data-game="tictactoe">
-                    <span class="btn-icon">▶</span> PLAY
-                  </button>
-                </div>
-              </div>
-
-              <!-- Rock Paper Scissors -->
-              <div class="game-card glass-card" data-game="rps">
-                <div class="game-card-badge">2 Players</div>
-                <div class="game-card-icon">
-                  <img src="/assets/logo-rps.svg" alt="Rock Paper Scissors" class="game-logo-badge">
-                </div>
-                <h4 class="game-card-title">Rock Paper Scissors</h4>
-                <p class="game-card-desc">Simultaneous hidden choices with dramatic reveals and round scoring.</p>
-                <div class="game-card-actions">
-                  <button type="button" class="btn btn-primary btn-game-play" data-game="rps">
-                    <span class="btn-icon">▶</span> PLAY
-                  </button>
-                </div>
-              </div>
-
-              <!-- Connect Four -->
-              <div class="game-card glass-card" data-game="connect4">
-                <div class="game-card-badge">2 Players</div>
-                <div class="game-card-icon">
-                  <img src="/assets/logo-connect4.svg" alt="Connect Four" class="game-logo-badge">
-                </div>
-                <h4 class="game-card-title">Connect Four</h4>
-                <p class="game-card-desc">7-column gravity drop grid. Connect four tokens in any direction to win.</p>
-                <div class="game-card-actions">
-                  <button type="button" class="btn btn-primary btn-game-play" data-game="connect4">
-                    <span class="btn-icon">▶</span> PLAY
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- General Home / Lobby Chat (Section 36) -->
+          <!-- General Home / Lobby Chat -->
           <div class="section-card glass-panel lobby-chat-container">
-            <div class="section-header">
-              <h3 class="section-title">
-                <span class="title-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                </span> Live Lobby Chat
-              </h3>
+            <div class="section-header compact">
+              <h3 class="section-title">Lobby Chat</h3>
               <span class="live-pulse-badge">Live</span>
             </div>
             <div class="lobby-chat-wrapper">
@@ -247,8 +222,8 @@
               <div id="lobby-messages-log" class="chat-log-list"></div>
             </div>
             <form id="form-lobby-chat" class="chat-input-bar">
-              <input type="text" id="input-lobby-chat" class="input-field chat-input" placeholder="Type a message to the lobby..." maxlength="150" autocomplete="off">
-              <button type="submit" class="btn btn-primary btn-icon-only" title="Send message">
+              <input type="text" id="input-lobby-chat" class="input-field chat-input" placeholder="Say something..." maxlength="150" autocomplete="off">
+              <button type="submit" class="btn btn-primary btn-icon-only btn-sm" title="Send message">
                 <span>➤</span>
               </button>
             </form>
@@ -257,79 +232,52 @@
 
         <!-- 2. GAMES CATALOG SCREEN -->
         <section id="view-games" class="content-view">
-          <div class="section-title-bar">
-            <h2>Multiplayer Games Catalog</h2>
-            <p>Select a game to create a private room and invite your friends or share your room code.</p>
+          <div class="section-title-bar compact">
+            <h2>Games</h2>
+            <p>Pick a game to play</p>
           </div>
 
-          <div class="games-detail-list">
-            <!-- Tic-Tac-Toe Detail -->
-            <div class="game-detail-card glass-panel">
-              <div class="game-detail-header">
-                <div class="game-icon-large">
-                  <img src="/assets/logo-tictactoe.svg" alt="Tic-Tac-Toe" class="game-logo-badge">
-                </div>
-                <div class="game-detail-info">
-                  <h3>Tic-Tac-Toe / XOX</h3>
-                  <div class="game-tags">
-                    <span class="tag">2 Players</span>
-                    <span class="tag">Turns</span>
-                    <span class="tag">Real-Time</span>
-                  </div>
-                  <p>A fast-paced board game. Take turns placing your marks on a 3x3 grid. The first player to get 3 in a line horizontally, vertically, or diagonally wins.</p>
-                </div>
+          <div class="games-grid-compact games-catalog-grid">
+            <!-- Tic-Tac-Toe -->
+            <div class="game-card-mini glass-card" data-game="tictactoe">
+              <div class="mini-icon-wrap">
+                <img src="/assets/logo-tictactoe.svg" alt="Tic-Tac-Toe" class="game-logo-badge">
               </div>
-              <div class="game-detail-actions">
-                <button type="button" class="btn btn-primary btn-game-play" data-game="tictactoe">
-                  Create Tic-Tac-Toe Room
-                </button>
+              <div class="mini-info">
+                <h4>Tic-Tac-Toe</h4>
+                <span class="mini-sub">Classic 3x3 • 2P</span>
               </div>
+              <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="tictactoe">
+                Play
+              </button>
             </div>
 
-            <!-- Rock Paper Scissors Detail -->
-            <div class="game-detail-card glass-panel">
-              <div class="game-detail-header">
-                <div class="game-icon-large">
-                  <img src="/assets/logo-rps.svg" alt="Rock Paper Scissors" class="game-logo-badge">
-                </div>
-                <div class="game-detail-info">
-                  <h3>Rock Paper Scissors</h3>
-                  <div class="game-tags">
-                    <span class="tag">2 Players</span>
-                    <span class="tag">Simultaneous</span>
-                    <span class="tag">Score Tracking</span>
-                  </div>
-                  <p>Secretly pick Rock, Paper, or Scissors. Choices stay hidden until both players choose, then reveal simultaneously to crown the winner.</p>
-                </div>
+            <!-- Rock Paper Scissors -->
+            <div class="game-card-mini glass-card" data-game="rps">
+              <div class="mini-icon-wrap">
+                <img src="/assets/logo-rps.svg" alt="Rock Paper Scissors" class="game-logo-badge">
               </div>
-              <div class="game-detail-actions">
-                <button type="button" class="btn btn-primary btn-game-play" data-game="rps">
-                  Create RPS Room
-                </button>
+              <div class="mini-info">
+                <h4>RPS</h4>
+                <span class="mini-sub">Best of 5 • Duel</span>
               </div>
+              <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="rps">
+                Play
+              </button>
             </div>
 
-            <!-- Connect Four Detail -->
-            <div class="game-detail-card glass-panel">
-              <div class="game-detail-header">
-                <div class="game-icon-large">
-                  <img src="/assets/logo-connect4.svg" alt="Connect Four" class="game-logo-badge">
-                </div>
-                <div class="game-detail-info">
-                  <h3>Connect Four</h3>
-                  <div class="game-tags">
-                    <span class="tag">2 Players</span>
-                    <span class="tag">7x6 Grid</span>
-                    <span class="tag">Strategy</span>
-                  </div>
-                  <p>Drop colored discs into a 7-column, 6-row grid. Outwit your opponent by lining up four of your discs vertically, horizontally, or diagonally.</p>
-                </div>
+            <!-- Connect Four -->
+            <div class="game-card-mini glass-card" data-game="connect4">
+              <div class="mini-icon-wrap">
+                <img src="/assets/logo-connect4.svg" alt="Connect Four" class="game-logo-badge">
               </div>
-              <div class="game-detail-actions">
-                <button type="button" class="btn btn-primary btn-game-play" data-game="connect4">
-                  Create Connect Four Room
-                </button>
+              <div class="mini-info">
+                <h4>Connect 4</h4>
+                <span class="mini-sub">4 in a row • 7x6</span>
               </div>
+              <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="connect4">
+                Play
+              </button>
             </div>
           </div>
         </section>

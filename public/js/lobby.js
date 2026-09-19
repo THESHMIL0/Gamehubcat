@@ -21,11 +21,19 @@ export function setActiveRoom(room) {
 export function initLobby() {
   const socket = getSocket();
 
-  // "PLAY" buttons on Home & Games Catalog cards
+  // "PLAY" buttons and cards on Home & Games Catalog
   document.querySelectorAll('.btn-game-play').forEach((btn) => {
-    btn.onclick = () => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
       const gameType = btn.dataset.game;
       createGameRoom(gameType);
+    };
+  });
+
+  document.querySelectorAll('.game-card-mini').forEach((card) => {
+    card.onclick = () => {
+      const gameType = card.dataset.game;
+      if (gameType) createGameRoom(gameType);
     };
   });
 

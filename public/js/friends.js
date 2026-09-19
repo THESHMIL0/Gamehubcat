@@ -193,8 +193,8 @@ export function renderHomeOnlineFriends() {
 
   if (onlineFriends.length === 0) {
     container.innerHTML = `
-      <div class="empty-state-hint" style="padding: 0.75rem 1rem;">
-        No friends currently online. Share your room code or invite players!
+      <div class="empty-state-hint compact">
+        No friends online
       </div>
     `;
     return;

@@ -847,7 +847,7 @@ io.on('connection', async (socket) => {
         return socket.emit('error_message', { message: 'Game is not in active play state.' });
       }
 
-      const player = room.players.find((p) => p.id === socket.user.id);
+      const player = room.players.find((p) => Number(p.id) === Number(socket.user.id));
       if (!player) {
         return socket.emit('error_message', { message: 'You are not a player in this room.' });
       }
@@ -865,8 +865,8 @@ io.on('connection', async (socket) => {
     }
   });
 
-  // Rematch / Play Again
-  socket.on('game_rematch', ({ roomCode }) => {
+  // Rematch / Play Again handler
+  const handleRematchVote = ({ roomCode }) => {
     try {
       const code = (roomCode || '').trim().toUpperCase();
       const room = rooms.get(code);
@@ -875,11 +875,14 @@ io.on('connection', async (socket) => {
       room.rematchVotes.add(socket.user.id);
 
       // Notify other player that a rematch was requested
-      socket.to(`room_${code}`).emit('rematch_requested', {
+      const rematchPayload = {
         userId: socket.user.id,
         userName: socket.user.display_name,
+        user: socket.user,
         message: `${socket.user.display_name} wants a rematch!`,
-      });
+      };
+      socket.to(`room_${code}`).emit('rematch_requested', rematchPayload);
+      socket.to(`room_${code}`).emit('rematch_offered', rematchPayload);
 
       // If both players voted rematch, reset game!
       if (room.rematchVotes.size >= 2) {
@@ -887,20 +890,27 @@ io.on('connection', async (socket) => {
         room.state = 'PLAYING';
 
         // Alternate starting player for fairness
-        const previousStarter = room.players[0].id;
         room.players.reverse(); // swap order so alternate player goes first
 
         room.gameState = initializeGameState(room.gameType, room.players[0].id);
 
+        const sanitized = sanitizeRoomForClient(room, null);
         io.to(`room_${code}`).emit('game_restart', {
-          room: sanitizeRoomForClient(room, null),
+          room: sanitized,
+          message: 'Rematch started! Good luck!',
+        });
+        io.to(`room_${code}`).emit('rematch_started', {
+          room: sanitized,
           message: 'Rematch started! Good luck!',
         });
       }
     } catch (err) {
       console.error('Rematch error:', err);
     }
-  });
+  };
+
+  socket.on('game_rematch', handleRematchVote);
+  socket.on('request_rematch', handleRematchVote);
 
   // Game Room In-Game Live Chat
   socket.on('game_chat', ({ roomCode, text }) => {
@@ -1328,11 +1338,11 @@ async function handleTicTacToeMove(room, userId, { index }) {
   const { gameState } = room;
 
   if (gameState.winner || gameState.isDraw) return;
-  if (gameState.currentTurn !== userId) return;
+  if (Number(gameState.currentTurn) !== Number(userId)) return;
   if (index < 0 || index > 8 || gameState.board[index] !== null) return;
 
-  const player = room.players.find((p) => p.id === userId);
-  const opponent = room.players.find((p) => p.id !== userId);
+  const player = room.players.find((p) => Number(p.id) === Number(userId));
+  const opponent = room.players.find((p) => Number(p.id) !== Number(userId));
   if (!player || !opponent) return;
 
   // Make move
@@ -1369,10 +1379,20 @@ async function handleTicTacToeMove(room, userId, { index }) {
     // Update SQLite database stats
     await recordGameResult('tictactoe', player.id, opponent.id, player.id, 'win');
 
+    const sanitized = sanitizeRoomForClient(room, null);
     io.to(`room_${room.code}`).emit('game_state', {
-      room: sanitizeRoomForClient(room, null),
+      room: sanitized,
       winner: player,
       winningLine,
+    });
+    io.to(`room_${room.code}`).emit('game_update', {
+      room: sanitized,
+    });
+    io.to(`room_${room.code}`).emit('game_over', {
+      room: sanitized,
+      winner: player,
+      isDraw: false,
+      reason: `${player.display_name} won the match!`,
     });
   } else if (gameState.board.every((cell) => cell !== null)) {
     // Draw
@@ -1381,15 +1401,29 @@ async function handleTicTacToeMove(room, userId, { index }) {
 
     await recordGameResult('tictactoe', player.id, opponent.id, null, 'draw');
 
+    const sanitized = sanitizeRoomForClient(room, null);
     io.to(`room_${room.code}`).emit('game_state', {
-      room: sanitizeRoomForClient(room, null),
+      room: sanitized,
       isDraw: true,
+    });
+    io.to(`room_${room.code}`).emit('game_update', {
+      room: sanitized,
+    });
+    io.to(`room_${room.code}`).emit('game_over', {
+      room: sanitized,
+      winner: null,
+      isDraw: true,
+      reason: "It's a draw!",
     });
   } else {
     // Pass turn to opponent
     gameState.currentTurn = opponent.id;
+    const sanitized = sanitizeRoomForClient(room, null);
     io.to(`room_${room.code}`).emit('game_state', {
-      room: sanitizeRoomForClient(room, null),
+      room: sanitized,
+    });
+    io.to(`room_${room.code}`).emit('game_update', {
+      room: sanitized,
     });
   }
 }
@@ -1460,9 +1494,14 @@ async function handleRpsMove(room, userId, { choice }) {
     }
 
     // Broadcast full revealed results
+    const sanitized = sanitizeRoomForClient(room, null);
     io.to(`room_${room.code}`).emit('game_state', {
-      room: sanitizeRoomForClient(room, null),
+      room: sanitized,
       result: gameState.result,
+    });
+    io.to(`room_${room.code}`).emit('game_update', {
+      room: sanitized,
+      payload: { result: gameState.result },
     });
 
     // Reset choices for next round after 3.5 seconds
@@ -1473,9 +1512,13 @@ async function handleRpsMove(room, userId, { choice }) {
         currentRoom.gameState.result = null;
         currentRoom.gameState.round = (currentRoom.gameState.round || 1) + 1;
 
+        const nextSanitized = sanitizeRoomForClient(currentRoom, null);
         io.to(`room_${currentRoom.code}`).emit('game_state', {
-          room: sanitizeRoomForClient(currentRoom, null),
+          room: nextSanitized,
           message: `Round ${currentRoom.gameState.round} - Make your choice!`,
+        });
+        io.to(`room_${currentRoom.code}`).emit('game_update', {
+          room: nextSanitized,
         });
       }
     }, 3500);
@@ -1489,11 +1532,11 @@ async function handleConnect4Move(room, userId, { col }) {
   const { gameState } = room;
 
   if (gameState.winner || gameState.isDraw) return;
-  if (gameState.currentTurn !== userId) return;
+  if (Number(gameState.currentTurn) !== Number(userId)) return;
   if (col < 0 || col > 6) return;
 
-  const player = room.players.find((p) => p.id === userId);
-  const opponent = room.players.find((p) => p.id !== userId);
+  const player = room.players.find((p) => Number(p.id) === Number(userId));
+  const opponent = room.players.find((p) => Number(p.id) !== Number(userId));
   if (!player || !opponent) return;
 
   // Find lowest available row in this column (row 5 is bottom, row 0 is top)
@@ -1523,11 +1566,22 @@ async function handleConnect4Move(room, userId, { col }) {
 
     await recordGameResult('connect4', player.id, opponent.id, player.id, 'win');
 
+    const sanitized = sanitizeRoomForClient(room, null);
     io.to(`room_${room.code}`).emit('game_state', {
-      room: sanitizeRoomForClient(room, null),
+      room: sanitized,
       winner: player,
       winningCells,
       lastMove: { row: targetRow, col },
+    });
+    io.to(`room_${room.code}`).emit('game_update', {
+      room: sanitized,
+      lastMove: { row: targetRow, col },
+    });
+    io.to(`room_${room.code}`).emit('game_over', {
+      room: sanitized,
+      winner: player,
+      isDraw: false,
+      reason: `${player.display_name} connected 4 in a row!`,
     });
   } else if (gameState.board[0].every((cell) => cell !== null)) {
     // Board is completely full -> Draw
@@ -1536,16 +1590,32 @@ async function handleConnect4Move(room, userId, { col }) {
 
     await recordGameResult('connect4', player.id, opponent.id, null, 'draw');
 
+    const sanitized = sanitizeRoomForClient(room, null);
     io.to(`room_${room.code}`).emit('game_state', {
-      room: sanitizeRoomForClient(room, null),
+      room: sanitized,
       isDraw: true,
       lastMove: { row: targetRow, col },
+    });
+    io.to(`room_${room.code}`).emit('game_update', {
+      room: sanitized,
+      lastMove: { row: targetRow, col },
+    });
+    io.to(`room_${room.code}`).emit('game_over', {
+      room: sanitized,
+      winner: null,
+      isDraw: true,
+      reason: "It's a draw!",
     });
   } else {
     // Alternate turn
     gameState.currentTurn = opponent.id;
+    const sanitized = sanitizeRoomForClient(room, null);
     io.to(`room_${room.code}`).emit('game_state', {
-      room: sanitizeRoomForClient(room, null),
+      room: sanitized,
+      lastMove: { row: targetRow, col },
+    });
+    io.to(`room_${room.code}`).emit('game_update', {
+      room: sanitized,
       lastMove: { row: targetRow, col },
     });
   }
