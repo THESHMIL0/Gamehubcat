@@ -193,163 +193,95 @@
       <!-- Main Content Views Container -->
       <main id="view-container" class="view-container">
 
-        <!-- 1. HOME SCREEN: PUBLIC CHAT LOBBY -->
-        <section id="view-home" class="content-view active view-home-lobby">
-          
-          <!-- Top Hero Strip: Public Lobby Info & Chatter Status -->
-          <div class="lobby-hero-bar glass-panel">
-            <div class="lobby-hero-left">
-              <div class="lobby-badge-pulse">
-                <span class="live-pulse-dot"></span>
-                <span class="lobby-badge-text">PUBLIC LOBBY</span>
-              </div>
-              <h2 class="lobby-headline">Live Public Chat</h2>
-              <span class="lobby-online-indicator">
-                <span class="online-users-dot"></span>
-                <span id="lobby-online-count-text">1 Online in Lobby</span>
-              </span>
-            </div>
-
-            <div class="lobby-hero-right">
-              <div class="lobby-user-identity-chip" id="lobby-user-identity-chip">
-                <span class="identity-avatar" id="lobby-identity-avatar">🐱</span>
-                <div class="identity-meta">
-                  <div class="identity-name-row">
-                    <span class="identity-name" id="lobby-identity-name">Guest</span>
-                    <span class="identity-tag badge-guest" id="lobby-identity-tag">Guest</span>
+        <!-- 1. HOME SCREEN: INSTAGRAM GROUP CHAT (GC ONLY) -->
+        <section id="view-home" class="content-view active view-insta-gc">
+          <div class="insta-gc-card glass-panel">
+            
+            <!-- Instagram GC Top Bar -->
+            <div class="insta-gc-header">
+              <div class="insta-gc-header-left" id="btn-gc-info">
+                <div class="insta-gc-avatar-cluster">
+                  <span class="insta-avatar-disc avatar-p1">🐱</span>
+                  <span class="insta-avatar-disc avatar-p2">🐾</span>
+                  <span class="insta-online-pip" title="Active"></span>
+                </div>
+                <div class="insta-gc-header-info">
+                  <div class="insta-gc-title-row">
+                    <h2 class="insta-gc-title">Public Lobby 🐾</h2>
+                    <span class="insta-verified-badge" title="Public GC">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </span>
                   </div>
-                  <button type="button" class="btn-text-action" id="btn-edit-guest-name">Edit Name ✏️</button>
-                </div>
-              </div>
-              <button type="button" class="btn btn-sm btn-outline-primary" id="btn-lobby-auth">
-                <span>Log In / Sign Up</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Main Home Grid: Expansive Chat (Main) + Quick Play & Room Join (Sidebar) -->
-          <div class="lobby-main-grid">
-
-            <!-- Primary Centerpiece: Full Public Chat Section -->
-            <div class="section-card glass-panel public-lobby-chat-card">
-              <div class="lobby-chat-top-header">
-                <div class="chat-header-title-wrap">
-                  <span class="chat-header-icon">💬</span>
-                  <div>
-                    <h3 class="chat-header-title">Public Lobby Stream</h3>
-                    <p class="chat-header-sub">Anyone can chat, talk games, or share room codes!</p>
-                  </div>
-                </div>
-                <div class="chat-header-actions">
-                  <span class="live-pulse-badge">Live</span>
-                  <button type="button" class="btn btn-xs btn-ghost" id="btn-clear-local-chat" title="Clear local chat view">Clear</button>
-                </div>
-              </div>
-
-              <!-- Live Messages Scroll Container -->
-              <div class="public-chat-viewport">
-                <!-- Floating bubbles overlay -->
-                <div id="lobby-floating-bubbles" class="floating-bubbles-area"></div>
-                <!-- Chat Messages Stream -->
-                <div id="lobby-messages-log" class="public-messages-log">
-                  <div class="chat-welcome-notice">
-                    <span class="welcome-icon">🐾</span>
-                    <div>
-                      <strong>Welcome to the Public Lobby!</strong>
-                      <p>Send a message below, react with emojis, or challenge someone to a match.</p>
-                    </div>
+                  <div class="insta-gc-subtitle">
+                    <span class="insta-active-dot"></span>
+                    <span id="lobby-online-count-text">Active now</span>
+                    <span class="insta-dot-sep">•</span>
+                    <button type="button" class="insta-header-edit-btn" id="btn-edit-guest-name" title="Change your chat nickname">
+                      <span id="lobby-identity-name">Guest</span> ✏️
+                    </button>
                   </div>
                 </div>
               </div>
 
-              <!-- Quick Clickable Reactions / Quick Chat Bar -->
-              <div class="quick-reactions-strip">
-                <span class="reactions-label">Quick:</span>
-                <button type="button" class="reaction-pill" data-msg="👋 Hello everyone!">👋 Hello!</button>
-                <button type="button" class="reaction-pill" data-msg="🐱 Meow!">🐱 Meow!</button>
-                <button type="button" class="reaction-pill" data-msg="⚔️ Anyone want to play Tic-Tac-Toe?">⚔️ TicTacToe?</button>
-                <button type="button" class="reaction-pill" data-msg="🎮 Looking for a Connect 4 opponent!">🎮 Connect 4?</button>
-                <button type="button" class="reaction-pill" data-msg="✊ RPS duel anyone?">✊ RPS?</button>
-                <button type="button" class="reaction-pill" data-msg="🔥 GG!">🔥 GG!</button>
-                <button type="button" class="reaction-pill" data-msg="😂 LOL">😂 LOL</button>
-              </div>
-
-              <!-- Public Chat Input Bar -->
-              <form id="form-lobby-chat" class="public-chat-input-bar">
-                <div class="input-with-avatar">
-                  <span class="input-sender-avatar" id="chat-sender-avatar">🐱</span>
-                  <input type="text" id="input-lobby-chat" class="input-field public-chat-input" placeholder="Type a message to the public lobby... (Press Enter)" maxlength="150" autocomplete="off" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-send-chat" title="Send message">
-                  <span>Send</span>
-                  <span class="send-arrow">➤</span>
+              <div class="insta-gc-header-actions">
+                <button type="button" class="insta-icon-btn" id="btn-gc-quick-meow" title="Send Meow">🐱</button>
+                <button type="button" class="insta-icon-btn" id="btn-clear-local-chat" title="Clear chat log">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                 </button>
-              </form>
-            </div>
-
-            <!-- Sidebar: Quick Play & Join by Code -->
-            <div class="lobby-side-panel">
-              <!-- Quick Room Code Join Card -->
-              <div class="section-card glass-panel side-join-card">
-                <div class="side-card-header">
-                  <span class="side-icon">🔑</span>
-                  <h4>Join by Room Code</h4>
-                </div>
-                <p class="side-card-desc">Got a code from lobby chat? Enter it here:</p>
-                <div class="quick-join-strip-compact">
-                  <input type="text" id="input-quick-room-code" placeholder="ROOM CODE..." maxlength="6" class="input-field code-input" uppercase>
-                  <button type="button" id="btn-quick-join" class="btn btn-primary btn-sm">Join</button>
-                </div>
-              </div>
-
-              <!-- Quick Play Games -->
-              <div class="section-card glass-panel side-games-card">
-                <div class="side-card-header">
-                  <span class="side-icon">🎮</span>
-                  <h4>Play Mini-Games</h4>
-                </div>
-                <div class="side-games-list">
-                  <div class="side-game-item glass-card" data-game="tictactoe">
-                    <img src="/assets/logo-tictactoe.svg" alt="Tic-Tac-Toe" class="side-game-img">
-                    <div class="side-game-meta">
-                      <span class="side-game-name">Tic-Tac-Toe</span>
-                      <span class="side-game-tag">3x3 Duel</span>
-                    </div>
-                    <button type="button" class="btn btn-primary btn-xs btn-game-play" data-game="tictactoe">Host</button>
-                  </div>
-
-                  <div class="side-game-item glass-card" data-game="rps">
-                    <img src="/assets/logo-rps.svg" alt="Rock Paper Scissors" class="side-game-img">
-                    <div class="side-game-meta">
-                      <span class="side-game-name">Rock Paper Scissors</span>
-                      <span class="side-game-tag">Best of 5</span>
-                    </div>
-                    <button type="button" class="btn btn-primary btn-xs btn-game-play" data-game="rps">Host</button>
-                  </div>
-
-                  <div class="side-game-item glass-card" data-game="connect4">
-                    <img src="/assets/logo-connect4.svg" alt="Connect Four" class="side-game-img">
-                    <div class="side-game-meta">
-                      <span class="side-game-name">Connect 4</span>
-                      <span class="side-game-tag">4 in a row</span>
-                    </div>
-                    <button type="button" class="btn btn-primary btn-xs btn-game-play" data-game="connect4">Host</button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Online Friends Card (For Logged-in Members) -->
-              <div class="section-card glass-panel side-friends-card" id="home-friends-card">
-                <div class="side-card-header">
-                  <span class="side-icon">👥</span>
-                  <h4>Online Friends</h4>
-                  <button type="button" class="btn btn-xs btn-ghost" id="btn-view-all-friends">All →</button>
-                </div>
-                <div id="home-online-friends-list" class="friends-side-list">
-                  <div class="empty-state-hint">Log in to add friends and send direct invites!</div>
-                </div>
+                <button type="button" class="insta-icon-btn" id="btn-lobby-auth" title="Account / Log In">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                </button>
               </div>
             </div>
+
+            <!-- Instagram GC Messages Stream Area -->
+            <div class="insta-gc-viewport" id="insta-gc-viewport">
+              <!-- Floating reaction bubbles -->
+              <div id="lobby-floating-bubbles" class="floating-bubbles-area"></div>
+
+              <!-- Instagram GC Group Bio Intro -->
+              <div class="insta-gc-thread-intro">
+                <div class="insta-intro-avatar-wrap">
+                  <span class="insta-intro-avatar">🐱</span>
+                  <span class="insta-intro-badge">💬</span>
+                </div>
+                <h3 class="insta-intro-title">Public Lobby</h3>
+                <p class="insta-intro-handle">@cat-catin • Group Chat</p>
+                <p class="insta-intro-desc">Welcome to the group chat! Anyone can message, share room codes, and hang out.</p>
+                <div class="insta-intro-pill-row">
+                  <span class="insta-intro-chip">Chatting as: <strong id="lobby-intro-guest-name">🐱 Guest</strong></span>
+                  <button type="button" class="insta-intro-action-btn" id="btn-edit-guest-name-intro">Edit Name</button>
+                </div>
+              </div>
+
+              <!-- Chat Messages Stream -->
+              <div id="lobby-messages-log" class="insta-messages-list"></div>
+            </div>
+
+            <!-- Quick Emoji Reactions Strip (IG story/DM quick react style) -->
+            <div class="insta-quick-reactions">
+              <button type="button" class="reaction-pill insta-pill" data-msg="❤️">❤️</button>
+              <button type="button" class="reaction-pill insta-pill" data-msg="🔥">🔥</button>
+              <button type="button" class="reaction-pill insta-pill" data-msg="😂">😂</button>
+              <button type="button" class="reaction-pill insta-pill" data-msg="🐱 Meow!">🐱 Meow</button>
+              <button type="button" class="reaction-pill insta-pill" data-msg="👋 Sup everyone!">👋 Sup</button>
+              <button type="button" class="reaction-pill insta-pill" data-msg="💀">💀</button>
+              <button type="button" class="reaction-pill insta-pill" data-msg="🙌">🙌</button>
+              <button type="button" class="reaction-pill insta-pill" data-msg="⚔️ Anyone down to duel?">⚔️ Duel?</button>
+            </div>
+
+            <!-- Instagram DM Bottom Input Bar -->
+            <form id="form-lobby-chat" class="insta-input-container">
+              <div class="insta-input-pill">
+                <button type="button" class="insta-pill-avatar-btn" id="btn-pill-change-avatar" title="Change Avatar & Name">
+                  <span id="chat-sender-avatar" class="insta-input-avatar">🐱</span>
+                </button>
+                <input type="text" id="input-lobby-chat" class="insta-text-input" placeholder="Message..." maxlength="150" autocomplete="off" required>
+                <button type="submit" id="btn-send-message" class="insta-send-btn" title="Send message">
+                  <span>Send</span>
+                </button>
+              </div>
+            </form>
 
           </div>
         </section>

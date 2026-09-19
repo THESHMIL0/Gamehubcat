@@ -312,11 +312,13 @@ class GameRoomApp {
     const user = this.currentUser || getGuestInfo();
     const avatarEl = document.getElementById('lobby-identity-avatar');
     const nameEl = document.getElementById('lobby-identity-name');
+    const introNameEl = document.getElementById('lobby-intro-guest-name');
     const tagEl = document.getElementById('lobby-identity-tag');
     const chatAvatarEl = document.getElementById('chat-sender-avatar');
 
     if (avatarEl) avatarEl.textContent = user.avatar || '🐱';
     if (nameEl) nameEl.textContent = user.display_name || user.username || 'Guest';
+    if (introNameEl) introNameEl.textContent = `${user.avatar || '🐱'} ${user.display_name || user.username || 'Guest'}`;
     if (chatAvatarEl) chatAvatarEl.textContent = user.avatar || '🐱';
 
     const isGuest = isGuestUser(user);
@@ -330,6 +332,11 @@ class GameRoomApp {
       editNameBtn.style.display = isGuest ? 'inline-flex' : 'none';
     }
 
+    const editIntroBtn = document.getElementById('btn-edit-guest-name-intro');
+    if (editIntroBtn) {
+      editIntroBtn.style.display = isGuest ? 'inline-flex' : 'none';
+    }
+
     const lobbyAuthBtn = document.getElementById('btn-lobby-auth');
     if (lobbyAuthBtn) {
       lobbyAuthBtn.style.display = isGuest ? 'inline-flex' : 'none';
@@ -337,15 +344,21 @@ class GameRoomApp {
   }
 
   bindGuestProfileEvents() {
+    const openGuestModal = () => {
+      const modal = document.getElementById('modal-guest-profile');
+      const input = document.getElementById('input-guest-nickname');
+      if (input) input.value = this.currentUser?.display_name || '';
+      if (modal) modal.classList.remove('hidden');
+    };
+
     const btnEdit = document.getElementById('btn-edit-guest-name');
-    if (btnEdit) {
-      btnEdit.onclick = () => {
-        const modal = document.getElementById('modal-guest-profile');
-        const input = document.getElementById('input-guest-nickname');
-        if (input) input.value = this.currentUser?.display_name || '';
-        if (modal) modal.classList.remove('hidden');
-      };
-    }
+    if (btnEdit) btnEdit.onclick = openGuestModal;
+
+    const btnEditIntro = document.getElementById('btn-edit-guest-name-intro');
+    if (btnEditIntro) btnEditIntro.onclick = openGuestModal;
+
+    const btnPillAvatar = document.getElementById('btn-pill-change-avatar');
+    if (btnPillAvatar) btnPillAvatar.onclick = openGuestModal;
 
     const avatarBtns = document.querySelectorAll('#guest-avatar-picker .avatar-pick-btn');
     avatarBtns.forEach((btn) => {

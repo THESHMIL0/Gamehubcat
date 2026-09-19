@@ -3697,606 +3697,734 @@ html.has-stored-auth #main-interface:not(.hidden) {
 }
 
 /* ===================================================
-   PUBLIC LOBBY & PUBLIC CHAT CENTERPIECE
+   INSTAGRAM GROUP CHAT (HOME VIEW ONLY)
    =================================================== */
 
-.view-home-lobby {
-  display: flex;
+.view-insta-gc {
+  display: flex !important;
   flex-direction: column;
-  gap: 1.1rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  align-items: center;
+  justify-content: flex-start;
   width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  height: calc(100vh - 110px);
+  min-height: 580px;
+  padding: 0.5rem 0.75rem 1rem;
+  box-sizing: border-box;
 }
 
-/* Top Hero Bar */
-.lobby-hero-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.35rem;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.75), rgba(15, 23, 42, 0.85));
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.45);
-  flex-wrap: wrap;
-  gap: 0.85rem;
-}
-
-.lobby-hero-left {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  flex-wrap: wrap;
-}
-
-.lobby-badge-pulse {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(99, 102, 241, 0.18);
-  border: 1px solid rgba(129, 140, 248, 0.35);
-  color: #a5b4fc;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-}
-
-.live-pulse-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 8px #10b981;
-  animation: pulseGlow 1.8s infinite;
-}
-
-@keyframes pulseGlow {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.85); }
-}
-
-.lobby-headline {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #f8fafc;
-  letter-spacing: -0.02em;
-  margin: 0;
-}
-
-.lobby-online-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  color: #94a3b8;
-  font-weight: 500;
-  background: rgba(15, 23, 42, 0.5);
-  padding: 3px 10px;
-  border-radius: var(--radius-full);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.online-users-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #38bdf8;
-}
-
-.lobby-hero-right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.lobby-user-identity-chip {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  background: rgba(15, 23, 42, 0.65);
-  padding: 0.35rem 0.75rem;
-  border-radius: var(--radius-full);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.identity-avatar {
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
-.identity-meta {
-  display: flex;
-  flex-direction: column;
-}
-
-.identity-name-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.identity-name {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #f1f5f9;
-  max-width: 120px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.identity-tag {
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: var(--radius-full);
-  text-transform: uppercase;
-}
-
-.badge-guest {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.4);
-}
-
-.badge-member {
-  background: rgba(56, 189, 248, 0.2);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.4);
-}
-
-.btn-text-action {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  font-size: 0.68rem;
-  cursor: pointer;
-  padding: 0;
-  text-align: left;
-  transition: color 0.15s;
-}
-
-.btn-text-action:hover {
-  color: #38bdf8;
-  text-decoration: underline;
-}
-
-/* Main Lobby Grid */
-.lobby-main-grid {
-  display: grid;
-  grid-template-columns: 1fr 330px;
-  gap: 1.1rem;
-  align-items: start;
-}
-
-@media (max-width: 960px) {
-  .lobby-main-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 768px) {
+  .view-insta-gc {
+    max-width: 100%;
+    height: calc(100vh - 75px);
+    padding: 0;
+    min-height: auto;
   }
 }
 
-/* Public Chat Card */
-.public-lobby-chat-card {
+.insta-gc-card {
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 1.15rem;
-  border-radius: var(--radius-md);
-  background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5);
-}
-
-.lobby-chat-top-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 0.85rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 0.85rem;
-}
-
-.chat-header-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.chat-header-icon {
-  font-size: 1.4rem;
-}
-
-.chat-header-title {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #f8fafc;
-  margin: 0;
-}
-
-.chat-header-sub {
-  font-size: 0.76rem;
-  color: #94a3b8;
-  margin: 0;
-}
-
-.chat-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Chat Viewport */
-.public-chat-viewport {
-  position: relative;
-  height: 420px;
-  border-radius: var(--radius-sm);
-  background: rgba(10, 15, 29, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #000000;
+  border: 1px solid #262626;
+  border-radius: 16px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 0.75rem;
+  position: relative;
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.7);
 }
 
-.public-messages-log {
+@media (max-width: 768px) {
+  .insta-gc-card {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+  }
+}
+
+/* Instagram Header */
+.insta-gc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.15rem;
+  background: rgba(18, 18, 18, 0.95);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid #262626;
+  z-index: 20;
+  flex-shrink: 0;
+}
+
+.insta-gc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  user-select: none;
+}
+
+.insta-gc-avatar-cluster {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.insta-avatar-disc {
+  position: absolute;
+  width: 29px;
+  height: 29px;
+  border-radius: 50%;
+  border: 2px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.avatar-p1 {
+  top: 0;
+  left: 0;
+  background: linear-gradient(135deg, #374151, #1f2937);
+  z-index: 1;
+}
+
+.avatar-p2 {
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(135deg, #4b5563, #374151);
+  font-size: 13px;
+  z-index: 2;
+}
+
+.insta-online-pip {
+  position: absolute;
+  bottom: 0px;
+  left: 17px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid #000000;
+  z-index: 3;
+}
+
+.insta-gc-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.insta-gc-title-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.insta-gc-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #f5f5f5;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.insta-verified-badge {
+  color: #0095f6;
+  display: inline-flex;
+  align-items: center;
+}
+
+.insta-gc-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  color: #a8a8a8;
+  font-weight: 500;
+}
+
+.insta-active-dot {
+  width: 6px;
+  height: 6px;
+  background: #10b981;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.insta-dot-sep {
+  color: #525252;
+}
+
+.insta-header-edit-btn {
+  background: transparent;
+  border: none;
+  color: #38bdf8;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s;
+}
+
+.insta-header-edit-btn:hover {
+  color: #7dd3fc;
+  text-decoration: underline;
+}
+
+.insta-gc-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.insta-icon-btn {
+  background: transparent;
+  border: none;
+  color: #f5f5f5;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.15rem;
+  transition: all 0.15s;
+}
+
+.insta-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.06);
+}
+
+.insta-icon-btn:active {
+  transform: scale(0.94);
+}
+
+/* GC Messages Viewport */
+.insta-gc-viewport {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem;
+  overflow-x: hidden;
+  padding: 1.25rem 1rem 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  position: relative;
+  background: #000000;
   scroll-behavior: smooth;
 }
 
-.public-messages-log::-webkit-scrollbar {
+.insta-gc-viewport::-webkit-scrollbar {
   width: 6px;
 }
 
-.public-messages-log::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.18);
+.insta-gc-viewport::-webkit-scrollbar-thumb {
+  background: #262626;
   border-radius: 4px;
 }
 
-.chat-welcome-notice {
+.insta-gc-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Thread Intro Card */
+.insta-gc-thread-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2.2rem 1rem 1.6rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #1a1a1a;
+  flex-shrink: 0;
+}
+
+.insta-intro-avatar-wrap {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  padding: 3px;
+  margin-bottom: 0.85rem;
+  box-shadow: 0 4px 16px rgba(220, 39, 67, 0.25);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-sm);
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px dashed rgba(129, 140, 248, 0.35);
-  color: #c7d2fe;
+  justify-content: center;
+}
+
+.insta-intro-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #121212;
+  border: 2px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+}
+
+.insta-intro-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: #0095f6;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border: 2px solid #000000;
+}
+
+.insta-intro-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f5f5f5;
+  margin: 0 0 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+.insta-intro-handle {
   font-size: 0.82rem;
-  margin-bottom: 0.5rem;
+  color: #a8a8a8;
+  margin: 0 0 0.5rem;
 }
 
-.chat-welcome-notice .welcome-icon {
-  font-size: 1.6rem;
+.insta-intro-desc {
+  font-size: 0.84rem;
+  color: #737373;
+  max-width: 360px;
+  margin: 0 0 0.9rem;
+  line-height: 1.45;
 }
 
-.chat-welcome-notice strong {
+.insta-intro-pill-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.insta-intro-chip {
+  background: #1f1f1f;
+  border: 1px solid #2e2e2e;
+  color: #e4e4e7;
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-size: 0.78rem;
+}
+
+.insta-intro-action-btn {
+  background: #2e2e2e;
+  border: 1px solid #3e3e3e;
   color: #ffffff;
-  display: block;
-  font-size: 0.88rem;
-  margin-bottom: 2px;
+  padding: 4px 14px;
+  border-radius: 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
 }
 
-.chat-welcome-notice p {
-  margin: 0;
+.insta-intro-action-btn:hover {
+  background: #3e3e3e;
+  border-color: #555555;
+}
+
+/* Chat Messages Stream */
+.insta-messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.insta-msg-row {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 78%;
+  position: relative;
+  animation: fadeInMsg 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInMsg {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.insta-msg-row.insta-mine {
+  align-self: flex-end;
+  justify-content: flex-end;
+}
+
+.insta-msg-row.insta-theirs {
+  align-self: flex-start;
+  justify-content: flex-start;
+}
+
+.insta-msg-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #262626;
+  border: 1px solid #363636;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  align-self: flex-end;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s;
+}
+
+.insta-msg-avatar:hover {
+  transform: scale(1.1);
+}
+
+.insta-bubble-group {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+}
+
+.insta-mine .insta-bubble-group {
+  align-items: flex-end;
+}
+
+.insta-theirs .insta-bubble-group {
+  align-items: flex-start;
+}
+
+.insta-sender-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+  margin-left: 4px;
+}
+
+.insta-sender-name {
+  font-size: 0.73rem;
+  color: #a8a8a8;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.insta-sender-name:hover {
+  color: #f5f5f5;
+  text-decoration: underline;
+}
+
+.insta-badge-guest {
+  font-size: 0.62rem;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  font-weight: 600;
+}
+
+.insta-badge-member {
+  font-size: 0.62rem;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  font-weight: 600;
+}
+
+.insta-bubble-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.insta-bubble {
+  padding: 10px 15px;
+  font-size: 0.93rem;
+  line-height: 1.4;
+  word-break: break-word;
+  user-select: text;
+  cursor: default;
+  transition: transform 0.12s;
+}
+
+/* Authentic Instagram Outgoing Bubble (Gradient) */
+.bubble-mine {
+  background: linear-gradient(135deg, #7857ff 0%, #a855f7 50%, #ec4899 100%);
+  color: #ffffff;
+  border-radius: 20px 20px 4px 20px;
+  box-shadow: 0 4px 14px -3px rgba(168, 85, 247, 0.35);
+}
+
+/* Authentic Instagram Incoming Bubble (Sleek Dark) */
+.bubble-theirs {
+  background: #262626;
+  color: #f5f5f5;
+  border-radius: 20px 20px 20px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.insta-heart-react-btn {
+  opacity: 0;
+  pointer-events: none;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 4px;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.insta-bubble-wrap:hover .insta-heart-react-btn {
+  opacity: 0.7;
+  pointer-events: auto;
+}
+
+.insta-heart-react-btn:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.insta-heart-reaction-badge {
+  position: absolute;
+  bottom: -8px;
+  right: 12px;
+  background: #262626;
+  border: 2px solid #000000;
+  border-radius: 12px;
+  padding: 1px 5px;
+  font-size: 11px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  animation: popBadge 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popBadge {
+  0% { transform: scale(0); }
+  80% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.insta-pop-heart-anim {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  font-size: 2.4rem;
+  pointer-events: none;
+  animation: popHeartFloat 0.85s ease-out forwards;
+  z-index: 30;
+}
+
+@keyframes popHeartFloat {
+  0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+  35% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+  70% { transform: translate(-50%, -75%) scale(1.1); opacity: 0.9; }
+  100% { transform: translate(-50%, -110%) scale(0.8); opacity: 0; }
+}
+
+.insta-msg-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  color: #737373;
+  margin-top: 3px;
+  padding: 0 4px;
+}
+
+.insta-btn-challenge {
+  background: rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(129, 140, 248, 0.3);
   color: #a5b4fc;
+  font-size: 0.72rem;
+  padding: 1px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.insta-btn-challenge:hover {
+  background: rgba(99, 102, 241, 0.4);
+  transform: scale(1.05);
+}
+
+/* Quick Emoji Reactions Strip */
+.insta-quick-reactions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-top: 1px solid #1a1a1a;
+  background: #0a0a0a;
+  flex-shrink: 0;
+}
+
+.insta-quick-reactions::-webkit-scrollbar {
+  display: none;
+}
+
+.reaction-pill.insta-pill {
+  background: #1f1f1f;
+  border: 1px solid #2e2e2e;
+  color: #e4e4e7;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.reaction-pill.insta-pill:hover {
+  background: #2e2e2e;
+  border-color: #444444;
+  transform: scale(1.04);
+}
+
+.reaction-pill.insta-pill:active {
+  transform: scale(0.96);
+}
+
+/* Instagram DM Bottom Input Bar */
+.insta-input-container {
+  padding: 0.65rem 1rem 0.9rem;
+  background: #000000;
+  border-top: 1px solid #1a1a1a;
+  flex-shrink: 0;
+}
+
+.insta-input-pill {
+  display: flex;
+  align-items: center;
+  background: #1f1f1f;
+  border: 1px solid #2e2e2e;
+  border-radius: 26px;
+  padding: 3px 6px 3px 8px;
+  transition: all 0.15s;
+}
+
+.insta-input-pill:focus-within {
+  border-color: #555555;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+  background: #242424;
+}
+
+.insta-pill-avatar-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  transition: transform 0.15s;
+}
+
+.insta-pill-avatar-btn:hover {
+  transform: scale(1.15);
+}
+
+.insta-text-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f5f5f5;
+  font-size: 0.93rem;
+  padding: 8px 10px;
+}
+
+.insta-text-input::placeholder {
+  color: #737373;
+}
+
+.insta-send-btn {
+  background: transparent;
+  border: none;
+  color: #0095f6;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 6px 14px;
+  cursor: pointer;
+  border-radius: 18px;
+  transition: all 0.15s;
+  letter-spacing: -0.01em;
+}
+
+.insta-send-btn:hover {
+  color: #38bdf8;
+  transform: scale(1.05);
+}
+
+.insta-send-btn:active {
+  transform: scale(0.95);
+}
+
+/* Floating Reaction Bubbles */
+.floating-bubbles-area {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 15;
+}
+
+.chat-bubble-floating {
+  position: absolute;
+  bottom: 20px;
+  background: rgba(24, 24, 27, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  padding: 6px 14px;
+  border-radius: 18px;
+  color: #f5f5f5;
+  font-size: 0.82rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  animation: floatUpSlow 4s ease-out forwards;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@keyframes floatUpSlow {
+  0% { transform: translateY(0) scale(0.85); opacity: 0; }
+  15% { transform: translateY(-30px) scale(1.02); opacity: 1; }
+  80% { transform: translateY(-160px) scale(0.98); opacity: 0.9; }
+  100% { transform: translateY(-220px) scale(0.85); opacity: 0; }
 }
 
 .chat-system-notice {
   text-align: center;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #737373;
+  padding: 0.5rem;
   font-style: italic;
-  padding: 0.5rem 0;
 }
 
-/* Chat Messages */
-.chat-log-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
-  padding: 0.35rem 0.5rem;
-  border-radius: 8px;
-  transition: background 0.15s;
-}
 
-.chat-log-item:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.chat-avatar {
-  font-size: 1.25rem;
-  line-height: 1;
-  padding-top: 2px;
-  flex-shrink: 0;
-}
-
-.chat-content-wrap {
-  flex: 1;
-  min-width: 0;
-}
-
-.chat-meta-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 2px;
-  flex-wrap: wrap;
-}
-
-.chat-author {
-  font-weight: 700;
-  font-size: 0.82rem;
-  cursor: pointer;
-}
-
-.chat-author.chat-me {
-  color: #10b981;
-}
-
-.chat-author.chat-guest {
-  color: #fbbf24;
-}
-
-.chat-author.chat-member {
-  color: #38bdf8;
-}
-
-.badge-tag {
-  font-size: 0.62rem;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 4px;
-}
-
-.chat-time {
-  font-size: 0.68rem;
-  color: #64748b;
-  margin-left: 2px;
-}
-
-.btn-chat-challenge {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #f87171;
-  font-size: 0.65rem;
-  padding: 1px 5px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-chat-challenge:hover {
-  background: #ef4444;
-  color: #ffffff;
-}
-
-.chat-text {
-  color: #e2e8f0;
-  font-size: 0.88rem;
-  line-height: 1.45;
-  word-break: break-word;
-}
-
-/* Quick Reactions Bar */
-.quick-reactions-strip {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  overflow-x: auto;
-  padding: 0.4rem 0.2rem;
-  margin-bottom: 0.65rem;
-  scrollbar-width: none;
-}
-
-.quick-reactions-strip::-webkit-scrollbar {
-  display: none;
-}
-
-.reactions-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-right: 0.2rem;
-  white-space: nowrap;
-}
-
-.reaction-pill {
-  background: rgba(30, 41, 59, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #cbd5e1;
-  font-size: 0.76rem;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.reaction-pill:hover {
-  background: rgba(99, 102, 241, 0.25);
-  border-color: rgba(129, 140, 248, 0.4);
-  color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-}
-
-/* Chat Input Bar */
-.public-chat-input-bar {
-  display: flex;
-  gap: 0.65rem;
-  align-items: center;
-}
-
-.input-with-avatar {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(10, 15, 29, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-md);
-  padding: 0.25rem 0.85rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.input-with-avatar:focus-within {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-}
-
-.input-sender-avatar {
-  font-size: 1.2rem;
-  line-height: 1;
-}
-
-.public-chat-input {
-  flex: 1;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0.6rem 0 !important;
-  font-size: 0.9rem !important;
-  color: #f8fafc !important;
-}
-
-.public-chat-input:focus {
-  outline: none !important;
-}
-
-.btn-send-chat {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0.75rem 1.25rem;
-  font-weight: 700;
-  border-radius: var(--radius-md);
-  flex-shrink: 0;
-}
-
-.send-arrow {
-  font-size: 0.95rem;
-  transition: transform 0.15s;
-}
-
-.btn-send-chat:hover .send-arrow {
-  transform: translateX(2px);
-}
-
-/* Sidebar Components */
-.lobby-side-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.side-join-card,
-.side-games-card,
-.side-friends-card {
-  padding: 1rem;
-  border-radius: var(--radius-md);
-}
-
-.side-card-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.65rem;
-}
-
-.side-card-header h4 {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: #f1f5f9;
-  margin: 0;
-  flex: 1;
-}
-
-.side-icon {
-  font-size: 1.15rem;
-}
-
-.side-card-desc {
-  font-size: 0.78rem;
-  color: #94a3b8;
-  margin: 0 0 0.65rem 0;
-}
-
-.quick-join-strip-compact {
-  display: flex;
-  gap: 0.45rem;
-}
-
-.quick-join-strip-compact .code-input {
-  flex: 1;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: 700;
-  text-align: center;
-}
-
-.side-games-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-
-.side-game-item {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: var(--radius-sm);
-  background: rgba(30, 41, 59, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: all 0.15s;
-}
-
-.side-game-item:hover {
-  background: rgba(30, 41, 59, 0.75);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateX(2px);
-}
-
-.side-game-img {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-}
-
-.side-game-meta {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.side-game-name {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #f1f5f9;
-}
-
-.side-game-tag {
-  font-size: 0.68rem;
-  color: #94a3b8;
-}
-
-.friends-side-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  max-height: 180px;
-  overflow-y: auto;
-}
 
 /* Auth Modal Card */
 .auth-modal-card {

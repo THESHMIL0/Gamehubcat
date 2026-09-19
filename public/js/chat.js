@@ -31,7 +31,7 @@ export function initChat() {
   }
 
   // Quick Reaction Buttons (Pills)
-  const reactionPills = document.querySelectorAll('.reaction-pill');
+  const reactionPills = document.querySelectorAll('.reaction-pill, .insta-reaction-pill');
   reactionPills.forEach((pill) => {
     pill.onclick = () => {
       const msg = pill.getAttribute('data-msg');
@@ -40,6 +40,33 @@ export function initChat() {
       }
     };
   });
+
+  // Quick Meow Button in header
+  const btnQuickMeow = document.getElementById('btn-gc-quick-meow');
+  if (btnQuickMeow) {
+    btnQuickMeow.onclick = () => {
+      if (socket.connected) {
+        socket.emit('lobby_message', { text: '🐱 Meow!' });
+      }
+    };
+  }
+
+  // Edit Name triggers from GC Intro & Pill
+  const btnEditIntro = document.getElementById('btn-edit-guest-name-intro');
+  if (btnEditIntro) {
+    btnEditIntro.onclick = () => {
+      const modal = document.getElementById('modal-guest-profile');
+      if (modal) modal.classList.remove('hidden');
+    };
+  }
+
+  const btnPillAvatar = document.getElementById('btn-pill-change-avatar');
+  if (btnPillAvatar) {
+    btnPillAvatar.onclick = () => {
+      const modal = document.getElementById('modal-guest-profile');
+      if (modal) modal.classList.remove('hidden');
+    };
+  }
 
   // Clear Local Chat Log button
   const btnClearChat = document.getElementById('btn-clear-local-chat');
@@ -87,7 +114,7 @@ export function initChat() {
   socket.on('lobby_online_count', ({ count }) => {
     const countEl = document.getElementById('lobby-online-count-text');
     if (countEl) {
-      countEl.textContent = `${count} Online in Lobby`;
+      countEl.textContent = `${count} online`;
     }
   });
 
@@ -121,7 +148,7 @@ function spawnFloatingBubble(containerId, message) {
   const isMe = String(sender.id) === String(current?.id);
 
   bubble.innerHTML = `
-    <span class="chat-bubble-author" style="color: ${isMe ? '#10b981' : sender.isGuest ? '#f59e0b' : '#38bdf8'}">
+    <span class="chat-bubble-author" style="color: ${isMe ? '#a855f7' : sender.isGuest ? '#fbbf24' : '#38bdf8'}">
       ${escapeHtml(sender.avatar || '🐱')} ${escapeHtml(sender.display_name || sender.username || 'Player')}:
     </span>
     <span class="chat-bubble-text">${escapeHtml(message.text)}</span>
@@ -129,7 +156,6 @@ function spawnFloatingBubble(containerId, message) {
 
   container.appendChild(bubble);
 
-  // Remove element after animation finishes
   setTimeout(() => {
     if (bubble.parentNode) {
       bubble.parentNode.removeChild(bubble);
@@ -137,41 +163,98 @@ function spawnFloatingBubble(containerId, message) {
   }, 4200);
 }
 
-// Appends message to public chat log list
+// Appends message as an authentic Instagram Group Chat message row
 function appendChatMessage(containerId, message) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   const item = document.createElement('div');
-  item.className = 'chat-log-item';
 
   const sender = message.sender || {};
   const current = getCurrentUser() || getGuestInfo();
   const isMe = String(sender.id) === String(current?.id);
   const isGuest = !!sender.isGuest || String(sender.id).startsWith('guest_');
 
+  item.className = `insta-msg-row ${isMe ? 'insta-mine' : 'insta-theirs'}`;
+
   const roleBadge = isGuest
-    ? `<span class="badge-tag badge-guest">Guest</span>`
-    : `<span class="badge-tag badge-member">Member</span>`;
+    ? `<span class="insta-badge-guest">Guest</span>`
+    : `<span class="insta-badge-member">Member</span>`;
 
   const challengeBtn = (!isMe && !isGuest && sender.id)
-    ? `<button type="button" class="btn-chat-challenge" title="Challenge to a game" onclick="window.GameApp?.openInviteModal ? window.GameApp.openInviteModal(${sender.id}) : null">⚔️</button>`
+    ? `<button type="button" class="insta-btn-challenge" title="Challenge to duel" onclick="window.GameApp?.openInviteModal ? window.GameApp.openInviteModal(${sender.id}) : null">⚔️</button>`
     : '';
 
-  item.innerHTML = `
-    <span class="chat-avatar">${escapeHtml(sender.avatar || '🐱')}</span>
-    <div class="chat-content-wrap">
-      <div class="chat-meta-row">
-        <span class="chat-author ${isMe ? 'chat-me' : isGuest ? 'chat-guest' : 'chat-member'}" onclick="window.GameApp?.showPlayerProfile && !${isGuest} ? window.GameApp.showPlayerProfile(${sender.id}) : null">
-          ${escapeHtml(sender.display_name || sender.username || 'Player')}
-        </span>
-        ${roleBadge}
-        <span class="chat-time">${escapeHtml(message.timestamp || '')}</span>
-        ${challengeBtn}
+  if (isMe) {
+    // Outgoing Message (Me): Aligned right with Instagram gradient bubble
+    item.innerHTML = `
+      <div class="insta-bubble-group">
+        <div class="insta-bubble-wrap">
+          <div class="insta-bubble bubble-mine" title="${escapeHtml(message.timestamp || '')}">
+            ${escapeHtml(message.text)}
+          </div>
+        </div>
+        <div class="insta-msg-meta">
+          <span class="insta-msg-time">${escapeHtml(message.timestamp || '')}</span>
+        </div>
       </div>
-      <div class="chat-text">${escapeHtml(message.text)}</div>
-    </div>
-  `;
+    `;
+  } else {
+    // Incoming Message (Others): Avatar on left, sender name above bubble, dark slate bubble
+    item.innerHTML = `
+      <span class="insta-msg-avatar" title="${escapeHtml(sender.display_name || 'Player')}" onclick="window.GameApp?.showPlayerProfile && !${isGuest} ? window.GameApp.showPlayerProfile(${sender.id}) : null">
+        ${escapeHtml(sender.avatar || '🐱')}
+      </span>
+      <div class="insta-bubble-group">
+        <div class="insta-sender-header">
+          <span class="insta-sender-name" onclick="window.GameApp?.showPlayerProfile && !${isGuest} ? window.GameApp.showPlayerProfile(${sender.id}) : null">
+            ${escapeHtml(sender.display_name || sender.username || 'Player')}
+          </span>
+          ${roleBadge}
+        </div>
+        <div class="insta-bubble-wrap">
+          <div class="insta-bubble bubble-theirs" title="${escapeHtml(message.timestamp || '')}">
+            ${escapeHtml(message.text)}
+          </div>
+          <button type="button" class="insta-heart-react-btn" title="Double tap to like">❤️</button>
+        </div>
+        <div class="insta-msg-meta">
+          <span class="insta-msg-time">${escapeHtml(message.timestamp || '')}</span>
+          ${challengeBtn}
+        </div>
+      </div>
+    `;
+  }
+
+  // Double-tap or double-click to heart like Instagram
+  const bubble = item.querySelector('.insta-bubble');
+  const heartBtn = item.querySelector('.insta-heart-react-btn');
+
+  const triggerHeartReaction = () => {
+    const existingBadge = item.querySelector('.insta-heart-reaction-badge');
+    if (existingBadge) {
+      existingBadge.remove();
+    } else {
+      const badge = document.createElement('span');
+      badge.className = 'insta-heart-reaction-badge';
+      badge.textContent = '❤️';
+      item.querySelector('.insta-bubble-wrap')?.appendChild(badge);
+
+      // Pop floating animated heart
+      const popHeart = document.createElement('span');
+      popHeart.className = 'insta-pop-heart-anim';
+      popHeart.textContent = '❤️';
+      item.querySelector('.insta-bubble-wrap')?.appendChild(popHeart);
+      setTimeout(() => popHeart.remove(), 1000);
+    }
+  };
+
+  if (bubble) {
+    bubble.ondblclick = triggerHeartReaction;
+  }
+  if (heartBtn) {
+    heartBtn.onclick = triggerHeartReaction;
+  }
 
   container.appendChild(item);
   container.scrollTop = container.scrollHeight;
