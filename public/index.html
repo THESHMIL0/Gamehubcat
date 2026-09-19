@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GameRoom — Multiplayer Social Gaming</title>
+  <meta name="description" content="Play Tic-Tac-Toe, Rock Paper Scissors, and Connect Four with friends in real time.">
+  <link rel="stylesheet" href="/style.css">
+  <!-- Socket.IO client script -->
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="dark-theme">
+  <!-- Toast Notifications Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Real-Time Game Invitations Container (Section 25: Multiple Invitations) -->
+  <div id="invitation-container" class="invitation-container"></div>
+
+  <!-- Main App Shell -->
+  <div id="app" class="app-root">
+
+    <!-- ========================================== -->
+    <!-- AUTHENTICATION VIEW (Login / Register)     -->
+    <!-- ========================================== -->
+    <section id="view-auth" class="view view-auth">
+      <div class="auth-card glass-panel">
+        <div class="auth-header">
+          <div class="brand-badge">
+            <span class="brand-icon">🎮</span>
+            <h1 class="brand-title">GAME ROOM</h1>
+          </div>
+          <p class="brand-subtitle">Real-time social multiplayer games</p>
+        </div>
+
+        <div class="auth-tabs">
+          <button id="tab-login" class="tab-btn active" type="button">Log In</button>
+          <button id="tab-register" class="tab-btn" type="button">Create Account</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="form-login" class="auth-form">
+          <div class="form-group">
+            <label for="login-username">Username</label>
+            <input type="text" id="login-username" name="username" class="input-field" placeholder="Enter your username" autocomplete="username" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" name="password" class="input-field" placeholder="••••••••" autocomplete="current-password" required>
+          </div>
+          <div id="login-error" class="form-error hidden"></div>
+          <button type="submit" id="btn-login-submit" class="btn btn-primary btn-block">
+            <span class="btn-text">Log In</span>
+          </button>
+          <div class="auth-toggle-hint">
+            Don't have an account? <a href="#" id="link-go-register">Create Account</a>
+          </div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="form-register" class="auth-form hidden">
+          <div class="form-group">
+            <label for="reg-username">Username</label>
+            <input type="text" id="reg-username" name="username" class="input-field" placeholder="Choose a unique username" autocomplete="username" minlength="3" maxlength="20" required>
+            <span class="input-hint">3-20 characters (letters, numbers, underscore)</span>
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <input type="password" id="reg-password" name="password" class="input-field" placeholder="Min. 6 characters" autocomplete="new-password" minlength="6" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-confirm-password">Confirm Password</label>
+            <input type="password" id="reg-confirm-password" name="confirmPassword" class="input-field" placeholder="Re-enter password" autocomplete="new-password" minlength="6" required>
+          </div>
+          <div id="register-error" class="form-error hidden"></div>
+          <button type="submit" id="btn-register-submit" class="btn btn-primary btn-block">
+            <span class="btn-text">Create Account</span>
+          </button>
+          <div class="auth-toggle-hint">
+            Already have an account? <a href="#" id="link-go-login">Log In</a>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- LOGGED IN MAIN INTERFACE                   -->
+    <!-- ========================================== -->
+    <div id="main-interface" class="main-interface hidden">
+
+      <!-- Top Navigation Header -->
+      <header id="main-header" class="main-header glass-panel">
+        <div class="header-left">
+          <a href="#" id="logo-home-link" class="header-brand">
+            <span class="brand-icon">🎮</span>
+            <span class="brand-name">GAME ROOM</span>
+          </a>
+          <span class="header-welcome">Welcome, <strong id="header-username">Player</strong></span>
+        </div>
+
+        <!-- Desktop Navigation Tabs -->
+        <nav class="desktop-nav">
+          <button class="nav-tab active" data-view="home" id="nav-btn-home">
+            <span class="nav-icon">🏠</span> Home
+          </button>
+          <button class="nav-tab" data-view="games" id="nav-btn-games">
+            <span class="nav-icon">🎲</span> Games
+          </button>
+          <button class="nav-tab" data-view="friends" id="nav-btn-friends">
+            <span class="nav-icon">👥</span> Friends
+            <span id="friends-badge-desktop" class="badge-counter hidden">0</span>
+          </button>
+          <button class="nav-tab" data-view="profile" id="nav-btn-profile">
+            <span class="nav-icon">👤</span> Profile
+          </button>
+        </nav>
+
+        <div class="header-right">
+          <!-- Connection Status Dot -->
+          <div class="connection-indicator" id="connection-indicator" title="Connected to GameRoom">
+            <span class="status-dot online"></span>
+            <span class="status-label" id="connection-status-text">Connected</span>
+          </div>
+
+          <!-- Circular Profile Avatar Button -->
+          <button id="header-avatar-btn" class="header-avatar-btn" title="View Profile">
+            <span id="header-avatar" class="avatar-circle">🎮</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Content Views Container -->
+      <main id="view-container" class="view-container">
+
+        <!-- 1. HOME SCREEN (Section 9 & 65) -->
+        <section id="view-home" class="content-view active">
+          <!-- Quick Welcome & Online Friends Bar -->
+          <div class="home-hero-card glass-panel">
+            <div class="hero-left">
+              <h2 class="hero-title">Ready for a match?</h2>
+              <p class="hero-desc">Play head-to-head multiplayer games in real time with live floating chat.</p>
+            </div>
+            <!-- Quick Room Code Join Box -->
+            <div class="hero-join-box">
+              <label for="input-quick-room-code" class="join-label">Have a Room Code?</label>
+              <div class="join-input-group">
+                <input type="text" id="input-quick-room-code" placeholder="e.g. ABC123" maxlength="6" class="input-field code-input" uppercase>
+                <button type="button" id="btn-quick-join" class="btn btn-primary">Join Room</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Friends Online Section -->
+          <div class="section-card glass-panel">
+            <div class="section-header">
+              <h3 class="section-title">
+                <span class="title-icon">👥</span> Friends Online
+              </h3>
+              <button type="button" class="btn btn-sm btn-ghost" id="btn-view-all-friends">View All Friends →</button>
+            </div>
+            <div id="home-online-friends-list" class="friends-horizontal-list">
+              <div class="empty-state-hint">Loading friends online...</div>
+            </div>
+          </div>
+
+          <!-- Main Games Grid -->
+          <div class="section-card glass-panel">
+            <div class="section-header">
+              <h3 class="section-title">
+                <span class="title-icon">⚔️</span> Featured Games
+              </h3>
+            </div>
+            <div class="games-grid">
+              <!-- Tic-Tac-Toe -->
+              <div class="game-card glass-card" data-game="tictactoe">
+                <div class="game-card-badge">2 Players</div>
+                <div class="game-card-icon">❌⭕</div>
+                <h4 class="game-card-title">Tic-Tac-Toe</h4>
+                <p class="game-card-desc">The classic 3x3 strategy duel. Place your X or O and connect three in a row.</p>
+                <div class="game-card-actions">
+                  <button type="button" class="btn btn-primary btn-game-play" data-game="tictactoe">
+                    <span class="btn-icon">▶</span> PLAY
+                  </button>
+                </div>
+              </div>
+
+              <!-- Rock Paper Scissors -->
+              <div class="game-card glass-card" data-game="rps">
+                <div class="game-card-badge">2 Players</div>
+                <div class="game-card-icon">✊✋✌️</div>
+                <h4 class="game-card-title">Rock Paper Scissors</h4>
+                <p class="game-card-desc">Simultaneous hidden choices with dramatic reveals and round scoring.</p>
+                <div class="game-card-actions">
+                  <button type="button" class="btn btn-primary btn-game-play" data-game="rps">
+                    <span class="btn-icon">▶</span> PLAY
+                  </button>
+                </div>
+              </div>
+
+              <!-- Connect Four -->
+              <div class="game-card glass-card" data-game="connect4">
+                <div class="game-card-badge">2 Players</div>
+                <div class="game-card-icon">🔴🟡</div>
+                <h4 class="game-card-title">Connect Four</h4>
+                <p class="game-card-desc">7-column gravity drop grid. Connect four tokens in any direction to win.</p>
+                <div class="game-card-actions">
+                  <button type="button" class="btn btn-primary btn-game-play" data-game="connect4">
+                    <span class="btn-icon">▶</span> PLAY
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- General Home / Lobby Chat (Section 36) -->
+          <div class="section-card glass-panel lobby-chat-container">
+            <div class="section-header">
+              <h3 class="section-title">
+                <span class="title-icon">💬</span> Live Lobby Chat
+              </h3>
+              <span class="live-pulse-badge">Live</span>
+            </div>
+            <div class="lobby-chat-wrapper">
+              <!-- Floating bubbles container -->
+              <div id="lobby-floating-bubbles" class="floating-bubbles-area"></div>
+              <!-- Recent Messages Log list -->
+              <div id="lobby-messages-log" class="chat-log-list"></div>
+            </div>
+            <form id="form-lobby-chat" class="chat-input-bar">
+              <input type="text" id="input-lobby-chat" class="input-field chat-input" placeholder="Type a message to the lobby..." maxlength="150" autocomplete="off">
+              <button type="submit" class="btn btn-primary btn-icon-only" title="Send message">
+                <span>➤</span>
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- 2. GAMES CATALOG SCREEN -->
+        <section id="view-games" class="content-view">
+          <div class="section-title-bar">
+            <h2>Multiplayer Games Catalog</h2>
+            <p>Select a game to create a private room and invite your friends or share your room code.</p>
+          </div>
+
+          <div class="games-detail-list">
+            <!-- Tic-Tac-Toe Detail -->
+            <div class="game-detail-card glass-panel">
+              <div class="game-detail-header">
+                <div class="game-icon-large">❌⭕</div>
+                <div class="game-detail-info">
+                  <h3>Tic-Tac-Toe / XOX</h3>
+                  <div class="game-tags">
+                    <span class="tag">2 Players</span>
+                    <span class="tag">Turns</span>
+                    <span class="tag">Real-Time</span>
+                  </div>
+                  <p>A fast-paced board game. Take turns placing your marks on a 3x3 grid. The first player to get 3 in a line horizontally, vertically, or diagonally wins.</p>
+                </div>
+              </div>
+              <div class="game-detail-actions">
+                <button type="button" class="btn btn-primary btn-game-play" data-game="tictactoe">
+                  Create Tic-Tac-Toe Room
+                </button>
+              </div>
+            </div>
+
+            <!-- Rock Paper Scissors Detail -->
+            <div class="game-detail-card glass-panel">
+              <div class="game-detail-header">
+                <div class="game-icon-large">✊✋✌️</div>
+                <div class="game-detail-info">
+                  <h3>Rock Paper Scissors</h3>
+                  <div class="game-tags">
+                    <span class="tag">2 Players</span>
+                    <span class="tag">Simultaneous</span>
+                    <span class="tag">Score Tracking</span>
+                  </div>
+                  <p>Secretly pick Rock, Paper, or Scissors. Choices stay hidden until both players choose, then reveal simultaneously to crown the winner.</p>
+                </div>
+              </div>
+              <div class="game-detail-actions">
+                <button type="button" class="btn btn-primary btn-game-play" data-game="rps">
+                  Create RPS Room
+                </button>
+              </div>
+            </div>
+
+            <!-- Connect Four Detail -->
+            <div class="game-detail-card glass-panel">
+              <div class="game-detail-header">
+                <div class="game-icon-large">🔴🟡</div>
+                <div class="game-detail-info">
+                  <h3>Connect Four</h3>
+                  <div class="game-tags">
+                    <span class="tag">2 Players</span>
+                    <span class="tag">7x6 Grid</span>
+                    <span class="tag">Strategy</span>
+                  </div>
+                  <p>Drop colored discs into a 7-column, 6-row grid. Outwit your opponent by lining up four of your discs vertically, horizontally, or diagonally.</p>
+                </div>
+              </div>
+              <div class="game-detail-actions">
+                <button type="button" class="btn btn-primary btn-game-play" data-game="connect4">
+                  Create Connect Four Room
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. FRIENDS SCREEN (Section 11) -->
+        <section id="view-friends" class="content-view">
+          <div class="friends-tabs-bar">
+            <button class="friends-subtab active" data-subtab="list" id="subtab-btn-friends">
+              My Friends (<span id="friends-count-num">0</span>)
+            </button>
+            <button class="friends-subtab" data-subtab="requests" id="subtab-btn-requests">
+              Friend Requests <span id="requests-badge" class="badge-counter hidden">0</span>
+            </button>
+            <button class="friends-subtab" data-subtab="search" id="subtab-btn-search">
+              Search Users
+            </button>
+          </div>
+
+          <!-- Friends List Subtab -->
+          <div id="subtab-friends-list" class="subtab-content active">
+            <div id="friends-list-container" class="friends-grid">
+              <div class="empty-state-hint">Loading friends...</div>
+            </div>
+          </div>
+
+          <!-- Friend Requests Subtab -->
+          <div id="subtab-friends-requests" class="subtab-content">
+            <div class="requests-columns">
+              <div class="requests-block">
+                <h4>Received Requests</h4>
+                <div id="requests-received-list" class="requests-list">
+                  <div class="empty-state-hint">No pending incoming requests.</div>
+                </div>
+              </div>
+              <div class="requests-block">
+                <h4>Sent Requests</h4>
+                <div id="requests-sent-list" class="requests-list">
+                  <div class="empty-state-hint">No outgoing requests.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search Users Subtab -->
+          <div id="subtab-friends-search" class="subtab-content">
+            <div class="search-bar-box">
+              <input type="text" id="input-search-users" class="input-field" placeholder="Type username to search...">
+              <button type="button" id="btn-search-users" class="btn btn-primary">Search</button>
+            </div>
+            <div id="search-results-list" class="friends-grid">
+              <div class="empty-state-hint">Search for other players by their username above.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. PROFILE SCREEN (Section 8 & 41) -->
+        <section id="view-profile" class="content-view">
+          <div class="profile-layout">
+            <!-- Profile Overview Card -->
+            <div class="profile-card glass-panel">
+              <div class="profile-avatar-wrapper">
+                <span id="profile-display-avatar" class="avatar-huge">🎮</span>
+              </div>
+              <h2 id="profile-display-name" class="profile-name">Player</h2>
+              <div id="profile-display-username" class="profile-handle">@username</div>
+              <p id="profile-display-bio" class="profile-bio">Ready to play on GameRoom!</p>
+              <div class="profile-meta">
+                <span>Member since: <strong id="profile-display-date">-</strong></span>
+              </div>
+
+              <!-- Stats Blocks -->
+              <div class="stats-cards-row">
+                <div class="stat-box">
+                  <div class="stat-number" id="stat-played">0</div>
+                  <div class="stat-title">Games Played</div>
+                </div>
+                <div class="stat-box stat-win">
+                  <div class="stat-number" id="stat-wins">0</div>
+                  <div class="stat-title">Wins</div>
+                </div>
+                <div class="stat-box stat-loss">
+                  <div class="stat-number" id="stat-losses">0</div>
+                  <div class="stat-title">Losses</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-number" id="stat-winrate">0%</div>
+                  <div class="stat-title">Win Rate</div>
+                </div>
+              </div>
+
+              <div class="profile-actions">
+                <button type="button" id="btn-logout" class="btn btn-danger btn-block">
+                  <span class="btn-icon">🚪</span> Log Out
+                </button>
+              </div>
+            </div>
+
+            <!-- Profile Settings Form Card -->
+            <div class="settings-card glass-panel">
+              <h3 class="card-title">Edit Profile</h3>
+              <form id="form-edit-profile">
+                <div class="form-group">
+                  <label>Choose Avatar</label>
+                  <div class="avatar-picker-grid" id="avatar-picker-options">
+                    <!-- Populated via JS with 12 avatar emojis -->
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="input-edit-name">Display Name</label>
+                  <input type="text" id="input-edit-name" class="input-field" maxlength="30">
+                </div>
+
+                <div class="form-group">
+                  <label for="input-edit-bio">Bio</label>
+                  <textarea id="input-edit-bio" class="input-field textarea" rows="2" maxlength="160"></textarea>
+                </div>
+
+                <div class="divider"></div>
+                <h4 class="subsection-title">Change Password (Optional)</h4>
+
+                <div class="form-group">
+                  <label for="input-curr-pass">Current Password</label>
+                  <input type="password" id="input-curr-pass" class="input-field" placeholder="Required only if changing password">
+                </div>
+                <div class="form-group">
+                  <label for="input-new-pass">New Password</label>
+                  <input type="password" id="input-new-pass" class="input-field" placeholder="Min. 6 characters">
+                </div>
+
+                <div id="profile-save-message" class="form-error hidden"></div>
+
+                <button type="submit" id="btn-save-profile" class="btn btn-primary">
+                  Save Changes
+                </button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. WAITING ROOM VIEW (Section 14) -->
+        <section id="view-waiting" class="content-view">
+          <div class="waiting-card glass-panel">
+            <div class="waiting-header">
+              <span id="waiting-game-badge" class="game-badge">TIC-TAC-TOE</span>
+              <h2 class="waiting-title">ROOM CODE</h2>
+              <div class="room-code-display">
+                <span id="waiting-room-code" class="code-value">ABC123</span>
+                <button type="button" id="btn-copy-code" class="btn btn-secondary btn-sm" title="Copy room code">
+                  📋 Copy Code
+                </button>
+              </div>
+              <p class="waiting-subtitle">Share this code with a friend or invite them directly below.</p>
+            </div>
+
+            <!-- Two player slots display -->
+            <div class="player-slots-grid">
+              <!-- Slot 1: Host / You -->
+              <div class="player-slot host-slot glass-card">
+                <div class="slot-badge host-badge">YOU (HOST)</div>
+                <div class="slot-avatar-wrap">
+                  <span id="waiting-player1-avatar" class="slot-avatar">🎮</span>
+                </div>
+                <div id="waiting-player1-name" class="slot-name">You</div>
+                <div class="slot-status connected">
+                  <span class="status-dot online"></span> Connected
+                </div>
+                <div id="waiting-player1-symbol" class="slot-symbol">X</div>
+              </div>
+
+              <!-- Slot 2: Opponent -->
+              <div class="player-slot opponent-slot glass-card waiting-pulse">
+                <div class="slot-badge opponent-badge">OPPONENT</div>
+                <div class="slot-avatar-wrap">
+                  <span class="slot-avatar pulse-avatar">⏳</span>
+                </div>
+                <div class="slot-name">Waiting for friend...</div>
+                <div class="slot-status pending">
+                  The game will start when another player joins.
+                </div>
+              </div>
+            </div>
+
+            <div class="waiting-actions">
+              <button type="button" id="btn-waiting-invite" class="btn btn-primary">
+                <span class="btn-icon">💌</span> Invite Online Friend
+              </button>
+              <button type="button" id="btn-waiting-leave" class="btn btn-secondary">
+                <span class="btn-icon">↩</span> Leave Room
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. ACTIVE GAME SCREEN (Sections 16, 28, 29, 30, 37, 38) -->
+        <section id="view-game" class="content-view">
+          <!-- Game Header Bar -->
+          <div class="game-top-bar glass-panel">
+            <button type="button" id="btn-game-back" class="btn btn-sm btn-ghost">
+              ← Leave Game
+            </button>
+            <div class="game-top-room">
+              <span id="game-active-type" class="game-title-badge">TIC-TAC-TOE</span>
+              <span class="game-room-code-tag">Room: <strong id="game-active-code">ABC123</strong></span>
+            </div>
+            <div id="game-status-pill" class="status-pill">
+              Game in Progress
+            </div>
+          </div>
+
+          <!-- Opponent Disconnect Alert Banner (Section 39) -->
+          <div id="opponent-disconnect-banner" class="disconnect-banner hidden">
+            <span class="alert-icon">⚠️</span>
+            <span id="disconnect-banner-text">Opponent disconnected. Waiting for reconnection...</span>
+            <button type="button" id="btn-disconnect-leave" class="btn btn-sm btn-danger">Leave</button>
+          </div>
+
+          <!-- Player Profiles Above Game (Section 16) -->
+          <div class="game-players-bar glass-panel">
+            <!-- Player 1 Profile Card -->
+            <div id="p1-profile-card" class="player-match-card">
+              <div class="player-match-avatar-wrap">
+                <span id="p1-avatar" class="match-avatar">🎮</span>
+                <span id="p1-symbol-badge" class="symbol-badge">X</span>
+              </div>
+              <div class="player-match-details">
+                <div class="name-row">
+                  <span id="p1-name" class="match-name">Player 1</span>
+                  <span id="p1-you-tag" class="you-badge">YOU</span>
+                </div>
+                <div class="match-sub-info">
+                  <span class="status-dot online"></span>
+                  <span id="p1-score" class="match-score">Score: 0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- VS & Turn Indicator Badge -->
+            <div class="game-turn-center">
+              <div id="turn-indicator-badge" class="turn-badge">
+                <span id="turn-indicator-text">YOUR TURN</span>
+              </div>
+            </div>
+
+            <!-- Player 2 Profile Card -->
+            <div id="p2-profile-card" class="player-match-card">
+              <div class="player-match-details text-right">
+                <div class="name-row justify-end">
+                  <span id="p2-name" class="match-name">Opponent</span>
+                  <span id="p2-you-tag" class="you-badge hidden">YOU</span>
+                </div>
+                <div class="match-sub-info justify-end">
+                  <span class="status-dot online"></span>
+                  <span id="p2-score" class="match-score">Score: 0</span>
+                </div>
+              </div>
+              <div class="player-match-avatar-wrap">
+                <span id="p2-avatar" class="match-avatar">👾</span>
+                <span id="p2-symbol-badge" class="symbol-badge">O</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Game Play Area with Side-by-Side/Underneath Responsive Layout -->
+          <div class="game-main-stage">
+            <!-- Game Board Container -->
+            <div class="board-stage-wrap">
+              <!-- Tic-Tac-Toe Board -->
+              <div id="board-tictactoe" class="game-board-view hidden">
+                <div class="ttt-grid-wrap">
+                  <div class="ttt-grid" id="ttt-grid">
+                    <button class="ttt-cell" data-idx="0"></button>
+                    <button class="ttt-cell" data-idx="1"></button>
+                    <button class="ttt-cell" data-idx="2"></button>
+                    <button class="ttt-cell" data-idx="3"></button>
+                    <button class="ttt-cell" data-idx="4"></button>
+                    <button class="ttt-cell" data-idx="5"></button>
+                    <button class="ttt-cell" data-idx="6"></button>
+                    <button class="ttt-cell" data-idx="7"></button>
+                    <button class="ttt-cell" data-idx="8"></button>
+                  </div>
+                  <!-- Animated Winning Line SVG Overlay -->
+                  <svg id="ttt-win-line" class="ttt-win-line hidden" viewBox="0 0 300 300">
+                    <line id="ttt-line-path" x1="0" y1="0" x2="0" y2="0" stroke="#10b981" stroke-width="8" stroke-linecap="round" />
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Rock Paper Scissors Board -->
+              <div id="board-rps" class="game-board-view hidden">
+                <div class="rps-stage glass-card">
+                  <div class="rps-round-banner" id="rps-round-text">Round 1 — Choose your hand</div>
+
+                  <!-- Choices Arena (Revealed result or hidden waiting) -->
+                  <div class="rps-arena">
+                    <div class="rps-player-choice" id="rps-p1-slot">
+                      <div class="rps-choice-icon" id="rps-p1-choice">❓</div>
+                      <div class="rps-player-label" id="rps-p1-label">You</div>
+                    </div>
+                    <div class="rps-vs-sign">VS</div>
+                    <div class="rps-player-choice" id="rps-p2-slot">
+                      <div class="rps-choice-icon" id="rps-p2-choice">❓</div>
+                      <div class="rps-player-label" id="rps-p2-label">Opponent</div>
+                    </div>
+                  </div>
+
+                  <div id="rps-result-announcement" class="rps-announcement"></div>
+
+                  <!-- Player 3 Choices Buttons -->
+                  <div class="rps-buttons-group" id="rps-buttons-group">
+                    <button type="button" class="btn-rps-choice" data-choice="rock">
+                      <span class="rps-btn-emoji">✊</span>
+                      <span class="rps-btn-label">ROCK</span>
+                    </button>
+                    <button type="button" class="btn-rps-choice" data-choice="paper">
+                      <span class="rps-btn-emoji">✋</span>
+                      <span class="rps-btn-label">PAPER</span>
+                    </button>
+                    <button type="button" class="btn-rps-choice" data-choice="scissors">
+                      <span class="rps-btn-emoji">✌️</span>
+                      <span class="rps-btn-label">SCISSORS</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Connect Four Board -->
+              <div id="board-connect4" class="game-board-view hidden">
+                <div class="connect4-board-container">
+                  <!-- Column Hover Drop Indicators -->
+                  <div class="connect4-drop-arrows" id="c4-drop-arrows">
+                    <button class="c4-col-arrow" data-col="0">▼</button>
+                    <button class="c4-col-arrow" data-col="1">▼</button>
+                    <button class="c4-col-arrow" data-col="2">▼</button>
+                    <button class="c4-col-arrow" data-col="3">▼</button>
+                    <button class="c4-col-arrow" data-col="4">▼</button>
+                    <button class="c4-col-arrow" data-col="5">▼</button>
+                    <button class="c4-col-arrow" data-col="6">▼</button>
+                  </div>
+                  <!-- 6 rows x 7 cols grid -->
+                  <div class="connect4-grid" id="c4-grid">
+                    <!-- 42 cells generated dynamically -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- In-Game Live Floating Chat Panel (Sections 32-38) -->
+            <div class="game-chat-panel glass-panel">
+              <div class="game-chat-header">
+                <span class="chat-title">💬 Live Match Chat</span>
+                <span class="chat-hint">Messages float and fade</span>
+              </div>
+
+              <!-- Floating Chat Container -->
+              <div class="game-chat-floating-wrap">
+                <div id="game-floating-bubbles" class="game-floating-bubbles"></div>
+              </div>
+
+              <!-- In-Game Chat Input -->
+              <form id="form-game-chat" class="chat-input-bar">
+                <input type="text" id="input-game-chat" class="input-field chat-input" placeholder="Type a message..." maxlength="150" autocomplete="off">
+                <button type="submit" class="btn btn-primary btn-icon-only" title="Send message">
+                  <span>➤</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Mobile Bottom Navigation (Section 10 & 49) -->
+      <nav id="mobile-nav" class="mobile-bottom-nav glass-panel">
+        <button class="mobile-nav-item active" data-view="home" id="mob-nav-home">
+          <span class="mob-icon">🏠</span>
+          <span class="mob-label">Home</span>
+        </button>
+        <button class="mobile-nav-item" data-view="games" id="mob-nav-games">
+          <span class="mob-icon">🎲</span>
+          <span class="mob-label">Games</span>
+        </button>
+        <button class="mobile-nav-item" data-view="friends" id="mob-nav-friends">
+          <span class="mob-icon">👥</span>
+          <span class="mob-label">Friends</span>
+          <span id="friends-badge-mobile" class="badge-counter hidden">0</span>
+        </button>
+        <button class="mobile-nav-item" data-view="profile" id="mob-nav-profile">
+          <span class="mob-icon">👤</span>
+          <span class="mob-label">Profile</span>
+        </button>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODALS & OVERLAYS                          -->
+  <!-- ========================================== -->
+
+  <!-- Game Finished Result Modal (Sections 28, 29, 30, Rematch) -->
+  <div id="modal-game-result" class="modal-backdrop hidden">
+    <div class="modal-card glass-panel text-center">
+      <div id="result-icon-huge" class="result-icon">🏆</div>
+      <h2 id="result-title" class="result-title">VICTORY!</h2>
+      <p id="result-desc" class="result-desc">You won the match!</p>
+      <div id="result-rematch-status" class="rematch-status-hint"></div>
+      <div class="modal-actions">
+        <button type="button" id="btn-result-rematch" class="btn btn-primary">
+          <span class="btn-icon">🔄</span> Play Again / Rematch
+        </button>
+        <button type="button" id="btn-result-leave" class="btn btn-secondary">
+          <span class="btn-icon">🏠</span> Return to Home
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invite Online Friend Modal (Section 18 & 19) -->
+  <div id="modal-invite-friend" class="modal-backdrop hidden">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <h3 id="modal-invite-title" class="modal-title">Invite Friend to Game</h3>
+        <button type="button" class="modal-close-btn" data-close-modal="modal-invite-friend">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Select an online friend to send a direct 60-second invitation:</p>
+        <div id="modal-invite-friends-list" class="invite-friends-list">
+          <div class="empty-state-hint">Loading online friends...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Choose Game to Invite Modal (Section 19: Invite Friend From Home) -->
+  <div id="modal-select-game-invite" class="modal-backdrop hidden">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <h3 class="modal-title">Select Game</h3>
+        <button type="button" class="modal-close-btn" data-close-modal="modal-select-game-invite">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc" id="select-game-friend-name">Invite friend to play:</p>
+        <div class="select-game-options">
+          <button type="button" class="btn-select-game glass-card" data-game="tictactoe">
+            <span class="game-opt-icon">❌⭕</span>
+            <div class="game-opt-info">
+              <strong>Tic-Tac-Toe</strong>
+              <small>Classic 3x3 match</small>
+            </div>
+          </button>
+          <button type="button" class="btn-select-game glass-card" data-game="rps">
+            <span class="game-opt-icon">✊✋✌️</span>
+            <div class="game-opt-info">
+              <strong>Rock Paper Scissors</strong>
+              <small>Best of hands</small>
+            </div>
+          </button>
+          <button type="button" class="btn-select-game glass-card" data-game="connect4">
+            <span class="game-opt-icon">🔴🟡</span>
+            <div class="game-opt-info">
+              <strong>Connect Four</strong>
+              <small>7x6 Strategy Duel</small>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Profile Modal (Section 67: Clicking player avatar shows profile) -->
+  <div id="modal-player-profile" class="modal-backdrop hidden">
+    <div class="modal-card glass-panel text-center">
+      <div class="modal-header justify-end">
+        <button type="button" class="modal-close-btn" data-close-modal="modal-player-profile">✕</button>
+      </div>
+      <div class="player-pop-avatar" id="pop-avatar">🎮</div>
+      <h3 id="pop-display-name" class="pop-name">Player</h3>
+      <div id="pop-username" class="pop-handle">@username</div>
+      <p id="pop-bio" class="pop-bio">"Let's play!"</p>
+      <div class="pop-status">
+        <span class="status-dot online" id="pop-status-dot"></span>
+        <span id="pop-status-text">Online</span>
+      </div>
+      <div class="pop-stats-row">
+        <div class="pop-stat">
+          <strong id="pop-stat-played">0</strong>
+          <small>Played</small>
+        </div>
+        <div class="pop-stat">
+          <strong id="pop-stat-wins">0</strong>
+          <small>Wins</small>
+        </div>
+        <div class="pop-stat">
+          <strong id="pop-stat-losses">0</strong>
+          <small>Losses</small>
+        </div>
+      </div>
+      <div class="modal-actions mt-3" id="pop-actions">
+        <!-- populated if friend / not friend -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Leave Game Modal (Section 55 & 56) -->
+  <div id="modal-confirm-leave" class="modal-backdrop hidden">
+    <div class="modal-card glass-panel text-center">
+      <h3>Leave the game?</h3>
+      <p class="modal-desc">You are currently in an active game. Leaving will forfeit your current match.</p>
+      <div class="modal-actions">
+        <button type="button" id="btn-confirm-leave-yes" class="btn btn-danger">Leave</button>
+        <button type="button" id="btn-confirm-leave-no" class="btn btn-secondary">Stay</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript Modules -->
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

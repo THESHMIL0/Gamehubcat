@@ -1,0 +1,6 @@
+{
+  "name": "GameRoom",
+  "description": "Full-stack multiplayer social gaming platform with real-time Tic-Tac-Toe, Rock Paper Scissors, Connect Four, live floating chat, and friends system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
