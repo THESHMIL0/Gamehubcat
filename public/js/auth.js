@@ -4,35 +4,66 @@
 
 const TOKEN_KEY = 'gameroom_token';
 const USER_KEY = 'gameroom_user';
+const LAST_USER_KEY = 'gameroom_last_username';
 
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch (e) {
+    return null;
+  }
 }
 
 export function getCurrentUser() {
-  const userStr = localStorage.getItem(USER_KEY);
-  if (!userStr) return null;
   try {
+    const userStr = localStorage.getItem(USER_KEY);
+    if (!userStr) return null;
     return JSON.parse(userStr);
   } catch (e) {
     return null;
   }
 }
 
+export function getLastUsername() {
+  try {
+    return localStorage.getItem(LAST_USER_KEY) || '';
+  } catch (e) {
+    return '';
+  }
+}
+
 export function setSession(user, token) {
-  if (token) localStorage.setItem(TOKEN_KEY, token);
-  if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
+  try {
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+    }
+    if (user) {
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+      if (user.username) {
+        localStorage.setItem(LAST_USER_KEY, user.username);
+      }
+    }
+    document.documentElement.classList.add('has-stored-auth');
+  } catch (e) {
+    console.warn('LocalStorage error setting session:', e);
+  }
 }
 
 export function clearSession() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    document.documentElement.classList.remove('has-stored-auth');
+  } catch (e) {
+    console.warn('LocalStorage error clearing session:', e);
+  }
 }
 
 export async function login(username, password) {
   const res = await fetch('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ username, password }),
   });
 
@@ -49,6 +80,7 @@ export async function register(username, password, confirmPassword) {
   const res = await fetch('/api/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ username, password, confirmPassword }),
   });
 
@@ -61,9 +93,37 @@ export async function register(username, password, confirmPassword) {
   return data.user;
 }
 
+export async function resetPassword(username, newPassword, confirmPassword) {
+  const res = await fetch('/api/auth/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ username, newPassword, confirmPassword }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || 'Password reset failed');
+  }
+
+  setSession(data.user, data.token);
+  return data.user;
+}
+
+export async function fetchPublicAccounts() {
+  try {
+    const res = await fetch('/api/auth/accounts');
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.accounts || [];
+  } catch (e) {
+    return [];
+  }
+}
+
 export async function logout() {
   try {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
   } catch (e) {
     // Ignore network error on logout
   }
@@ -72,21 +132,42 @@ export async function logout() {
 
 export async function fetchCurrentUser() {
   const token = getToken();
-  if (!token) return null;
+  const cachedUser = getCurrentUser();
 
   try {
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch('/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
+      headers,
+      credentials: 'include',
     });
-    if (!res.ok) {
+
+    if (res.status === 401 || res.status === 403) {
+      // Explicit unauthorized response from server — token is definitively invalid
       clearSession();
       return null;
     }
+
+    if (!res.ok) {
+      // Temporary server error or rate limit: do NOT wipe user session on refresh!
+      console.warn('Non-200 response checking session status:', res.status);
+      return cachedUser ? { user: cachedUser } : null;
+    }
+
     const data = await res.json();
-    setSession(data.user);
-    return data;
+    if (data && data.user) {
+      setSession(data.user, data.token || token);
+      return data;
+    }
+
+    return cachedUser ? { user: cachedUser } : null;
   } catch (e) {
-    clearSession();
-    return null;
+    console.warn('Network issue fetching current session:', e);
+    // Network glitch or offline: preserve existing login session
+    return cachedUser ? { user: cachedUser } : null;
   }
 }
+

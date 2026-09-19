@@ -7,6 +7,16 @@
   <meta name="description" content="Play Tic-Tac-Toe, Rock Paper Scissors, and Connect Four with friends in real time.">
   <link rel="stylesheet" href="/style.css">
   <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
+  <!-- Instant session check to prevent auth flicker/logout on reload -->
+  <script>
+    (function() {
+      try {
+        if (localStorage.getItem('gameroom_token') && localStorage.getItem('gameroom_user')) {
+          document.documentElement.classList.add('has-stored-auth');
+        }
+      } catch (e) {}
+    })();
+  </script>
   <!-- Socket.IO client script -->
   <script src="/socket.io/socket.io.js"></script>
 </head>
@@ -38,16 +48,20 @@
         <div class="auth-tabs">
           <button id="tab-login" class="tab-btn active" type="button">Log In</button>
           <button id="tab-register" class="tab-btn" type="button">Create Account</button>
+          <button id="tab-reset" class="tab-btn" type="button">Reset Password</button>
         </div>
 
         <!-- Login Form -->
         <form id="form-login" class="auth-form">
           <div class="form-group">
-            <label for="login-username">Username</label>
-            <input type="text" id="login-username" name="username" class="input-field" placeholder="Enter your username" autocomplete="username" required>
+            <label for="login-username">Username or Display Name</label>
+            <input type="text" id="login-username" name="username" class="input-field" placeholder="Enter your username or name" autocomplete="username" required>
           </div>
           <div class="form-group">
-            <label for="login-password">Password</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label for="login-password" style="margin-bottom: 0;">Password</label>
+              <a href="#" id="link-forgot-password" style="font-size: 0.76rem; color: var(--primary); text-decoration: none; font-weight: 500;">Forgot Password?</a>
+            </div>
             <input type="password" id="login-password" name="password" class="input-field" placeholder="••••••••" autocomplete="current-password" required>
           </div>
           <div id="login-error" class="form-error hidden"></div>
@@ -82,6 +96,36 @@
             Already have an account? <a href="#" id="link-go-login">Log In</a>
           </div>
         </form>
+
+        <!-- Reset Password Form -->
+        <form id="form-reset" class="auth-form hidden">
+          <div class="form-group">
+            <label for="reset-username">Username or Display Name</label>
+            <input type="text" id="reset-username" name="username" class="input-field" placeholder="Enter your username or name" autocomplete="username" required>
+            <span class="input-hint">Enter the username of your existing account</span>
+          </div>
+          <div class="form-group">
+            <label for="reset-password">New Password</label>
+            <input type="password" id="reset-password" name="newPassword" class="input-field" placeholder="Min. 6 characters" autocomplete="new-password" minlength="6" required>
+          </div>
+          <div class="form-group">
+            <label for="reset-confirm-password">Confirm New Password</label>
+            <input type="password" id="reset-confirm-password" name="confirmPassword" class="input-field" placeholder="Re-enter new password" autocomplete="new-password" minlength="6" required>
+          </div>
+          <div id="reset-error" class="form-error hidden"></div>
+          <button type="submit" id="btn-reset-submit" class="btn btn-primary btn-block">
+            <span class="btn-text">Update Password & Log In</span>
+          </button>
+          <div class="auth-toggle-hint">
+            Remembered your credentials? <a href="#" id="link-reset-to-login">Log In</a>
+          </div>
+        </form>
+
+        <!-- Known Accounts / Quick Select -->
+        <div id="auth-known-accounts" class="auth-known-accounts hidden" style="margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid var(--glass-border); text-align: center;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Registered Accounts</div>
+          <div id="known-accounts-list" style="display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center;"></div>
+        </div>
       </div>
     </section>
 
@@ -230,54 +274,110 @@
           </div>
         </section>
 
-        <!-- 2. GAMES CATALOG SCREEN -->
+        <!-- 2. GAMES CATALOG SCREEN (Full-fit layout matching Profile section) -->
         <section id="view-games" class="content-view">
-          <div class="section-title-bar compact">
-            <h2>Games</h2>
-            <p>Pick a game to play</p>
-          </div>
+          <div class="games-container">
+            <!-- Games Overview Card -->
+            <div class="games-card glass-panel">
+              <div class="games-header-info">
+                <div class="games-avatar-wrapper">
+                  <span class="avatar-huge games-emblem">🎮</span>
+                </div>
+                <h2 class="games-title">Game Room</h2>
+                <div class="games-handle">@multiplayer</div>
+                <p class="games-bio">Pick a game to start playing or challenge friends!</p>
+                <div class="games-meta">
+                  <span>Available games: <strong>3 Turn-Based Duels</strong></span>
+                </div>
+              </div>
 
-          <div class="games-grid-compact games-catalog-grid">
-            <!-- Tic-Tac-Toe -->
-            <div class="game-card-mini glass-card" data-game="tictactoe">
-              <div class="mini-icon-wrap">
-                <img src="/assets/logo-tictactoe.svg" alt="Tic-Tac-Toe" class="game-logo-badge">
+              <!-- Game Modes Highlights Row (Identical to stats-cards-row) -->
+              <div class="stats-cards-row games-stats-row">
+                <div class="stat-box">
+                  <div class="stat-number">3</div>
+                  <div class="stat-title">Game Modes</div>
+                </div>
+                <div class="stat-box stat-win">
+                  <div class="stat-number">2P</div>
+                  <div class="stat-title">Real-Time</div>
+                </div>
+                <div class="stat-box stat-rate">
+                  <div class="stat-number">Live</div>
+                  <div class="stat-title">Sync Turns</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-number">0s</div>
+                  <div class="stat-title">No Waiting</div>
+                </div>
               </div>
-              <div class="mini-info">
-                <h4>Tic-Tac-Toe</h4>
-                <span class="mini-sub">Classic 3x3 • 2P</span>
-              </div>
-              <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="tictactoe">
-                Play
-              </button>
-            </div>
 
-            <!-- Rock Paper Scissors -->
-            <div class="game-card-mini glass-card" data-game="rps">
-              <div class="mini-icon-wrap">
-                <img src="/assets/logo-rps.svg" alt="Rock Paper Scissors" class="game-logo-badge">
-              </div>
-              <div class="mini-info">
-                <h4>RPS</h4>
-                <span class="mini-sub">Best of 5 • Duel</span>
-              </div>
-              <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="rps">
-                Play
-              </button>
-            </div>
+              <!-- Games List Section (Identical to profile-menu-section) -->
+              <div class="games-menu-section">
+                <!-- Tic-Tac-Toe -->
+                <div class="games-menu-row game-card-mini" data-game="tictactoe">
+                  <div class="game-row-left">
+                    <div class="game-row-icon-wrap">
+                      <img src="/assets/logo-tictactoe.svg" alt="Tic-Tac-Toe" class="game-row-logo">
+                    </div>
+                    <div class="game-row-details">
+                      <span class="game-row-title">Tic-Tac-Toe</span>
+                      <span class="game-row-sub">Classic 3x3 • 2 Players</span>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="tictactoe">
+                    <span>Play</span>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
 
-            <!-- Connect Four -->
-            <div class="game-card-mini glass-card" data-game="connect4">
-              <div class="mini-icon-wrap">
-                <img src="/assets/logo-connect4.svg" alt="Connect Four" class="game-logo-badge">
+                <div class="menu-row-divider"></div>
+
+                <!-- Rock Paper Scissors -->
+                <div class="games-menu-row game-card-mini" data-game="rps">
+                  <div class="game-row-left">
+                    <div class="game-row-icon-wrap">
+                      <img src="/assets/logo-rps.svg" alt="Rock Paper Scissors" class="game-row-logo">
+                    </div>
+                    <div class="game-row-details">
+                      <span class="game-row-title">Rock Paper Scissors</span>
+                      <span class="game-row-sub">Best of 5 Duel • Fast Pace</span>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="rps">
+                    <span>Play</span>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
+
+                <div class="menu-row-divider"></div>
+
+                <!-- Connect Four -->
+                <div class="games-menu-row game-card-mini" data-game="connect4">
+                  <div class="game-row-left">
+                    <div class="game-row-icon-wrap">
+                      <img src="/assets/logo-connect4.svg" alt="Connect Four" class="game-row-logo">
+                    </div>
+                    <div class="game-row-details">
+                      <span class="game-row-title">Connect 4</span>
+                      <span class="game-row-sub">4 in a Row • 7x6 Strategy</span>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="connect4">
+                    <span>Play</span>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
               </div>
-              <div class="mini-info">
-                <h4>Connect 4</h4>
-                <span class="mini-sub">4 in a row • 7x6</span>
+
+              <!-- Quick Room Code Join Strip (Bottom Action like Log Out in Profile) -->
+              <div class="games-actions">
+                <div class="games-code-join-strip">
+                  <input type="text" id="input-games-catalog-code" placeholder="ENTER ROOM CODE..." maxlength="6" class="input-field code-input" uppercase>
+                  <button type="button" id="btn-games-catalog-join" class="btn btn-secondary">
+                    <span>Join Room</span>
+                  </button>
+                </div>
               </div>
-              <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="connect4">
-                Play
-              </button>
             </div>
           </div>
         </section>

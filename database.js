@@ -27,6 +27,37 @@ const db = {
   },
 };
 
+// Immediate sync bootstrap so database is always ready on module import
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+  if (fs.existsSync(DATA_FILE)) {
+    const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+    const data = JSON.parse(raw);
+    db.users = Array.isArray(data.users) ? data.users : [];
+    db.stats = Array.isArray(data.stats) ? data.stats : [];
+    db.friends = Array.isArray(data.friends) ? data.friends : [];
+    db.game_history = Array.isArray(data.game_history) ? data.game_history : [];
+    db.seq = {
+      users: Number(data.seq?.users) || 1,
+      stats: Number(data.seq?.stats) || 1,
+      friends: Number(data.seq?.friends) || 1,
+      game_history: Number(data.seq?.game_history) || 1,
+    };
+  }
+} catch (err) {
+  console.warn('Initial sync load fallback:', err.message);
+}
+
+export function getPublicAccounts() {
+  return db.users.map((u) => ({
+    username: u.username,
+    display_name: u.display_name,
+    avatar: u.avatar,
+  }));
+}
+
 export async function initDb() {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -312,8 +343,15 @@ export async function dbGet(sql, params = []) {
   // OR SELECT id, username, password_hash, display_name, avatar, bio, created_at FROM users WHERE username = ? COLLATE NOCASE
   if (norm.includes('FROM users WHERE username = ? COLLATE NOCASE')) {
     const [username] = params;
+    if (!username) return undefined;
     const clean = String(username).trim().toLowerCase();
-    const user = db.users.find((u) => u.username.toLowerCase() === clean);
+    const user = db.users.find((u) => {
+      const uName = (u.username || '').toLowerCase();
+      const dName = (u.display_name || '').toLowerCase();
+      if (uName === clean || dName === clean) return true;
+      if (clean.includes('@') && (uName === clean.split('@')[0] || dName === clean.split('@')[0])) return true;
+      return false;
+    });
     if (!user) return undefined;
     return { ...user };
   }

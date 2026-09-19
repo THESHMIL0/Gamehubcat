@@ -2,7 +2,7 @@
 // GameRoom — Main Application Orchestrator
 // ==========================================
 
-import { getToken, getCurrentUser, login, register, fetchCurrentUser } from './auth.js';
+import { getToken, getCurrentUser, getLastUsername, login, register, resetPassword, fetchCurrentUser, fetchPublicAccounts } from './auth.js';
 import { initSocket, getSocket, disconnectSocket } from './socket.js';
 import { initLobby, setActiveRoom, getActiveRoom, leaveCurrentGameRoom } from './lobby.js';
 import { initFriends, loadFriendsData } from './friends.js';
@@ -26,21 +26,39 @@ class GameRoomApp {
     this.bindModalEvents();
     this.bindGameControlEvents();
 
-    // Check if user has active session
+    // Check if user has active session in localStorage
     const token = getToken();
-    if (token) {
+    const cachedUser = getCurrentUser();
+
+    if (token && cachedUser) {
+      // Immediately authenticate using cached user so UI never flickers to login or logs out on refresh
+      this.onAuthenticated(cachedUser);
+
+      // Verify in background without disrupting the active user session
+      fetchCurrentUser().then((data) => {
+        if (data && data.user) {
+          this.currentUser = data.user;
+          this.updateHeaderUserInfo(data.user);
+        }
+      }).catch((e) => {
+        console.warn('Session background sync notice:', e);
+      });
+    } else {
+      // Check if server session exists via cookie
       try {
         const data = await fetchCurrentUser();
         if (data && data.user) {
           this.onAuthenticated(data.user);
         } else {
+          document.documentElement.classList.remove('has-stored-auth');
           this.switchView('auth');
+          this.loadKnownAccountsHelper();
         }
       } catch (e) {
+        document.documentElement.classList.remove('has-stored-auth');
         this.switchView('auth');
+        this.loadKnownAccountsHelper();
       }
-    } else {
-      this.switchView('auth');
     }
   }
 
@@ -50,31 +68,70 @@ class GameRoomApp {
   bindAuthEvents() {
     const tabLogin = document.getElementById('tab-login') || document.getElementById('tab-btn-login');
     const tabRegister = document.getElementById('tab-register') || document.getElementById('tab-btn-register');
+    const tabReset = document.getElementById('tab-reset');
     const formLogin = document.getElementById('form-login');
     const formRegister = document.getElementById('form-register');
+    const formReset = document.getElementById('form-reset');
     const linkGoRegister = document.getElementById('link-go-register');
     const linkGoLogin = document.getElementById('link-go-login');
+    const linkForgotPassword = document.getElementById('link-forgot-password');
+    const linkResetToLogin = document.getElementById('link-reset-to-login');
 
     const showLogin = () => {
       tabLogin?.classList.add('active');
       tabRegister?.classList.remove('active');
+      tabReset?.classList.remove('active');
       formLogin?.classList.remove('hidden');
       formRegister?.classList.add('hidden');
+      formReset?.classList.add('hidden');
       this.clearAuthErrors();
     };
 
     const showRegister = () => {
       tabRegister?.classList.add('active');
       tabLogin?.classList.remove('active');
+      tabReset?.classList.remove('active');
       formRegister?.classList.remove('hidden');
       formLogin?.classList.add('hidden');
+      formReset?.classList.add('hidden');
       this.clearAuthErrors();
+    };
+
+    const showReset = () => {
+      tabReset?.classList.add('active');
+      tabLogin?.classList.remove('active');
+      tabRegister?.classList.remove('active');
+      formReset?.classList.remove('hidden');
+      formLogin?.classList.add('hidden');
+      formRegister?.classList.add('hidden');
+      this.clearAuthErrors();
+
+      // Pre-fill reset username if present in login field or last username
+      const loginUser = document.getElementById('login-username')?.value.trim();
+      const resetUserInput = document.getElementById('reset-username');
+      if (resetUserInput) {
+        if (loginUser) {
+          resetUserInput.value = loginUser;
+        } else if (!resetUserInput.value) {
+          resetUserInput.value = getLastUsername();
+        }
+      }
     };
 
     if (tabLogin) tabLogin.onclick = showLogin;
     if (tabRegister) tabRegister.onclick = showRegister;
+    if (tabReset) tabReset.onclick = showReset;
     if (linkGoRegister) linkGoRegister.onclick = (e) => { e.preventDefault(); showRegister(); };
     if (linkGoLogin) linkGoLogin.onclick = (e) => { e.preventDefault(); showLogin(); };
+    if (linkForgotPassword) linkForgotPassword.onclick = (e) => { e.preventDefault(); showReset(); };
+    if (linkResetToLogin) linkResetToLogin.onclick = (e) => { e.preventDefault(); showLogin(); };
+
+    // Pre-populate last username on login field
+    const lastUser = getLastUsername();
+    const loginUserField = document.getElementById('login-username');
+    if (loginUserField && lastUser && !loginUserField.value) {
+      loginUserField.value = lastUser;
+    }
 
     // Login Form Submit
     if (formLogin) {
@@ -86,6 +143,8 @@ class GameRoomApp {
 
         try {
           this.clearAuthErrors();
+          const submitBtn = document.getElementById('btn-login-submit');
+          if (submitBtn) submitBtn.disabled = true;
           const user = await login(username, password);
           this.onAuthenticated(user);
         } catch (err) {
@@ -93,6 +152,9 @@ class GameRoomApp {
             errEl.textContent = err.message;
             errEl.classList.remove('hidden');
           }
+        } finally {
+          const submitBtn = document.getElementById('btn-login-submit');
+          if (submitBtn) submitBtn.disabled = false;
         }
       };
     }
@@ -108,6 +170,8 @@ class GameRoomApp {
 
         try {
           this.clearAuthErrors();
+          const submitBtn = document.getElementById('btn-register-submit');
+          if (submitBtn) submitBtn.disabled = true;
           const user = await register(username, password, confirm);
           this.onAuthenticated(user);
         } catch (err) {
@@ -115,14 +179,95 @@ class GameRoomApp {
             errEl.textContent = err.message;
             errEl.classList.remove('hidden');
           }
+        } finally {
+          const submitBtn = document.getElementById('btn-register-submit');
+          if (submitBtn) submitBtn.disabled = false;
         }
       };
+    }
+
+    // Reset Password Form Submit
+    if (formReset) {
+      formReset.onsubmit = async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('reset-username').value.trim();
+        const newPassword = document.getElementById('reset-password').value;
+        const confirmPassword = document.getElementById('reset-confirm-password').value;
+        const errEl = document.getElementById('reset-error');
+
+        try {
+          this.clearAuthErrors();
+          const submitBtn = document.getElementById('btn-reset-submit');
+          if (submitBtn) submitBtn.disabled = true;
+          const user = await resetPassword(username, newPassword, confirmPassword);
+          this.onAuthenticated(user);
+        } catch (err) {
+          if (errEl) {
+            errEl.textContent = err.message;
+            errEl.classList.remove('hidden');
+          }
+        } finally {
+          const submitBtn = document.getElementById('btn-reset-submit');
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      };
+    }
+
+    // Load registered accounts list for easy selection
+    this.loadKnownAccountsHelper();
+  }
+
+  async loadKnownAccountsHelper() {
+    try {
+      const accounts = await fetchPublicAccounts();
+      const container = document.getElementById('auth-known-accounts');
+      const list = document.getElementById('known-accounts-list');
+      if (!container || !list) return;
+
+      if (!accounts || accounts.length === 0) {
+        container.classList.add('hidden');
+        return;
+      }
+
+      list.innerHTML = '';
+      accounts.forEach((acc) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'known-acc-chip';
+        btn.innerHTML = `<span class="acc-chip-avatar">${acc.avatar || '🎮'}</span> <span class="acc-chip-name">${acc.display_name || acc.username}</span>`;
+        btn.onclick = () => {
+          const loginInput = document.getElementById('login-username');
+          const resetInput = document.getElementById('reset-username');
+          if (loginInput) loginInput.value = acc.username;
+          if (resetInput) resetInput.value = acc.username;
+
+          // Focus the password input
+          const pwd = document.getElementById('login-password');
+          if (pwd && !pwd.closest('.auth-form')?.classList.contains('hidden')) {
+            pwd.focus();
+          }
+        };
+        list.appendChild(btn);
+      });
+
+      container.classList.remove('hidden');
+    } catch (e) {
+      console.warn('Error loading public accounts:', e);
     }
   }
 
   clearAuthErrors() {
     document.getElementById('login-error')?.classList.add('hidden');
     document.getElementById('register-error')?.classList.add('hidden');
+    document.getElementById('reset-error')?.classList.add('hidden');
+  }
+
+  updateHeaderUserInfo(user) {
+    if (!user) return;
+    const nameEl = document.getElementById('header-username') || document.getElementById('header-display-name');
+    if (nameEl) nameEl.textContent = user.display_name || user.username;
+    const avatarEl = document.getElementById('header-avatar');
+    if (avatarEl) avatarEl.textContent = user.avatar || '🎮';
   }
 
   onAuthenticated(user) {

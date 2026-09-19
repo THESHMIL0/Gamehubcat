@@ -37,7 +37,7 @@ export function initLobby() {
     };
   });
 
-  // Quick Join by Code
+  // Quick Join by Code (Home & Games Catalog)
   const btnQuickJoin = document.getElementById('btn-quick-join');
   const inputQuickJoin = document.getElementById('input-quick-room-code');
 
@@ -45,6 +45,21 @@ export function initLobby() {
     btnQuickJoin.onclick = () => handleJoinByCode();
     inputQuickJoin.onkeydown = (e) => {
       if (e.key === 'Enter') handleJoinByCode();
+    };
+  }
+
+  const btnCatalogJoin = document.getElementById('btn-games-catalog-join');
+  const inputCatalogJoin = document.getElementById('input-games-catalog-code');
+  if (btnCatalogJoin && inputCatalogJoin) {
+    btnCatalogJoin.onclick = () => {
+      joinRoomByCode(inputCatalogJoin.value);
+      inputCatalogJoin.value = '';
+    };
+    inputCatalogJoin.onkeydown = (e) => {
+      if (e.key === 'Enter') {
+        joinRoomByCode(inputCatalogJoin.value);
+        inputCatalogJoin.value = '';
+      }
     };
   }
 

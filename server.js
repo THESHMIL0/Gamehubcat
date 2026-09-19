@@ -6,7 +6,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { dbRun, dbGet, dbAll, initDb } from './database.js';
+import { dbRun, dbGet, dbAll, initDb, getPublicAccounts } from './database.js';
 
 const PORT = 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'gameroom_super_secret_jwt_key_production_ready';
@@ -170,18 +170,19 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Please provide both username and password.' });
     }
 
+    const trimmedInput = String(username).trim();
     const user = await dbGet(
       'SELECT id, username, password_hash, display_name, avatar, bio, created_at FROM users WHERE username = ? COLLATE NOCASE',
-      [username.trim()]
+      [trimmedInput]
     );
 
     if (!user) {
-      return res.status(401).json({ error: 'Incorrect username or password.' });
+      return res.status(401).json({ error: 'No account found with that username or display name. Check your spelling or create an account.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Incorrect username or password.' });
+      return res.status(401).json({ error: 'Incorrect password for this account. You can use "Reset Password" if you forgot it.' });
     }
 
     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
@@ -209,6 +210,77 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// Reset Password (direct recovery for accounts)
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { username, newPassword, confirmPassword } = req.body;
+
+    if (!username || !newPassword) {
+      return res.status(400).json({ error: 'Please enter your username and new password.' });
+    }
+
+    const trimmedInput = String(username).trim();
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters.' });
+    }
+
+    if (confirmPassword && newPassword !== confirmPassword) {
+      return res.status(400).json({ error: 'Passwords do not match.' });
+    }
+
+    const user = await dbGet(
+      'SELECT id, username, password_hash, display_name, avatar, bio, created_at FROM users WHERE username = ? COLLATE NOCASE',
+      [trimmedInput]
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'No account found with that username or display name.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(newPassword, salt);
+    await dbRun('UPDATE users SET password_hash = ? WHERE id = ?', [password_hash, user.id]);
+
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
+
+    res.cookie('gameroom_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: 'lax',
+    });
+
+    const safeUser = {
+      id: user.id,
+      username: user.username,
+      display_name: user.display_name,
+      avatar: user.avatar,
+      bio: user.bio,
+      created_at: user.created_at,
+    };
+
+    return res.json({
+      success: true,
+      message: 'Password updated successfully! Logging you in...',
+      user: safeUser,
+      token,
+    });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    return res.status(500).json({ error: 'Server error resetting password. Please try again.' });
+  }
+});
+
+// List existing accounts summary for quick-pick / login assistance
+app.get('/api/auth/accounts', (req, res) => {
+  try {
+    const accounts = getPublicAccounts();
+    return res.json({ accounts });
+  } catch (err) {
+    return res.json({ accounts: [] });
+  }
+});
+
 // Logout
 app.post('/api/auth/logout', (req, res) => {
   res.clearCookie('gameroom_token');
@@ -219,8 +291,12 @@ app.post('/api/auth/logout', (req, res) => {
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const stats = await dbGet('SELECT games_played, wins, losses, draws FROM stats WHERE user_id = ?', [req.user.id]);
+    // Also re-sign / refresh token so client keeps long-lived session active
+    const token = jwt.sign({ id: req.user.id, username: req.user.username }, JWT_SECRET, { expiresIn: '7d' });
+
     return res.json({
       user: req.user,
+      token,
       stats: stats || { games_played: 0, wins: 0, losses: 0, draws: 0 },
     });
   } catch (err) {
