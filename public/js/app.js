@@ -507,6 +507,7 @@ class GameRoomApp {
     const viewContainer = document.getElementById('view-container') || document.querySelector('.view-container');
     if (viewContainer) {
       viewContainer.setAttribute('data-active-view', viewName);
+      viewContainer.className = `view-container active-view-${viewName}`;
     }
 
     // Mobile nav visibility (hidden during active game or auth)

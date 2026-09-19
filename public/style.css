@@ -49,8 +49,9 @@
 
 html {
   width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
   box-sizing: border-box;
 }
 
@@ -60,14 +61,14 @@ body {
   color: var(--text-main);
   line-height: 1.5;
   width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100%;
+  height: 100dvh;
   margin: 0;
   padding: 0;
   display: flex;
   justify-content: center;
   align-items: stretch;
-  overflow-x: hidden;
+  overflow: hidden;
   position: relative;
   background-image: 
     radial-gradient(circle at 50% 15%, rgba(120, 87, 255, 0.1) 0%, transparent 45%),
@@ -78,13 +79,13 @@ body {
 
 .app-root {
   width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100%;
+  height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: stretch;
   box-sizing: border-box;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .main-interface {
@@ -92,7 +93,7 @@ body {
   flex-direction: column;
   width: 100%;
   max-width: 440px; /* Modern smartphone screen width on laptop too */
-  height: 100vh;
+  height: 100%;
   height: 100dvh;
   min-height: 100vh;
   min-height: 100dvh;
@@ -642,6 +643,8 @@ html.has-stored-auth #main-interface:not(.hidden) {
 }
 
 /* Clean mobile phone layout for views between header (52px) and bottom nav (60px) */
+.view-container.active-view-profile,
+.view-container.active-view-games,
 .view-container:has(#view-profile.active),
 .view-container[data-active-view="profile"],
 .view-container:has(#view-games.active),
@@ -656,23 +659,27 @@ html.has-stored-auth #main-interface:not(.hidden) {
   overflow: hidden;
 }
 
+.view-container.active-view-home,
 .view-container:has(#view-home.active),
 .view-container[data-active-view="home"] {
-  min-height: calc(100dvh - 52px - 60px);
-  height: calc(100dvh - 52px - 60px);
-  max-height: calc(100dvh - 52px - 60px);
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  overflow: hidden;
+  min-height: calc(100dvh - 52px - 60px) !important;
+  height: calc(100dvh - 52px - 60px) !important;
+  max-height: calc(100dvh - 52px - 60px) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
 }
 
+.view-container.active-view-friends,
 .view-container:has(#view-friends.active),
 .view-container[data-active-view="friends"] {
   min-height: calc(100dvh - 52px - 60px);
   padding: 0.65rem 0.65rem 70px;
   box-sizing: border-box;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .content-view {
@@ -3966,17 +3973,20 @@ html.has-stored-auth #main-interface:not(.hidden) {
   transform: scale(0.94);
 }
 
-/* GC Messages Viewport */
+/* GC Messages Viewport (The ONLY scrollable element in the chat) */
 .insta-gc-viewport {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 1.25rem 1rem 0.5rem;
+  padding: 0.85rem 0.85rem 0.5rem;
   display: flex;
   flex-direction: column;
   position: relative;
   background: #000000;
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .insta-gc-viewport::-webkit-scrollbar {
@@ -4324,17 +4334,20 @@ html.has-stored-auth #main-interface:not(.hidden) {
   transform: scale(1.05);
 }
 
-/* Quick Emoji Reactions Strip */
+/* Quick Emoji Reactions Strip (Stationary above message input bar) */
 .insta-quick-reactions {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.45rem 1rem;
+  padding: 0.4rem 0.85rem;
   overflow-x: auto;
   scrollbar-width: none;
   border-top: 1px solid #1a1a1a;
   background: #0a0a0a;
   flex-shrink: 0;
+  position: sticky;
+  bottom: 58px;
+  z-index: 20;
 }
 
 .insta-quick-reactions::-webkit-scrollbar {
@@ -4364,12 +4377,15 @@ html.has-stored-auth #main-interface:not(.hidden) {
   transform: scale(0.96);
 }
 
-/* Instagram DM Bottom Input Bar */
+/* Instagram DM Bottom Input Bar (Permanently stationary at bottom) */
 .insta-input-container {
-  padding: 0.65rem 1rem 0.9rem;
+  padding: 0.55rem 0.85rem 0.75rem;
   background: #000000;
   border-top: 1px solid #1a1a1a;
   flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 25;
 }
 
 .insta-input-pill {
