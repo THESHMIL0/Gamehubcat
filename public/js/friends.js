@@ -1,5 +1,5 @@
 // ==========================================
-// GameRoom — Friends System Module
+// GameRoom — Friends System Module (Instagram DM Style)
 // ==========================================
 
 import { getToken, getCurrentUser } from './auth.js';
@@ -9,33 +9,78 @@ let friendsList = [];
 let pendingReceived = [];
 let pendingSent = [];
 let selectedFriendForInvite = null;
+let searchDebounceTimer = null;
+let currentSearchQuery = '';
 
 export function initFriends() {
-  // Subtab switching inside Friends view
-  const subtabs = document.querySelectorAll('.friends-subtab');
-  subtabs.forEach((tab) => {
-    tab.onclick = () => {
-      subtabs.forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
+  // Navigation between Instagram DM Inbox and Requests sub-page
+  const btnGotoRequests = document.getElementById('btn-goto-requests');
+  const btnBackToDmInbox = document.getElementById('btn-back-to-dm-inbox');
 
-      const target = tab.dataset.subtab;
-      document.querySelectorAll('.subtab-content').forEach((c) => c.classList.remove('active'));
-      document.getElementById(`subtab-friends-${target}`)?.classList.add('active');
+  if (btnGotoRequests) {
+    btnGotoRequests.onclick = () => openRequestsPage();
+  }
 
-      if (target === 'list' || target === 'requests') {
-        loadFriendsData();
+  if (btnBackToDmInbox) {
+    btnBackToDmInbox.onclick = () => openInboxPage();
+  }
+
+  // Refresh messages button
+  const btnRefresh = document.getElementById('btn-refresh-friends');
+  if (btnRefresh) {
+    btnRefresh.onclick = () => {
+      btnRefresh.style.transform = 'rotate(180deg)';
+      btnRefresh.style.transition = 'transform 0.3s ease';
+      setTimeout(() => {
+        btnRefresh.style.transform = 'none';
+      }, 300);
+      loadFriendsData();
+    };
+  }
+
+  // Live real-time user search input
+  const inputSearch = document.getElementById('input-friends-search');
+  const btnClearSearch = document.getElementById('btn-clear-friends-search');
+
+  if (inputSearch) {
+    inputSearch.oninput = () => {
+      const query = inputSearch.value.trim();
+      currentSearchQuery = query;
+
+      if (btnClearSearch) {
+        btnClearSearch.classList.toggle('hidden', query.length === 0);
+      }
+
+      clearTimeout(searchDebounceTimer);
+      if (query.length === 0) {
+        closeSearchResultsView();
+      } else {
+        searchDebounceTimer = setTimeout(() => {
+          handleUserSearch(query);
+        }, 220);
       }
     };
-  });
 
-  // User search button and enter key
-  const btnSearch = document.getElementById('btn-search-users');
-  const inputSearch = document.getElementById('input-search-users');
-
-  if (btnSearch && inputSearch) {
-    btnSearch.onclick = () => handleUserSearch();
     inputSearch.onkeydown = (e) => {
-      if (e.key === 'Enter') handleUserSearch();
+      if (e.key === 'Escape') {
+        inputSearch.value = '';
+        currentSearchQuery = '';
+        if (btnClearSearch) btnClearSearch.classList.add('hidden');
+        closeSearchResultsView();
+        inputSearch.blur();
+      }
+    };
+  }
+
+  if (btnClearSearch) {
+    btnClearSearch.onclick = () => {
+      if (inputSearch) {
+        inputSearch.value = '';
+        inputSearch.focus();
+      }
+      currentSearchQuery = '';
+      btnClearSearch.classList.add('hidden');
+      closeSearchResultsView();
     };
   }
 
@@ -50,15 +95,21 @@ export function initFriends() {
     socket.off('friend_request');
     socket.on('friend_request', (data) => {
       if (window.GameApp?.showToast) {
-        window.GameApp.showToast(data.message, 'info');
+        window.GameApp.showToast(data.message || 'You received a new friend request!', 'info');
       }
       loadFriendsData();
+
+      // If user is currently in the Friends section, open the Instagram requests sub-page
+      const friendsView = document.getElementById('view-friends');
+      if (friendsView && friendsView.classList.contains('active')) {
+        openRequestsPage();
+      }
     });
 
     socket.off('friend_request_accepted');
     socket.on('friend_request_accepted', (data) => {
       if (window.GameApp?.showToast) {
-        window.GameApp.showToast(data.message, 'success');
+        window.GameApp.showToast(data.message || 'Friend request accepted!', 'success');
       }
       loadFriendsData();
     });
@@ -78,24 +129,80 @@ export function initFriends() {
         window.GameApp?.closeModal('modal-select-game-invite');
       }
     };
-  });
+  }  );
+}
+
+// Open Instagram DM Requests sub-page
+export function openRequestsPage() {
+  const inbox = document.getElementById('insta-dm-inbox');
+  const requestsPage = document.getElementById('insta-dm-requests-page');
+  if (inbox && requestsPage) {
+    inbox.classList.remove('active');
+    inbox.classList.add('hidden');
+    requestsPage.classList.remove('hidden');
+    requestsPage.classList.add('active');
+  }
+}
+
+// Return to Instagram DM Inbox
+export function openInboxPage() {
+  const inbox = document.getElementById('insta-dm-inbox');
+  const requestsPage = document.getElementById('insta-dm-requests-page');
+  if (inbox && requestsPage) {
+    requestsPage.classList.remove('active');
+    requestsPage.classList.add('hidden');
+    inbox.classList.remove('hidden');
+    inbox.classList.add('active');
+  }
+}
+
+// Show/Hide search results view in inbox
+function showSearchResultsView() {
+  const searchResults = document.getElementById('insta-dm-search-results');
+  const friendsFeed = document.getElementById('friends-list-container');
+  if (searchResults) searchResults.classList.remove('hidden');
+  if (friendsFeed) friendsFeed.classList.add('hidden');
+}
+
+function closeSearchResultsView() {
+  const searchResults = document.getElementById('insta-dm-search-results');
+  const friendsFeed = document.getElementById('friends-list-container');
+  if (searchResults) {
+    searchResults.classList.add('hidden');
+    searchResults.innerHTML = '<div class="empty-state-hint">Type a username to search players...</div>';
+  }
+  if (friendsFeed) friendsFeed.classList.remove('hidden');
 }
 
 // Load friends and pending requests from backend
 export async function loadFriendsData() {
+  // Sync top handle with current user
+  const handleEl = document.getElementById('insta-dm-user-handle');
+  const currentUser = getCurrentUser();
+  if (handleEl) {
+    if (currentUser && (currentUser.display_name || currentUser.username)) {
+      handleEl.textContent = currentUser.display_name || currentUser.username;
+    } else {
+      handleEl.textContent = 'Messages';
+    }
+  }
+
   const token = getToken();
   if (!token) {
     const container = document.getElementById('friends-list-container');
     if (container) {
       container.innerHTML = `
-        <div class="empty-state-hint" style="padding: 2rem 1rem; text-align: center;">
-          <div style="font-size: 2.5rem; margin-bottom: 0.6rem;">👥</div>
-          <h3 style="color: #f3f4f6; margin-bottom: 0.4rem; font-size: 1.1rem; font-weight: 700;">Friends & Requests</h3>
-          <p style="color: #9ca3af; font-size: 0.85rem; margin-bottom: 1.2rem; line-height: 1.45;">Log in or create an account to add friends, send game challenge invites, and see who is online!</p>
-          <button type="button" class="btn btn-primary btn-sm" onclick="window.GameApp?.openAuthModal ? window.GameApp.openAuthModal() : null">Log In / Sign Up</button>
+        <div class="insta-dm-empty">
+          <div class="insta-dm-empty-icon">💬</div>
+          <h4>Instagram Direct Messages</h4>
+          <p>Sign in or create an account to search players, send message requests, and challenge friends to live duels.</p>
+          <button type="button" class="btn-insta-req-confirm" style="margin-top: 1.25rem; padding: 8px 20px; font-size: 0.9rem;" onclick="window.GameApp?.openAuthModal ? window.GameApp.openAuthModal() : null">
+            Log In / Sign Up
+          </button>
         </div>
       `;
     }
+    updateFriendsBadges();
     return;
   }
 
@@ -121,18 +228,35 @@ export async function loadFriendsData() {
   }
 }
 
-// Update Badges on navbar
+// Update Badges on navbar and inside DM layout
 function updateFriendsBadges() {
   const countSpan = document.getElementById('friends-count-num');
   if (countSpan) countSpan.textContent = friendsList.length;
 
-  const reqBadge = document.getElementById('requests-badge');
+  const instaReqBadge = document.getElementById('insta-requests-badge');
   const dBadge = document.getElementById('friends-badge-desktop');
   const mBadge = document.getElementById('friends-badge-mobile');
+  const recCount = document.getElementById('requests-received-count');
+  const sentCount = document.getElementById('requests-sent-count');
 
   const pendingCount = pendingReceived.length;
+  const sentPendingCount = pendingSent.length;
 
-  [reqBadge, dBadge, mBadge].forEach((badge) => {
+  if (recCount) recCount.textContent = pendingCount;
+  if (sentCount) sentCount.textContent = sentPendingCount;
+
+  // Instagram Requests Pill Badge on DM subbar
+  if (instaReqBadge) {
+    if (pendingCount > 0) {
+      instaReqBadge.textContent = pendingCount;
+      instaReqBadge.classList.remove('hidden');
+    } else {
+      instaReqBadge.classList.add('hidden');
+    }
+  }
+
+  // Main Desktop & Mobile Nav Badges
+  [dBadge, mBadge].forEach((badge) => {
     if (!badge) return;
     if (pendingCount > 0) {
       badge.textContent = pendingCount;
@@ -143,18 +267,17 @@ function updateFriendsBadges() {
   });
 }
 
-// Render Friends Grid
+// Render Friends as Instagram DM Rows
 function renderFriendsList() {
   const container = document.getElementById('friends-list-container');
   if (!container) return;
 
   if (friendsList.length === 0) {
     container.innerHTML = `
-      <div class="empty-state-hint">
-        <p>You haven't added any friends yet!</p>
-        <button type="button" class="btn btn-sm btn-secondary mt-3" onclick="document.getElementById('subtab-btn-search').click()">
-          Search & Add Players
-        </button>
+      <div class="insta-dm-empty">
+        <div class="insta-dm-empty-icon">💬</div>
+        <h4>Your Messages</h4>
+        <p>Send invites and challenge friends to live duels right from your inbox. Search for players above to get started!</p>
       </div>
     `;
     return;
@@ -163,32 +286,30 @@ function renderFriendsList() {
   container.innerHTML = friendsList
     .map((friend) => {
       const isOnline = friend.isOnline;
-      const statusText = friend.presence || (isOnline ? 'Online' : 'Offline');
-      const dotClass = isOnline ? (statusText === 'Online' ? 'online' : 'busy') : 'offline';
+      const statusText = friend.presence || (isOnline ? 'Active now' : 'Offline');
 
       return `
-      <div class="friend-card glass-card">
-        <div class="friend-info" style="cursor: pointer;" onclick="window.GameApp?.showPlayerProfile(${friend.id})">
-          <span class="avatar-circle">${escapeHtml(friend.avatar || '🎮')}</span>
-          <div class="friend-text">
-            <h4>${escapeHtml(friend.display_name)}</h4>
-            <div class="status-line">
-              <span class="status-dot ${dotClass}"></span>
-              <span>${escapeHtml(statusText)}</span>
-            </div>
+      <div class="insta-dm-row" onclick="window.FriendsModule?.promptInviteGame(${friend.id}, '${escapeHtml(friend.display_name)}')">
+        <div class="insta-dm-avatar-wrap">
+          <span class="insta-dm-avatar">${escapeHtml(friend.avatar || '🎮')}</span>
+          ${isOnline ? '<span class="insta-dm-online-dot" title="Active now"></span>' : ''}
+        </div>
+        <div class="insta-dm-content">
+          <div class="insta-dm-name-row">
+            <span class="insta-dm-name">${escapeHtml(friend.display_name)}</span>
+            <span class="insta-dm-handle">@${escapeHtml(friend.username)}</span>
+          </div>
+          <div class="insta-dm-snippet-row">
+            <span class="insta-dm-snippet ${isOnline ? 'active-now' : ''}">${escapeHtml(statusText)}</span>
+            <span class="insta-dm-dot-sep">•</span>
+            <span class="insta-dm-tap-hint">Tap to duel</span>
           </div>
         </div>
-        <div class="friend-actions">
-          ${
-            isOnline
-              ? `<button type="button" class="btn btn-sm btn-primary btn-invite-friend" onclick="window.FriendsModule?.promptInviteGame(${friend.id}, '${escapeHtml(friend.display_name)}')">
-                  Invite
-                </button>`
-              : `<button type="button" class="btn btn-sm btn-secondary" disabled title="Friend is offline">
-                  Offline
-                </button>`
-          }
-          <button type="button" class="btn btn-sm btn-ghost" title="Remove Friend" onclick="window.FriendsModule?.removeFriend(${friend.id})">
+        <div class="insta-dm-actions" onclick="event.stopPropagation()">
+          <button type="button" class="btn-insta-duel" title="Challenge to live duel" onclick="window.FriendsModule?.promptInviteGame(${friend.id}, '${escapeHtml(friend.display_name)}')">
+            ⚔️ Duel
+          </button>
+          <button type="button" class="btn-insta-more" title="Remove Friend" onclick="window.FriendsModule?.removeFriend(${friend.id})">
             ✕
           </button>
         </div>
@@ -233,32 +354,37 @@ export function renderHomeOnlineFriends() {
     .join('');
 }
 
-// Render Received and Sent Friend Requests
+// Render Received and Sent Friend Requests (Instagram Style)
 function renderRequestsList() {
   const receivedContainer = document.getElementById('requests-received-list');
   const sentContainer = document.getElementById('requests-sent-list');
 
   if (receivedContainer) {
     if (pendingReceived.length === 0) {
-      receivedContainer.innerHTML = '<div class="empty-state-hint">No incoming requests.</div>';
+      receivedContainer.innerHTML = `
+        <div class="empty-state-hint" style="padding: 2rem 1rem; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 0.4rem;">📬</div>
+          <p style="color: #8e8e8e; font-size: 0.85rem;">No pending message requests</p>
+        </div>
+      `;
     } else {
       receivedContainer.innerHTML = pendingReceived
         .map(
           (req) => `
-        <div class="friend-card glass-card">
-          <div class="friend-info">
-            <span class="avatar-circle">${escapeHtml(req.avatar || '🎮')}</span>
-            <div class="friend-text">
-              <h4>${escapeHtml(req.display_name)}</h4>
-              <div class="handle">@${escapeHtml(req.username)}</div>
-            </div>
+        <div class="insta-request-row">
+          <div class="insta-request-avatar-wrap" onclick="window.GameApp?.showPlayerProfile(${req.user_id || req.sender_id || req.id})" title="View Profile">
+            <span>${escapeHtml(req.avatar || '🎮')}</span>
           </div>
-          <div class="friend-actions">
-            <button type="button" class="btn btn-sm btn-primary" onclick="window.FriendsModule?.respondFriendRequest(${req.request_id}, 'accept')">
-              Accept
+          <div class="insta-request-info">
+            <div class="insta-request-name">${escapeHtml(req.display_name)}</div>
+            <div class="insta-request-sub">@${escapeHtml(req.username)} • Wants to connect</div>
+          </div>
+          <div class="insta-request-actions">
+            <button type="button" class="btn-insta-req-confirm" onclick="window.FriendsModule?.respondFriendRequest(${req.request_id}, 'accept')">
+              Confirm
             </button>
-            <button type="button" class="btn btn-sm btn-secondary" onclick="window.FriendsModule?.respondFriendRequest(${req.request_id}, 'reject')">
-              Decline
+            <button type="button" class="btn-insta-req-delete" onclick="window.FriendsModule?.respondFriendRequest(${req.request_id}, 'reject')">
+              Delete
             </button>
           </div>
         </div>
@@ -270,21 +396,25 @@ function renderRequestsList() {
 
   if (sentContainer) {
     if (pendingSent.length === 0) {
-      sentContainer.innerHTML = '<div class="empty-state-hint">No outgoing pending requests.</div>';
+      sentContainer.innerHTML = `
+        <div class="empty-state-hint" style="padding: 1.5rem 1rem; text-align: center;">
+          <p style="color: #737373; font-size: 0.82rem;">No outgoing pending requests</p>
+        </div>
+      `;
     } else {
       sentContainer.innerHTML = pendingSent
         .map(
           (req) => `
-        <div class="friend-card glass-card">
-          <div class="friend-info">
-            <span class="avatar-circle">${escapeHtml(req.avatar || '🎮')}</span>
-            <div class="friend-text">
-              <h4>${escapeHtml(req.display_name)}</h4>
-              <div class="handle">@${escapeHtml(req.username)}</div>
-            </div>
+        <div class="insta-request-row">
+          <div class="insta-request-avatar-wrap" onclick="window.GameApp?.showPlayerProfile(${req.user_id || req.id})" title="View Profile">
+            <span>${escapeHtml(req.avatar || '🎮')}</span>
           </div>
-          <div class="friend-actions">
-            <button type="button" class="btn btn-sm btn-secondary" onclick="window.FriendsModule?.respondFriendRequest(${req.request_id}, 'reject')">
+          <div class="insta-request-info">
+            <div class="insta-request-name">${escapeHtml(req.display_name)}</div>
+            <div class="insta-request-sub">@${escapeHtml(req.username)} • Request pending</div>
+          </div>
+          <div class="insta-request-actions">
+            <button type="button" class="btn-insta-req-cancel" onclick="window.FriendsModule?.respondFriendRequest(${req.request_id}, 'reject')">
               Cancel
             </button>
           </div>
@@ -296,18 +426,19 @@ function renderRequestsList() {
   }
 }
 
-// Search users
-async function handleUserSearch() {
-  const query = document.getElementById('input-search-users')?.value.trim();
-  const container = document.getElementById('search-results-list');
+// Real-time Search Users (Instagram Style)
+async function handleUserSearch(query) {
+  const container = document.getElementById('insta-dm-search-results');
   if (!container) return;
 
+  showSearchResultsView();
+
   if (!query) {
-    container.innerHTML = '<div class="empty-state-hint">Please enter a username to search.</div>';
+    container.innerHTML = '<div class="empty-state-hint">Type a username to search players...</div>';
     return;
   }
 
-  container.innerHTML = '<div class="empty-state-hint">Searching users...</div>';
+  container.innerHTML = '<div class="empty-state-hint">Searching players...</div>';
 
   try {
     const token = getToken();
@@ -321,7 +452,12 @@ async function handleUserSearch() {
     const users = data.users || [];
 
     if (users.length === 0) {
-      container.innerHTML = `<div class="empty-state-hint">No players found matching "${escapeHtml(query)}".</div>`;
+      container.innerHTML = `
+        <div class="empty-state-hint" style="padding: 2.5rem 1rem; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+          <p style="color: #8e8e8e; font-size: 0.88rem;">No players found matching "<strong>${escapeHtml(query)}</strong>"</p>
+        </div>
+      `;
       return;
     }
 
@@ -329,25 +465,33 @@ async function handleUserSearch() {
       .map((u) => {
         let actionBtn = '';
         if (u.friendStatus === 'friends') {
-          actionBtn = '<span class="status-pill">Friends</span>';
+          actionBtn = '<span class="insta-status-pill">Friends</span>';
         } else if (u.friendStatus === 'pending_sent') {
-          actionBtn = '<span class="tag">Request Sent</span>';
+          actionBtn = '<span class="insta-status-pill">Requested</span>';
         } else if (u.friendStatus === 'pending_received') {
-          actionBtn = `<button type="button" class="btn btn-sm btn-primary" onclick="window.FriendsModule?.respondFriendRequest(${u.friendRequestId}, 'accept')">Accept</button>`;
+          actionBtn = `<button type="button" class="btn-insta-req-confirm" onclick="window.FriendsModule?.respondFriendRequest(${u.friendRequestId}, 'accept')">Confirm</button>`;
         } else {
-          actionBtn = `<button type="button" class="btn btn-sm btn-primary" onclick="window.FriendsModule?.sendFriendRequest(${u.id})">+ Add Friend</button>`;
+          actionBtn = `<button type="button" class="btn-insta-req-confirm" onclick="window.FriendsModule?.sendFriendRequest(${u.id})">+ Follow / Add</button>`;
         }
 
+        const isOnline = u.isOnline;
+        const statusSnippet = isOnline ? 'Active now' : `@${escapeHtml(u.username)}`;
+
         return `
-        <div class="friend-card glass-card">
-          <div class="friend-info" style="cursor: pointer;" onclick="window.GameApp?.showPlayerProfile(${u.id})">
-            <span class="avatar-circle">${escapeHtml(u.avatar || '🎮')}</span>
-            <div class="friend-text">
-              <h4>${escapeHtml(u.display_name)}</h4>
-              <div class="handle">@${escapeHtml(u.username)}</div>
+        <div class="insta-dm-row">
+          <div class="insta-dm-avatar-wrap" onclick="window.GameApp?.showPlayerProfile(${u.id})" title="View Profile" style="cursor: pointer;">
+            <span class="insta-dm-avatar">${escapeHtml(u.avatar || '🎮')}</span>
+            ${isOnline ? '<span class="insta-dm-online-dot" title="Active now"></span>' : ''}
+          </div>
+          <div class="insta-dm-content" onclick="window.GameApp?.showPlayerProfile(${u.id})" style="cursor: pointer;">
+            <div class="insta-dm-name-row">
+              <span class="insta-dm-name">${escapeHtml(u.display_name)}</span>
+            </div>
+            <div class="insta-dm-snippet-row">
+              <span class="insta-dm-snippet ${isOnline ? 'active-now' : ''}">${statusSnippet}</span>
             </div>
           </div>
-          <div class="friend-actions">
+          <div class="insta-dm-actions" onclick="event.stopPropagation()">
             ${actionBtn}
           </div>
         </div>
@@ -382,14 +526,16 @@ export async function sendFriendRequest(targetUserId) {
     if (!res.ok) throw new Error(data.error || 'Failed to send request');
 
     window.GameApp?.showToast('Friend request sent!', 'success');
-    handleUserSearch();
+    if (currentSearchQuery) {
+      handleUserSearch(currentSearchQuery);
+    }
     loadFriendsData();
   } catch (err) {
     window.GameApp?.showToast(err.message, 'error');
   }
 }
 
-// Respond to request
+// Respond to request (accept or reject)
 export async function respondFriendRequest(requestId, action) {
   const token = getToken();
   try {
@@ -402,6 +548,9 @@ export async function respondFriendRequest(requestId, action) {
     if (!res.ok) throw new Error(data.error || 'Failed');
 
     window.GameApp?.showToast(action === 'accept' ? 'Friend request accepted!' : 'Request removed.', 'info');
+    if (currentSearchQuery) {
+      handleUserSearch(currentSearchQuery);
+    }
     loadFriendsData();
   } catch (err) {
     window.GameApp?.showToast(err.message, 'error');
@@ -427,7 +576,7 @@ export async function removeFriend(friendId) {
   }
 }
 
-// Prompt game selection modal when clicking Invite on a friend
+// Prompt game selection modal when clicking Invite / Duel on a friend
 export function promptInviteGame(friendId, friendName) {
   selectedFriendForInvite = { id: friendId, name: friendName };
   const label = document.getElementById('select-game-friend-name');
@@ -471,6 +620,8 @@ window.FriendsModule = {
   sendFriendRequest,
   respondFriendRequest,
   removeFriend,
+  openRequestsPage,
+  openInboxPage,
 };
 
 function escapeHtml(text) {

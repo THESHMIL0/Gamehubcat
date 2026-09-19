@@ -420,11 +420,9 @@ export async function dbAll(sql, params = []) {
   const norm = sql.trim().replace(/\s+/g, ' ');
 
   // 1. Search users:
-  // SELECT id, username, display_name, avatar, bio, created_at FROM users WHERE username LIKE ? AND id != ? LIMIT 20
-  if (norm.includes('FROM users WHERE username LIKE ? AND id != ?')) {
-    const [likePattern, excludeId] = params;
-    const searchStr = likePattern.replace(/%/g, '').toLowerCase();
-    const exId = parseInt(excludeId, 10);
+  if (norm.includes('FROM users WHERE') && (norm.includes('username LIKE ?') || norm.includes('display_name LIKE ?'))) {
+    const searchStr = (params[0] || '').replace(/%/g, '').toLowerCase();
+    const exId = parseInt(params[params.length - 1], 10) || 0;
 
     return db.users
       .filter((u) => u.id !== exId && (u.username.toLowerCase().includes(searchStr) || (u.display_name && u.display_name.toLowerCase().includes(searchStr))))

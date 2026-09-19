@@ -53,6 +53,42 @@
       "avatar": "👑",
       "bio": "Let's play!",
       "created_at": "2026-09-19T08:43:15.053Z"
+    },
+    {
+      "id": 7,
+      "username": "alex_test",
+      "password_hash": "$2b$10$h1JUGLj.X/I0YZlJaZUJfexefGCKhUiSyAsoMjw93J58A5tgQQoBm",
+      "display_name": "alex_test",
+      "avatar": "🔥",
+      "bio": "Let's play!",
+      "created_at": "2026-09-19T19:31:50.920Z"
+    },
+    {
+      "id": 8,
+      "username": "sam_gamer",
+      "password_hash": "$2b$10$FSP/Qw9SjmldLcgSZcIU5.Tg/SmRcDPqyRV2l0vl5OTGzQwJmGvja",
+      "display_name": "sam_gamer",
+      "avatar": "🎯",
+      "bio": "Let's play!",
+      "created_at": "2026-09-19T19:32:54.582Z"
+    },
+    {
+      "id": 9,
+      "username": "alex_pro",
+      "password_hash": "$2b$10$QFmIHqT8wPH.BhRG6msMae6.RmG2jqUolBBuBHMYjASZGCQ8MCGVq",
+      "display_name": "alex_pro",
+      "avatar": "🎮",
+      "bio": "Let's play!",
+      "created_at": "2026-09-19T19:32:57.890Z"
+    },
+    {
+      "id": 10,
+      "username": "sam_insta",
+      "password_hash": "$2b$10$SmfqZh67x5iX8V6r3VoWLOvyEZXybY8IM/D/H5tiqkUgqy5WKXQEC",
+      "display_name": "sam_insta",
+      "avatar": "🔥",
+      "bio": "Let's play!",
+      "created_at": "2026-09-19T19:34:28.800Z"
     }
   ],
   "stats": [
@@ -99,6 +135,38 @@
     {
       "id": 6,
       "user_id": 6,
+      "games_played": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0
+    },
+    {
+      "id": 7,
+      "user_id": 7,
+      "games_played": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0
+    },
+    {
+      "id": 8,
+      "user_id": 8,
+      "games_played": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0
+    },
+    {
+      "id": 9,
+      "user_id": 9,
+      "games_played": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0
+    },
+    {
+      "id": 10,
+      "user_id": 10,
       "games_played": 0,
       "wins": 0,
       "losses": 0,
@@ -178,8 +246,8 @@
     }
   ],
   "seq": {
-    "users": 7,
-    "stats": 7,
+    "users": 11,
+    "stats": 11,
     "friends": 3,
     "game_history": 7
   }

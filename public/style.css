@@ -660,11 +660,12 @@ html.has-stored-auth #main-interface:not(.hidden) {
 .view-container.active-view-friends,
 .view-container:has(#view-friends.active),
 .view-container[data-active-view="friends"] {
-  min-height: calc(100dvh - 60px);
-  padding: 0.65rem 0.65rem 70px;
-  box-sizing: border-box;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  height: calc(100dvh - 60px);
+  max-height: calc(100dvh - 60px);
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
 }
 
 .content-view {
@@ -1178,107 +1179,581 @@ html.has-stored-auth #main-interface:not(.hidden) {
 }
 
 /* ===================================================
-   FRIENDS SCREEN
+   INSTAGRAM DM STYLE FRIENDS & MESSAGES SECTION
    =================================================== */
-.friends-tabs-bar {
+#view-friends {
+  height: 100%;
+  width: 100%;
   display: flex;
-  gap: 0.5rem;
-  background: var(--bg-surface);
-  padding: 6px;
-  border-radius: var(--radius-sm);
-  margin-bottom: 1.25rem;
+  flex-direction: column;
+  overflow: hidden;
+  background: #000000;
+  position: relative;
 }
 
-.friends-subtab {
-  flex: 1;
-  padding: 0.65rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  border-radius: 6px;
-  transition: var(--transition);
-}
-
-.friends-subtab.active {
-  background: var(--bg-surface-elevated);
-  color: var(--text-main);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.subtab-content {
+.insta-dm-page {
   display: none;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background: #000000;
 }
 
-.subtab-content.active {
-  display: block;
+.insta-dm-page.active,
+.insta-dm-page:not(.hidden) {
+  display: flex;
 }
 
-.friends-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-}
-
-.friend-card {
+/* 1. Top Nav Header (Handle + Actions) */
+.insta-dm-nav-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  padding: 0.85rem 1.15rem 0.45rem;
+  background: #000000;
+  flex-shrink: 0;
+  z-index: 10;
 }
 
-.friend-info {
+.insta-dm-header-title {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 6px;
 }
 
-.friend-text h4 {
-  font-size: 0.95rem;
+.insta-dm-handle-text {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #f5f5f5;
+  letter-spacing: -0.02em;
+}
+
+.insta-dm-verified {
+  color: #0095f6;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.insta-dm-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* 2. Top Search Bar */
+.insta-dm-search-container {
+  padding: 0.35rem 1.15rem 0.65rem;
+  background: #000000;
+  flex-shrink: 0;
+}
+
+.insta-dm-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1f1f1f;
+  border-radius: 12px;
+  padding: 0 12px;
+  height: 38px;
+  transition: background 0.15s ease;
+}
+
+.insta-dm-search-box:focus-within {
+  background: #282828;
+}
+
+.insta-dm-search-svg {
+  color: #737373;
+  flex-shrink: 0;
+}
+
+.insta-dm-search-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f5f5f5;
+  font-size: 0.9rem;
+  font-family: inherit;
+  min-width: 0;
+}
+
+.insta-dm-search-field::placeholder {
+  color: #737373;
+}
+
+.insta-dm-clear-btn {
+  background: none;
+  border: none;
+  color: #a8a8a8;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 0.85rem;
+}
+
+/* 3. Subheader: "Messages" on left, "Requests" on bottom-right of search bar */
+.insta-dm-subbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 1.15rem 0.55rem;
+  background: #000000;
+  flex-shrink: 0;
+}
+
+.insta-dm-subbar-left {
+  font-size: 1rem;
   font-weight: 700;
+  color: #f5f5f5;
+  letter-spacing: -0.01em;
+}
+
+.insta-dm-subbar-right {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #38bdf8;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
 }
 
-.friend-text .handle {
-  font-size: 0.8rem;
-  color: var(--text-muted);
+.insta-dm-subbar-right:hover {
+  background: rgba(56, 189, 248, 0.12);
+  color: #7dd3fc;
 }
 
-.friend-text .status-line {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.insta-requests-pill {
+  background: #0095f6;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 12px;
+  line-height: 1.2;
 }
 
-.friend-actions {
-  display: flex;
-  gap: 0.4rem;
-}
-
-.requests-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-.requests-block h4 {
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
-}
-
-.requests-list {
+/* 4. Conversations List & Search Results */
+.insta-dm-conversations-feed,
+.insta-dm-search-results {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.25rem 0.75rem 80px;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 2px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
-.search-bar-box {
+.insta-dm-conversations-feed::-webkit-scrollbar,
+.insta-dm-search-results::-webkit-scrollbar {
+  display: none;
+}
+
+/* Conversation Row */
+.insta-dm-row {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  align-items: center;
+  gap: 12px;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  user-select: none;
+}
+
+.insta-dm-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.insta-dm-row:active {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.insta-dm-avatar-wrap {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.insta-dm-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #1c1c1e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+}
+
+.insta-dm-online-dot {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  width: 13px;
+  height: 13px;
+  background: #10b981;
+  border: 2.5px solid #000000;
+  border-radius: 50%;
+}
+
+.insta-dm-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.insta-dm-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.insta-dm-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f5f5f5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.insta-dm-handle {
+  font-size: 0.78rem;
+  color: #737373;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.insta-dm-snippet-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: #8e8e8e;
+}
+
+.insta-dm-snippet.active-now {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.insta-dm-dot-sep {
+  color: #525252;
+  font-size: 0.75rem;
+}
+
+.insta-dm-tap-hint {
+  color: #6366f1;
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+
+.insta-dm-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-insta-duel {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-insta-duel:hover {
+  background: rgba(16, 185, 129, 0.3);
+  transform: scale(1.04);
+}
+
+.btn-insta-more {
+  background: none;
+  border: none;
+  color: #737373;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.15s;
+}
+
+.btn-insta-more:hover {
+  color: #ef4444;
+}
+
+/* Empty State */
+.insta-dm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  margin-top: 1rem;
+}
+
+.insta-dm-empty-icon {
+  font-size: 3.2rem;
+  margin-bottom: 0.85rem;
+  opacity: 0.9;
+}
+
+.insta-dm-empty h4 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f5f5f5;
+  margin-bottom: 0.4rem;
+}
+
+.insta-dm-empty p {
+  font-size: 0.85rem;
+  color: #737373;
+  max-width: 280px;
+  line-height: 1.45;
+}
+
+/* 5. Instagram DM Requests Page */
+.insta-dm-requests-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: #000000;
+  overflow: hidden;
+  animation: slideInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.insta-requests-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.85rem 1.15rem;
+  background: #000000;
+  flex-shrink: 0;
+}
+
+.insta-requests-back-btn {
+  background: none;
+  border: none;
+  color: #f5f5f5;
+  cursor: pointer;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.insta-requests-back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.insta-requests-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f5f5f5;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.insta-requests-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0.25rem 1.15rem 0.85rem;
+  padding: 0.75rem 0.95rem;
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.insta-requests-notice-icon {
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.insta-requests-notice p {
+  font-size: 0.8rem;
+  color: #8e8e8e;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.insta-requests-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 0.85rem 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  scrollbar-width: none;
+}
+
+.insta-requests-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.5rem 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #737373;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.insta-req-badge {
+  background: rgba(255, 255, 255, 0.08);
+  color: #a8a8a8;
+  font-size: 0.72rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.insta-requests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.insta-request-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.65rem 0.75rem;
+  background: rgba(255, 255, 255, 0.025);
+  border-radius: 12px;
+  transition: background 0.15s;
+}
+
+.insta-request-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.insta-request-avatar-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #242426;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.insta-request-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.insta-request-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #f5f5f5;
+}
+
+.insta-request-sub {
+  font-size: 0.78rem;
+  color: #8e8e8e;
+}
+
+.insta-request-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-insta-req-confirm {
+  background: #0095f6;
+  color: #ffffff;
+  border: none;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.btn-insta-req-confirm:hover {
+  background: #1877f2;
+  transform: scale(1.03);
+}
+
+.btn-insta-req-delete {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ef4444;
+  border: none;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-insta-req-delete:hover {
+  background: rgba(239, 68, 68, 0.18);
+}
+
+.btn-insta-req-cancel {
+  background: rgba(255, 255, 255, 0.08);
+  color: #a8a8a8;
+  border: none;
+  font-weight: 500;
+  font-size: 0.82rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-insta-req-cancel:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #f5f5f5;
+}
+
+.insta-status-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #a8a8a8;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 10px;
+  border-radius: 12px;
 }
 
 .empty-state-hint {

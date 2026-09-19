@@ -388,9 +388,9 @@ app.get('/api/users/search', optionalAuthenticateToken, async (req, res) => {
     const users = await dbAll(
       `SELECT id, username, display_name, avatar, bio, created_at 
        FROM users 
-       WHERE username LIKE ? AND id != ?
+       WHERE (username LIKE ? OR display_name LIKE ?) AND id != ?
        LIMIT 20`,
-      [`%${q}%`, currentUserId]
+      [`%${q}%`, `%${q}%`, currentUserId]
     );
 
     // Attach friendship status and online presence if user is authenticated
