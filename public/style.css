@@ -114,6 +114,7 @@ body {
 /* Glass Panels */
 .glass-panel {
   background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: none;
@@ -396,6 +397,7 @@ button {
   object-fit: contain;
   filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.45));
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), filter 0.25s ease;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -1416,6 +1418,7 @@ body:has(#view-game.active) #mobile-nav {
   border-radius: 12px;
   cursor: pointer;
   transition: background 0.15s ease;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -2311,6 +2314,7 @@ body:has(#view-game.active) #mobile-nav {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-sm);
   transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -2508,6 +2512,7 @@ body:has(#view-game.active) #mobile-nav {
   font-family: inherit;
   text-align: left;
   transition: background-color 0.18s ease, transform 0.18s ease;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -2722,6 +2727,7 @@ body:has(#view-game.active) #mobile-nav {
   font-family: inherit;
   text-align: left;
   transition: background-color 0.18s ease, transform 0.18s ease;
+  -webkit-user-select: none;
   user-select: none;
   box-sizing: border-box;
 }
@@ -3679,6 +3685,7 @@ body:has(#view-game.active) #mobile-nav {
   overflow: hidden;
   box-sizing: border-box;
   /* Mask: top 25% under the game board gently dissolves messages into complete invisibility */
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
   -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
 }
@@ -3700,6 +3707,7 @@ body:has(#view-game.active) #mobile-nav {
   gap: 7px;
   max-width: 88%;
   background: rgba(15, 23, 42, 0.82);
+  -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -3767,6 +3775,7 @@ body:has(#view-game.active) #mobile-nav {
   padding: 0.55rem 0.85rem;
   padding-bottom: calc(0.55rem + env(safe-area-inset-bottom, 0px));
   background: rgba(10, 10, 15, 0.92);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -3857,6 +3866,7 @@ body:has(#view-game.active) #mobile-nav {
   justify-content: space-around;
   align-items: center;
   background: rgba(10, 10, 14, 0.96);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-sizing: border-box;
@@ -3898,6 +3908,7 @@ body:has(#view-game.active) #mobile-nav {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
@@ -4105,6 +4116,7 @@ body:has(#view-game.active) #mobile-nav {
   text-align: left;
   cursor: pointer;
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-user-select: none;
   user-select: none;
   position: relative;
   overflow: hidden;
@@ -4895,6 +4907,7 @@ body:has(#view-game.active) #mobile-nav {
   justify-content: space-between;
   padding: 0.75rem 1.15rem;
   background: rgba(10, 10, 14, 0.95);
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   border-bottom: none;
   z-index: 20;
@@ -4905,6 +4918,7 @@ body:has(#view-game.active) #mobile-nav {
   display: flex;
   align-items: center;
   gap: 0.85rem;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -5235,6 +5249,7 @@ body:has(#view-game.active) #mobile-nav {
   margin-bottom: 12px;
   flex-shrink: 0;
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
   transition: transform 0.15s;
 }
@@ -5308,6 +5323,7 @@ body:has(#view-game.active) #mobile-nav {
   font-size: 0.93rem;
   line-height: 1.4;
   word-break: break-word;
+  -webkit-user-select: text;
   user-select: text;
   cursor: default;
   transition: transform 0.12s;
@@ -5534,6 +5550,7 @@ body:has(#view-game.active) #mobile-nav {
   bottom: 20px;
   background: rgba(24, 24, 27, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.15);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   padding: 6px 14px;
   border-radius: 18px;

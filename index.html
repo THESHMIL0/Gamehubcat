@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GameRoom — Multiplayer Social Gaming</title>
   <meta name="description" content="Play Tic-Tac-Toe, Rock Paper Scissors, and Connect Four with friends in real time.">
   <link rel="stylesheet" href="/style.css">
@@ -226,8 +226,8 @@
               <div id="lobby-messages-log" class="chat-log-list"></div>
             </div>
             <form id="form-lobby-chat" class="chat-input-bar">
-              <input type="text" id="input-lobby-chat" class="input-field chat-input" placeholder="Type a message to the lobby..." maxlength="150" autocomplete="off">
-              <button type="submit" class="btn btn-primary btn-icon-only" title="Send message">
+              <input type="text" id="input-lobby-chat" class="input-field chat-input" placeholder="Type a message to the lobby..." maxlength="150" autocomplete="off" aria-label="Lobby chat message">
+              <button type="submit" class="btn btn-primary btn-icon-only" title="Send message" aria-label="Send message">
                 <span>➤</span>
               </button>
             </form>
@@ -349,7 +349,7 @@
           <!-- Search Users Subtab -->
           <div id="subtab-friends-search" class="subtab-content">
             <div class="search-bar-box">
-              <input type="text" id="input-search-users" class="input-field" placeholder="Type username to search...">
+              <input type="text" id="input-search-users" class="input-field" placeholder="Search by username..." aria-label="Search users by username">
               <button type="button" id="btn-search-users" class="btn btn-primary">Search</button>
             </div>
             <div id="search-results-list" class="friends-grid">
@@ -574,15 +574,15 @@
               <div id="board-tictactoe" class="game-board-view hidden">
                 <div class="ttt-grid-wrap">
                   <div class="ttt-grid" id="ttt-grid">
-                    <button class="ttt-cell" data-idx="0"></button>
-                    <button class="ttt-cell" data-idx="1"></button>
-                    <button class="ttt-cell" data-idx="2"></button>
-                    <button class="ttt-cell" data-idx="3"></button>
-                    <button class="ttt-cell" data-idx="4"></button>
-                    <button class="ttt-cell" data-idx="5"></button>
-                    <button class="ttt-cell" data-idx="6"></button>
-                    <button class="ttt-cell" data-idx="7"></button>
-                    <button class="ttt-cell" data-idx="8"></button>
+                    <button class="ttt-cell" data-idx="0" aria-label="Tic-Tac-Toe Cell 1 (Row 1, Column 1)" title="Cell 1"></button>
+                    <button class="ttt-cell" data-idx="1" aria-label="Tic-Tac-Toe Cell 2 (Row 1, Column 2)" title="Cell 2"></button>
+                    <button class="ttt-cell" data-idx="2" aria-label="Tic-Tac-Toe Cell 3 (Row 1, Column 3)" title="Cell 3"></button>
+                    <button class="ttt-cell" data-idx="3" aria-label="Tic-Tac-Toe Cell 4 (Row 2, Column 1)" title="Cell 4"></button>
+                    <button class="ttt-cell" data-idx="4" aria-label="Tic-Tac-Toe Cell 5 (Row 2, Column 2)" title="Cell 5"></button>
+                    <button class="ttt-cell" data-idx="5" aria-label="Tic-Tac-Toe Cell 6 (Row 2, Column 3)" title="Cell 6"></button>
+                    <button class="ttt-cell" data-idx="6" aria-label="Tic-Tac-Toe Cell 7 (Row 3, Column 1)" title="Cell 7"></button>
+                    <button class="ttt-cell" data-idx="7" aria-label="Tic-Tac-Toe Cell 8 (Row 3, Column 2)" title="Cell 8"></button>
+                    <button class="ttt-cell" data-idx="8" aria-label="Tic-Tac-Toe Cell 9 (Row 3, Column 3)" title="Cell 9"></button>
                   </div>
                   <!-- Animated Winning Line SVG Overlay -->
                   <svg id="ttt-win-line" class="ttt-win-line hidden" viewBox="0 0 300 300">
@@ -634,13 +634,13 @@
                 <div class="connect4-board-container">
                   <!-- Column Hover Drop Indicators -->
                   <div class="connect4-drop-arrows" id="c4-drop-arrows">
-                    <button class="c4-col-arrow" data-col="0">▼</button>
-                    <button class="c4-col-arrow" data-col="1">▼</button>
-                    <button class="c4-col-arrow" data-col="2">▼</button>
-                    <button class="c4-col-arrow" data-col="3">▼</button>
-                    <button class="c4-col-arrow" data-col="4">▼</button>
-                    <button class="c4-col-arrow" data-col="5">▼</button>
-                    <button class="c4-col-arrow" data-col="6">▼</button>
+                    <button class="c4-col-arrow" data-col="0" aria-label="Drop token in column 1" title="Drop in column 1">▼</button>
+                    <button class="c4-col-arrow" data-col="1" aria-label="Drop token in column 2" title="Drop in column 2">▼</button>
+                    <button class="c4-col-arrow" data-col="2" aria-label="Drop token in column 3" title="Drop in column 3">▼</button>
+                    <button class="c4-col-arrow" data-col="3" aria-label="Drop token in column 4" title="Drop in column 4">▼</button>
+                    <button class="c4-col-arrow" data-col="4" aria-label="Drop token in column 5" title="Drop in column 5">▼</button>
+                    <button class="c4-col-arrow" data-col="5" aria-label="Drop token in column 6" title="Drop in column 6">▼</button>
+                    <button class="c4-col-arrow" data-col="6" aria-label="Drop token in column 7" title="Drop in column 7">▼</button>
                   </div>
                   <!-- 6 rows x 7 cols grid -->
                   <div class="connect4-grid" id="c4-grid">
@@ -659,7 +659,7 @@
           <div class="game-bottom-bar">
             <form id="form-game-chat" class="game-live-chat-form">
               <div class="game-live-input-wrap">
-                <input type="text" id="input-game-chat" class="game-live-input" placeholder="Chat in game..." maxlength="150" autocomplete="off">
+                <input type="text" id="input-game-chat" class="game-live-input" placeholder="Chat in game..." maxlength="150" autocomplete="off" aria-label="In-game chat message">
                 <button type="submit" id="btn-send-game-chat" class="game-live-send-btn" title="Send message">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
@@ -721,7 +721,7 @@
     <div class="modal-card glass-panel">
       <div class="modal-header">
         <h3 id="modal-invite-title" class="modal-title">Invite Friend to Game</h3>
-        <button type="button" class="modal-close-btn" data-close-modal="modal-invite-friend">✕</button>
+        <button type="button" class="modal-close-btn" data-close-modal="modal-invite-friend" aria-label="Close modal" title="Close">✕</button>
       </div>
       <div class="modal-body">
         <p class="modal-desc">Select an online friend to send a direct 60-second invitation:</p>
@@ -737,7 +737,7 @@
     <div class="modal-card glass-panel">
       <div class="modal-header">
         <h3 class="modal-title">Select Game</h3>
-        <button type="button" class="modal-close-btn" data-close-modal="modal-select-game-invite">✕</button>
+        <button type="button" class="modal-close-btn" data-close-modal="modal-select-game-invite" aria-label="Close modal" title="Close">✕</button>
       </div>
       <div class="modal-body">
         <p class="modal-desc" id="select-game-friend-name">Invite friend to play:</p>
@@ -772,7 +772,7 @@
   <div id="modal-player-profile" class="modal-backdrop hidden">
     <div class="modal-card glass-panel text-center">
       <div class="modal-header justify-end">
-        <button type="button" class="modal-close-btn" data-close-modal="modal-player-profile">✕</button>
+        <button type="button" class="modal-close-btn" data-close-modal="modal-player-profile" aria-label="Close modal" title="Close">✕</button>
       </div>
       <div class="player-pop-avatar" id="pop-avatar">🎮</div>
       <h3 id="pop-display-name" class="pop-name">Player</h3>
