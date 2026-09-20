@@ -167,30 +167,33 @@ export function spawnInGameLiveMessage(message) {
     <span class="rednote-live-text">${escapeHtml(message.text || '')}</span>
   `;
 
-  // Cap number of concurrent live bubbles (max 5)
-  const existingBubbles = container.querySelectorAll('.rednote-live-bubble');
-  if (existingBubbles.length >= 5) {
+  // Cap number of live bubbles: allow up to 8 visible messages in the generous space under the game
+  const existingBubbles = container.querySelectorAll('.rednote-live-bubble:not(.fade-out)');
+  if (existingBubbles.length >= 8) {
     const oldest = existingBubbles[0];
     oldest.classList.add('fade-out');
     setTimeout(() => {
       if (oldest.parentNode) oldest.parentNode.removeChild(oldest);
-    }, 400);
+    }, 600);
   }
 
   container.appendChild(bubble);
 
-  // RedNote live stream fade: stays visible ~3.8s, then fades out smoothly until 5.0s
-  setTimeout(() => {
-    if (bubble.parentNode) {
-      bubble.classList.add('fade-out');
-    }
-  }, 3800);
+  // Smoothly ensure latest message is at the bottom
+  container.scrollTop = container.scrollHeight;
 
+  // Removed 3-second auto-disappear per user request!
+  // Messages stay visible as they stack and push upward toward the game board,
+  // where they go into the gradient mask under the game and disappear.
+  // We keep only a long idle safeguard (45s) for completely inactive rooms:
   setTimeout(() => {
-    if (bubble.parentNode) {
-      bubble.parentNode.removeChild(bubble);
+    if (bubble.parentNode && !bubble.classList.contains('fade-out')) {
+      bubble.classList.add('fade-out');
+      setTimeout(() => {
+        if (bubble.parentNode) bubble.parentNode.removeChild(bubble);
+      }, 1000);
     }
-  }, 5000);
+  }, 45000);
 }
 
 // Spawns smooth floating bubble that floats upwards and disappears automatically
