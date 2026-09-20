@@ -160,21 +160,7 @@ function populateProfileUI(user, stats = null) {
     dateEl.textContent = dateStr;
   }
 
-  if (stats) {
-    const played = stats.games_played || 0;
-    const wins = stats.wins || 0;
-    const losses = stats.losses || 0;
-    const winRate = played > 0 ? Math.round((wins / played) * 100) : 0;
 
-    const elPlayed = document.getElementById('stat-played');
-    if (elPlayed) elPlayed.textContent = played;
-    const elWins = document.getElementById('stat-wins');
-    if (elWins) elWins.textContent = wins;
-    const elLosses = document.getElementById('stat-losses');
-    if (elLosses) elLosses.textContent = losses;
-    const elWinrate = document.getElementById('stat-winrate');
-    if (elWinrate) elWinrate.textContent = `${winRate}%`;
-  }
 
   selectedAvatar = user.avatar || '🎮';
   const inputName = document.getElementById('input-edit-name');
