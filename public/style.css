@@ -256,11 +256,12 @@ button {
   margin-bottom: 0.35rem;
 }
 
+/* Improvement 7: Visible default border + better placeholder */
 .input-field {
   width: 100%;
   padding: 0.75rem 1rem;
   background: rgba(10, 13, 20, 0.7);
-  border: 1px solid var(--glass-border);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-sm);
   color: var(--text-main);
   font-size: 0.95rem;
@@ -269,8 +270,13 @@ button {
   outline: none;
 }
 
+.input-field::placeholder {
+  color: rgba(156, 163, 175, 0.6);
+}
+
 .input-field:focus {
   border-color: var(--accent-primary);
+  background: rgba(10, 13, 20, 0.9);
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
@@ -2624,7 +2630,7 @@ body:has(#view-game.active) #mobile-nav {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   box-sizing: border-box;
   background: transparent;
   border: none;
@@ -2802,8 +2808,9 @@ body:has(#view-game.active) #mobile-nav {
 
 /* Games Bottom Actions: Room Code Join */
 .games-actions {
-  margin-top: auto;
-  padding-top: 0.35rem;
+  margin-top: 0;
+  margin-bottom: 0.65rem;
+  padding-top: 0;
   flex-shrink: 0;
   width: 100%;
 }
@@ -3036,13 +3043,29 @@ body:has(#view-game.active) #mobile-nav {
   letter-spacing: 1px;
 }
 
+/* Improvement 8: Room code with enhanced glow animation */
 .code-value {
   font-size: 1.45rem;
   font-weight: 800;
   font-family: monospace;
   letter-spacing: 2px;
   color: #ffffff;
-  text-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+  text-shadow: 0 0 14px rgba(16, 185, 129, 0.5), 0 0 28px rgba(16, 185, 129, 0.25);
+  animation: codeGlimmer 3s ease-in-out infinite;
+}
+
+@keyframes codeGlimmer {
+  0%, 100% { text-shadow: 0 0 10px rgba(16, 185, 129, 0.4), 0 0 20px rgba(16, 185, 129, 0.2); }
+  50% { text-shadow: 0 0 20px rgba(16, 185, 129, 0.7), 0 0 40px rgba(16, 185, 129, 0.35), 0 0 60px rgba(16, 185, 129, 0.1); }
+}
+
+.room-code-display {
+  animation: codeBoxPulse 3s ease-in-out infinite;
+}
+
+@keyframes codeBoxPulse {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 14px rgba(16, 185, 129, 0.2); }
 }
 
 .waiting-subtitle {
@@ -3851,17 +3874,22 @@ body:has(#view-game.active) #mobile-nav {
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  height: 60px;
+  /* Improvement 6: safe-area inset for notched phones */
+  height: calc(60px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   z-index: 60;
   border-radius: 0;
   border: none;
-  padding: 0 0.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
   justify-content: space-around;
   align-items: center;
   background: rgba(10, 10, 14, 0.96);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   box-sizing: border-box;
+  /* Subtle top separator */
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 @media (max-width: 480px) {
@@ -3871,6 +3899,7 @@ body:has(#view-game.active) #mobile-nav {
   }
 }
 
+/* Improvement 1: mobile nav item with active indicator pill */
 .mobile-nav-item {
   flex: 1;
   display: flex;
@@ -3880,17 +3909,60 @@ body:has(#view-game.active) #mobile-nav {
   height: 100%;
   color: var(--text-secondary);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   position: relative;
+  gap: 3px;
+  transition: color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-item:active {
+  transform: scale(0.9);
+  transition: transform 0.1s ease;
 }
 
 .mobile-nav-item.active {
   color: var(--accent-primary);
+  font-weight: 700;
+}
+
+/* Active nav indicator dot/pill */
+.mobile-nav-item::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 20px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent-primary);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+  opacity: 0;
+}
+
+.mobile-nav-item.active::after {
+  transform: translateX(-50%) scaleX(1);
+  opacity: 1;
+}
+
+/* Nav icon smooth transition */
+.mobile-nav-item .nav-svg {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), stroke 0.2s ease;
+}
+
+.mobile-nav-item.active .nav-svg {
+  transform: scale(1.1);
 }
 
 .mob-icon {
   font-size: 1.25rem;
   margin-bottom: 2px;
+}
+
+.mob-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.01em;
 }
 
 /* ===================================================
@@ -4296,37 +4368,86 @@ body:has(#view-game.active) #mobile-nav {
   gap: 0.5rem;
 }
 
-/* Toast Notifications */
+/* Improvement 5: Toast Notifications — glassmorphism + slide-in */
 .toast-container {
   position: fixed;
-  bottom: 68px;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
-  width: 90%;
+  width: 92%;
   max-width: 400px;
   z-index: 150;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.55rem;
   pointer-events: none;
   align-items: center;
 }
 
 .toast {
   pointer-events: auto;
-  background: rgba(18, 24, 38, 0.95);
-  border: 1px solid var(--glass-border);
+  background: rgba(18, 26, 44, 0.92);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-main);
-  padding: 0.75rem 1.25rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-  box-shadow: var(--glass-shadow);
-  animation: toastIn 0.2s ease-out;
+  padding: 0.75rem 1rem 0.75rem 0.85rem;
+  border-radius: 14px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+  animation: toastSlideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  box-sizing: border-box;
+  line-height: 1.4;
 }
 
-@keyframes toastIn {
-  from { transform: translateY(10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+.toast.toast-success {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 18px rgba(16, 185, 129, 0.15);
+}
+
+.toast.toast-error {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 18px rgba(239, 68, 68, 0.15);
+}
+
+.toast.toast-warning {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.toast.toast-info {
+  border-color: rgba(6, 182, 212, 0.35);
+  background: rgba(6, 182, 212, 0.08);
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+@keyframes toastSlideUp {
+  0% {
+    transform: translateY(20px) scale(0.92);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(-4px) scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 /* Responsive Breakpoints */
@@ -5816,3 +5937,153 @@ body:has(#view-game.active) #mobile-nav {
   100% { transform: scale(1) rotate(0deg); }
 }
 
+/* ===================================================
+   IMPROVEMENT 2: Password Visibility Toggle Button
+   =================================================== */
+.password-input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrap .input-field {
+  padding-right: 3rem;
+}
+
+.btn-password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+  z-index: 2;
+}
+
+.btn-password-toggle:hover {
+  color: var(--text-main);
+}
+
+.btn-password-toggle:active {
+  transform: translateY(-50%) scale(0.9);
+}
+
+/* ===================================================
+   IMPROVEMENT 3: Games Screen Per-Game Accent Colors
+   =================================================== */
+
+/* Tic-Tac-Toe row — cyan accent */
+.games-menu-row[data-game="tictactoe"] {
+  border-left: 3px solid rgba(6, 182, 212, 0.6);
+}
+
+.games-menu-row[data-game="tictactoe"] .game-row-icon-wrap {
+  background: rgba(6, 182, 212, 0.1);
+  border-color: rgba(6, 182, 212, 0.25);
+}
+
+.games-menu-row[data-game="tictactoe"]:hover .game-row-icon-wrap {
+  background: rgba(6, 182, 212, 0.2);
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.25);
+}
+
+/* Rock Paper Scissors row — pink accent */
+.games-menu-row[data-game="rps"] {
+  border-left: 3px solid rgba(236, 72, 153, 0.6);
+}
+
+.games-menu-row[data-game="rps"] .game-row-icon-wrap {
+  background: rgba(236, 72, 153, 0.1);
+  border-color: rgba(236, 72, 153, 0.25);
+}
+
+.games-menu-row[data-game="rps"]:hover .game-row-icon-wrap {
+  background: rgba(236, 72, 153, 0.2);
+  box-shadow: 0 0 16px rgba(236, 72, 153, 0.25);
+}
+
+/* Connect Four row — amber accent */
+.games-menu-row[data-game="connect4"] {
+  border-left: 3px solid rgba(250, 204, 21, 0.6);
+}
+
+.games-menu-row[data-game="connect4"] .game-row-icon-wrap {
+  background: rgba(250, 204, 21, 0.08);
+  border-color: rgba(250, 204, 21, 0.25);
+}
+
+.games-menu-row[data-game="connect4"]:hover .game-row-icon-wrap {
+  background: rgba(250, 204, 21, 0.16);
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.2);
+}
+
+/* Game icon logo scale on hover */
+.game-row-logo {
+  transition: transform 0.2s ease;
+}
+
+.games-menu-row:hover .game-row-logo {
+  transform: scale(1.12);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Bot button distinctly styled — muted purple secondary */
+.games-menu-row .btn-play-bot {
+  background: rgba(139, 92, 246, 0.12) !important;
+  border: 1px solid rgba(139, 92, 246, 0.3) !important;
+  color: #c4b5fd !important;
+}
+
+.games-menu-row .btn-play-bot:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.22) !important;
+  border-color: rgba(139, 92, 246, 0.5) !important;
+  transform: translateY(-1px);
+}
+
+/* ===================================================
+   IMPROVEMENT 4: Profile Avatar Edit Hint Badge
+   =================================================== */
+.profile-avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.avatar-edit-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 22px;
+  height: 22px;
+  background: var(--accent-primary);
+  border: 2px solid #000000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.avatar-edit-badge:hover {
+  transform: scale(1.15);
+  background: var(--accent-primary-hover);
+}
+
+.avatar-edit-badge svg {
+  flex-shrink: 0;
+}
+
+.profile-avatar-wrapper:hover .avatar-huge {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3), 0 0 24px rgba(16, 185, 129, 0.2);
+  transition: box-shadow 0.2s ease;
+}

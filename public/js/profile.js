@@ -37,6 +37,23 @@ export function initProfile() {
     };
   }
 
+  // Avatar edit badge — also opens Edit Profile Modal (Improvement 4)
+  const btnAvatarEditHint = document.getElementById('btn-avatar-edit-hint');
+  if (btnAvatarEditHint) {
+    btnAvatarEditHint.onclick = () => {
+      btnOpenEdit?.click();
+    };
+  }
+
+  // Clicking the avatar wrapper also opens Edit Profile Modal
+  const avatarWrapper = document.getElementById('profile-avatar-wrapper');
+  if (avatarWrapper) {
+    avatarWrapper.onclick = (e) => {
+      if (e.target.closest('.avatar-edit-badge')) return; // let badge handle it
+      btnOpenEdit?.click();
+    };
+  }
+
   // Open Account Settings Modal (Reference style)
   const btnOpenSettings = document.getElementById('btn-open-account-settings');
   if (btnOpenSettings) {
