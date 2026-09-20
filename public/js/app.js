@@ -736,7 +736,9 @@ class GameRoomApp {
 
     if (isDraw) {
       playDrawSound();
-      if (iconEl) iconEl.textContent = '🤝';
+      if (iconEl) {
+        iconEl.innerHTML = `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg>`;
+      }
       if (titleEl) {
         titleEl.textContent = "IT'S A DRAW!";
         titleEl.style.color = '#facc15';
@@ -745,7 +747,9 @@ class GameRoomApp {
     } else if (String(winner?.id) === String(me?.id)) {
       launchConfetti(4500);
       playVictorySound();
-      if (iconEl) iconEl.textContent = '🏆';
+      if (iconEl) {
+        iconEl.innerHTML = `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>`;
+      }
       if (titleEl) {
         titleEl.textContent = 'YOU WON!';
         titleEl.style.color = '#10b981';
@@ -753,7 +757,9 @@ class GameRoomApp {
       if (descEl) descEl.textContent = reason ? `Victory! ${reason}` : 'Congratulations! Great moves!';
     } else {
       playDefeatSound();
-      if (iconEl) iconEl.textContent = '💀';
+      if (iconEl) {
+        iconEl.innerHTML = `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+      }
       if (titleEl) {
         titleEl.textContent = 'YOU LOST!';
         titleEl.style.color = '#ef4444';
@@ -779,11 +785,16 @@ class GameRoomApp {
   bindGameControlEvents() {
     // Sound Mute/Unmute Toggle in Game Top Bar
     const btnAudioToggle = document.getElementById('btn-toggle-game-audio');
+    const updateAudioIcon = (muted) => {
+      btnAudioToggle.innerHTML = muted
+        ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>`
+        : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
+    };
     if (btnAudioToggle) {
-      btnAudioToggle.textContent = isMuted() ? '🔇' : '🔊';
+      updateAudioIcon(isMuted());
       btnAudioToggle.onclick = () => {
         const muted = toggleMute();
-        btnAudioToggle.textContent = muted ? '🔇' : '🔊';
+        updateAudioIcon(muted);
         this.showToast(muted ? 'Game sound muted' : 'Game sound enabled', 'info');
       };
     }

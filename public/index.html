@@ -207,7 +207,7 @@
                 </div>
                 <div class="insta-gc-header-info">
                   <div class="insta-gc-title-row">
-                    <h2 class="insta-gc-title">Public Lobby 🐾</h2>
+                    <h2 class="insta-gc-title">Public Lobby</h2>
                     <span class="insta-verified-badge" title="Public GC">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
                     </span>
@@ -216,8 +216,9 @@
                     <span class="insta-active-dot"></span>
                     <span id="lobby-online-count-text">Active now</span>
                     <span class="insta-dot-sep">•</span>
-                    <button type="button" class="insta-header-edit-btn" id="btn-edit-guest-name" title="Change your chat nickname">
-                      <span id="lobby-identity-name">Guest</span> ✏️
+                    <button type="button" class="insta-header-edit-btn" id="btn-edit-guest-name" title="Change your chat nickname" style="display:inline-flex; align-items:center; gap:4px;">
+                      <span id="lobby-identity-name">Guest</span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                     </button>
                   </div>
                 </div>
@@ -243,7 +244,9 @@
               <div class="insta-gc-thread-intro">
                 <div class="insta-intro-avatar-wrap">
                   <span class="insta-intro-avatar">🐱</span>
-                  <span class="insta-intro-badge">💬</span>
+                  <span class="insta-intro-badge" style="display:inline-flex; align-items:center; justify-content:center;">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  </span>
                 </div>
                 <h3 class="insta-intro-title">Public Lobby</h3>
                 <p class="insta-intro-handle">@cat-catin • Group Chat</p>
@@ -282,7 +285,9 @@
             <div class="games-card glass-panel">
               <div class="games-header-info">
                 <div class="games-avatar-wrapper">
-                  <span class="avatar-huge games-emblem">🎮</span>
+                  <span class="avatar-huge games-emblem" style="display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2)); border: 2px solid rgba(139, 92, 246, 0.4); border-radius: 50%; width: 68px; height: 68px;">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="6"/></svg>
+                  </span>
                 </div>
                 <h2 class="games-title">Game Room</h2>
                 <div class="games-handle">@multiplayer</div>
@@ -327,7 +332,8 @@
                   </div>
                   <div class="game-row-actions">
                     <button type="button" class="btn btn-secondary btn-sm btn-play-bot" data-game="tictactoe" title="Play instantly against AI Bot">
-                      <span>🤖 vs Bot</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                      <span>vs Bot</span>
                     </button>
                     <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="tictactoe" title="Play with friends / online">
                       <span>1v1</span>
@@ -351,7 +357,8 @@
                   </div>
                   <div class="game-row-actions">
                     <button type="button" class="btn btn-secondary btn-sm btn-play-bot" data-game="rps" title="Play instantly against AI Bot">
-                      <span>🤖 vs Bot</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                      <span>vs Bot</span>
                     </button>
                     <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="rps" title="Play with friends / online">
                       <span>1v1</span>
@@ -375,7 +382,8 @@
                   </div>
                   <div class="game-row-actions">
                     <button type="button" class="btn btn-secondary btn-sm btn-play-bot" data-game="connect4" title="Play instantly against AI Bot">
-                      <span>🤖 vs Bot</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                      <span>vs Bot</span>
                     </button>
                     <button type="button" class="btn btn-primary btn-sm btn-game-play" data-game="connect4" title="Play with friends / online">
                       <span>1v1</span>
@@ -414,7 +422,9 @@
                 <button type="button" class="insta-icon-btn" id="btn-start-new-dm" title="New Direct Message" onclick="const inp = document.getElementById('input-friends-search'); if (inp) { inp.focus(); }">
                   <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 </button>
-                <button type="button" class="insta-icon-btn" id="btn-refresh-friends" title="Refresh messages">🔄</button>
+                <button type="button" class="insta-icon-btn" id="btn-refresh-friends" title="Refresh messages">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                </button>
               </div>
             </div>
 
@@ -466,7 +476,9 @@
 
             <!-- Explainer Notice (Instagram Style) -->
             <div class="insta-requests-notice">
-              <span class="insta-requests-notice-icon">🛡️</span>
+              <span class="insta-requests-notice-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </span>
               <p>People who want to connect or challenge you. Choose to accept or decline.</p>
             </div>
 
@@ -527,7 +539,8 @@
               </div>
               <div class="insta-dm-chat-header-right">
                 <button type="button" id="btn-dm-chat-duel" class="btn-insta-duel" title="Challenge friend to live duel">
-                  ⚔️ Duel
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
+                  <span>Duel</span>
                 </button>
                 <button type="button" id="btn-dm-chat-profile" class="insta-icon-btn" title="Remove Friend">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -547,7 +560,10 @@
                 <p class="insta-dm-chat-intro-meta">You're connected on GameRoom. Messages and duels are instant.</p>
                 <div class="insta-dm-chat-intro-actions">
                   <button type="button" id="btn-dm-intro-profile" class="insta-intro-action-btn">View Profile</button>
-                  <button type="button" id="btn-dm-intro-duel" class="insta-intro-action-btn primary">⚔️ Send Duel</button>
+                  <button type="button" id="btn-dm-intro-duel" class="insta-intro-action-btn primary">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
+                    <span>Send Duel</span>
+                  </button>
                 </div>
               </div>
 
@@ -559,7 +575,7 @@
             <form id="form-dm-chat" class="insta-input-container">
               <div class="insta-input-pill">
                 <button type="button" class="insta-pill-avatar-btn" id="btn-dm-pill-duel" title="Challenge to Duel">
-                  <span>⚔️</span>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
                 </button>
                 <input type="text" id="input-dm-chat" class="insta-text-input" placeholder="Message..." maxlength="300" autocomplete="off" required>
                 <button type="submit" id="btn-send-dm" class="insta-send-btn" title="Send direct message">
@@ -675,11 +691,13 @@
 
               <!-- Profile Auth / Logout Actions -->
               <div class="profile-actions">
-                <button type="button" id="btn-profile-auth" class="btn btn-primary btn-block hidden" style="margin-bottom: 0.5rem;">
-                  <span class="btn-icon">🔐</span> Log In / Sign Up
+                <button type="button" id="btn-profile-auth" class="btn btn-primary btn-block hidden" style="margin-bottom: 0.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  <span>Log In / Sign Up</span>
                 </button>
-                <button type="button" id="btn-logout" class="btn btn-danger btn-block">
-                  <span class="btn-icon">🚪</span> Log Out
+                <button type="button" id="btn-logout" class="btn btn-danger btn-block" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  <span>Log Out</span>
                 </button>
               </div>
             </div>
@@ -694,8 +712,9 @@
               <div class="room-code-display">
                 <span class="room-code-tag-label">ROOM</span>
                 <span id="waiting-room-code" class="code-value">ABC123</span>
-                <button type="button" id="btn-copy-code" class="btn btn-secondary btn-sm" title="Copy room code">
-                  📋 Copy
+                <button type="button" id="btn-copy-code" class="btn btn-secondary btn-sm" title="Copy room code" style="display: inline-flex; align-items: center; gap: 6px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  <span>Copy</span>
                 </button>
               </div>
               <p class="waiting-subtitle">Share code with a friend or invite them directly below</p>
@@ -720,7 +739,9 @@
               <div class="player-slot opponent-slot glass-card waiting-pulse">
                 <div class="slot-badge opponent-badge">OPPONENT</div>
                 <div class="slot-avatar-wrap">
-                  <span class="slot-avatar pulse-avatar">⏳</span>
+                  <span class="slot-avatar pulse-avatar" style="display: flex; align-items: center; justify-content: center;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                  </span>
                 </div>
                 <div class="slot-name">Waiting...</div>
                 <div class="slot-status pending">
@@ -730,14 +751,17 @@
             </div>
 
             <div class="waiting-actions">
-              <button type="button" id="btn-waiting-add-bot" class="btn btn-accent btn-waiting-bot-action" title="Start game immediately with AI Bot">
-                <span class="btn-icon">🤖</span> Play vs Bot
+              <button type="button" id="btn-waiting-add-bot" class="btn btn-accent btn-waiting-bot-action" title="Start game immediately with AI Bot" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                <span>Play vs Bot</span>
               </button>
-              <button type="button" id="btn-waiting-invite" class="btn btn-primary">
-                <span class="btn-icon">💌</span> Invite Friend
+              <button type="button" id="btn-waiting-invite" class="btn btn-primary" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                <span>Invite Friend</span>
               </button>
-              <button type="button" id="btn-waiting-leave" class="btn btn-secondary">
-                <span class="btn-icon">↩</span> Leave
+              <button type="button" id="btn-waiting-leave" class="btn btn-secondary" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Leave</span>
               </button>
             </div>
           </div>
@@ -755,7 +779,9 @@
               <span class="game-room-code-tag">Room <strong id="game-active-code">ABC123</strong></span>
             </div>
             <div class="game-top-right">
-              <button type="button" id="btn-toggle-game-audio" class="btn-audio-toggle" title="Toggle Sound">🔊</button>
+              <button type="button" id="btn-toggle-game-audio" class="btn-audio-toggle" title="Toggle Sound">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              </button>
               <div id="game-status-pill" class="status-pill">
                 <span class="status-dot online"></span> In Game
               </div>
@@ -764,7 +790,9 @@
 
           <!-- Opponent Disconnect Alert Banner (Section 39) -->
           <div id="opponent-disconnect-banner" class="disconnect-banner hidden">
-            <span class="alert-icon">⚠️</span>
+            <span class="alert-icon" style="display:inline-flex; align-items:center;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </span>
             <span id="disconnect-banner-text">Opponent disconnected. Waiting for reconnection...</span>
             <button type="button" id="btn-disconnect-leave" class="btn btn-sm btn-danger">Leave</button>
           </div>
@@ -855,12 +883,16 @@
                   <!-- Choices Arena (Revealed result or hidden waiting) -->
                   <div class="rps-arena">
                     <div class="rps-player-choice" id="rps-p1-slot">
-                      <div class="rps-choice-icon" id="rps-p1-choice">❓</div>
+                      <div class="rps-choice-icon" id="rps-p1-choice">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      </div>
                       <div class="rps-player-label" id="rps-p1-label">You</div>
                     </div>
                     <div class="rps-vs-sign">VS</div>
                     <div class="rps-player-choice" id="rps-p2-slot">
-                      <div class="rps-choice-icon" id="rps-p2-choice">❓</div>
+                      <div class="rps-choice-icon" id="rps-p2-choice">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      </div>
                       <div class="rps-player-label" id="rps-p2-label">Opponent</div>
                     </div>
                   </div>
@@ -870,15 +902,21 @@
                   <!-- Player 3 Choices Buttons -->
                   <div class="rps-buttons-group" id="rps-buttons-group">
                     <button type="button" class="btn-rps-choice" data-choice="rock">
-                      <span class="rps-btn-emoji">✊</span>
+                      <span class="rps-btn-emoji">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 18 3 22 9 12 22 2 9 6 3"/></svg>
+                      </span>
                       <span class="rps-btn-label">ROCK</span>
                     </button>
                     <button type="button" class="btn-rps-choice" data-choice="paper">
-                      <span class="rps-btn-emoji">✋</span>
+                      <span class="rps-btn-emoji">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                      </span>
                       <span class="rps-btn-label">PAPER</span>
                     </button>
                     <button type="button" class="btn-rps-choice" data-choice="scissors">
-                      <span class="rps-btn-emoji">✌️</span>
+                      <span class="rps-btn-emoji">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+                      </span>
                       <span class="rps-btn-label">SCISSORS</span>
                     </button>
                   </div>
@@ -909,7 +947,10 @@
             <!-- In-Game Live Floating Chat Panel (Sections 32-38) -->
             <div class="game-chat-panel glass-panel">
               <div class="game-chat-header">
-                <span class="chat-title">💬 Live Match Chat</span>
+                <span class="chat-title" style="display:inline-flex; align-items:center; gap:6px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  Live Match Chat
+                </span>
                 <span class="chat-hint">Messages float and fade</span>
               </div>
 
@@ -922,7 +963,7 @@
               <form id="form-game-chat" class="chat-input-bar">
                 <input type="text" id="input-game-chat" class="input-field chat-input" placeholder="Type a message..." maxlength="150" autocomplete="off">
                 <button type="submit" class="btn btn-primary btn-icon-only" title="Send message">
-                  <span>➤</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
               </form>
             </div>
@@ -962,16 +1003,24 @@
   <!-- Game Finished Result Modal (Sections 28, 29, 30, Rematch) -->
   <div id="modal-game-result" class="modal-backdrop hidden">
     <div class="modal-card glass-panel text-center">
-      <div id="result-icon-huge" class="result-icon">🏆</div>
+      <div id="result-icon-huge" class="result-icon" style="display:flex; justify-content:center; align-items:center; min-height:60px;">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+      </div>
       <h2 id="result-title" class="result-title">VICTORY!</h2>
       <p id="result-desc" class="result-desc">You won the match!</p>
       <div id="result-rematch-status" class="rematch-status-hint"></div>
       <div class="modal-actions">
         <button type="button" id="btn-result-rematch" class="btn btn-primary">
-          <span class="btn-icon">🔄</span> Play Again
+          <span class="btn-icon" style="display:inline-flex; align-items:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+          </span>
+          Play Again
         </button>
         <button type="button" id="btn-result-leave" class="btn btn-secondary">
-          <span class="btn-icon">🏠</span> Return to Home
+          <span class="btn-icon" style="display:inline-flex; align-items:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          </span>
+          Return to Home
         </button>
       </div>
     </div>
@@ -995,33 +1044,79 @@
 
   <!-- Choose Game to Invite Modal (Section 19: Invite Friend From Home) -->
   <div id="modal-select-game-invite" class="modal-backdrop hidden">
-    <div class="modal-card glass-panel">
+    <div class="modal-card glass-panel select-game-modal-card">
       <div class="modal-header">
-        <h3 class="modal-title">Select Game</h3>
+        <div class="modal-title-with-icon">
+          <span class="modal-title-icon duel-icon-badge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/>
+              <line x1="13" y1="19" x2="19" y2="13"/>
+              <line x1="16" y1="16" x2="20" y2="20"/>
+              <line x1="19" y1="21" x2="21" y2="19"/>
+              <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/>
+              <line x1="5" y1="14" x2="9" y2="18"/>
+              <line x1="7" y1="17" x2="4" y2="20"/>
+              <line x1="3" y1="19" x2="5" y2="21"/>
+            </svg>
+          </span>
+          <h3 class="modal-title">Challenge to Duel</h3>
+        </div>
         <button type="button" class="modal-close-btn" data-close-modal="modal-select-game-invite">✕</button>
       </div>
       <div class="modal-body">
-        <p class="modal-desc" id="select-game-friend-name">Invite friend to play:</p>
+        <p class="modal-desc" id="select-game-friend-name">Choose a game to duel:</p>
         <div class="select-game-options">
-          <button type="button" class="btn-select-game glass-card" data-game="tictactoe">
-            <span class="game-opt-icon">❌⭕</span>
+          <!-- Tic-Tac-Toe -->
+          <button type="button" class="btn-select-game" data-game="tictactoe">
+            <div class="select-game-logo-wrap ttt-glow">
+              <img src="/assets/logo-tictactoe.svg" alt="Tic-Tac-Toe" class="select-game-logo">
+            </div>
             <div class="game-opt-info">
-              <strong>Tic-Tac-Toe</strong>
-              <small>Classic 3x3 match</small>
+              <div class="game-opt-title-row">
+                <strong class="game-opt-name">Tic-Tac-Toe</strong>
+                <span class="game-opt-badge badge-ttt">3×3 Grid</span>
+              </div>
+              <small class="game-opt-desc">Classic tactical speed duel</small>
+            </div>
+            <div class="game-opt-action">
+              <span class="game-opt-action-text">Duel</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </button>
-          <button type="button" class="btn-select-game glass-card" data-game="rps">
-            <span class="game-opt-icon">✊✋✌️</span>
+
+          <!-- Rock Paper Scissors -->
+          <button type="button" class="btn-select-game" data-game="rps">
+            <div class="select-game-logo-wrap rps-glow">
+              <img src="/assets/logo-rps.svg" alt="Rock Paper Scissors" class="select-game-logo">
+            </div>
             <div class="game-opt-info">
-              <strong>Rock Paper Scissors</strong>
-              <small>Best of hands</small>
+              <div class="game-opt-title-row">
+                <strong class="game-opt-name">Rock Paper Scissors</strong>
+                <span class="game-opt-badge badge-rps">Best of 5</span>
+              </div>
+              <small class="game-opt-desc">Fast-pace mind clash showdown</small>
+            </div>
+            <div class="game-opt-action">
+              <span class="game-opt-action-text">Duel</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </button>
-          <button type="button" class="btn-select-game glass-card" data-game="connect4">
-            <span class="game-opt-icon">🔴🟡</span>
+
+          <!-- Connect Four -->
+          <button type="button" class="btn-select-game" data-game="connect4">
+            <div class="select-game-logo-wrap c4-glow">
+              <img src="/assets/logo-connect4.svg" alt="Connect Four" class="select-game-logo">
+            </div>
             <div class="game-opt-info">
-              <strong>Connect Four</strong>
-              <small>7x6 Strategy Duel</small>
+              <div class="game-opt-title-row">
+                <strong class="game-opt-name">Connect Four</strong>
+                <span class="game-opt-badge badge-c4">4 in a Row</span>
+              </div>
+              <small class="game-opt-desc">7×6 vertical strategy battle</small>
+            </div>
+            <div class="game-opt-action">
+              <span class="game-opt-action-text">Duel</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </button>
         </div>

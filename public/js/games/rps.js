@@ -73,11 +73,21 @@ export function updateRpsState(room, payload = {}) {
   const p2SlotIcon = document.getElementById('rps-p2-choice');
   const announceEl = document.getElementById('rps-result-announcement');
 
-  const emojiMap = {
-    rock: '✊',
-    paper: '✋',
-    scissors: '✌️',
-  };
+  function getRpsIconHtml(choice) {
+  if (choice === 'rock') {
+    return `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.45));"><polygon points="6 3 18 3 22 9 12 22 2 9 6 3"/></svg>`;
+  }
+  if (choice === 'paper') {
+    return `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.45));"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+  }
+  if (choice === 'scissors') {
+    return `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.45));"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>`;
+  }
+  if (choice === 'locked') {
+    return `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px rgba(165, 180, 252, 0.4));"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+  }
+  return `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+}
 
   if (gameState.result) {
     // Has this round's reveal sequence already played?
@@ -90,19 +100,19 @@ export function updateRpsState(room, payload = {}) {
     // Round in progress
     if (!isAnimatingShoot) {
       if (myChoice) {
-        p1SlotIcon.textContent = emojiMap[myChoice] || '❓';
+        p1SlotIcon.innerHTML = getRpsIconHtml(myChoice);
       } else {
-        p1SlotIcon.textContent = '❓';
+        p1SlotIcon.innerHTML = getRpsIconHtml('unknown');
       }
 
       if (oppChoice) {
-        p2SlotIcon.textContent = '🔒';
+        p2SlotIcon.innerHTML = getRpsIconHtml('locked');
         announceEl.textContent = myChoice
           ? 'Both chosen! Revealing hands...'
           : 'Opponent is ready! Make your choice!';
         announceEl.style.color = '#38bdf8';
       } else {
-        p2SlotIcon.textContent = '❓';
+        p2SlotIcon.innerHTML = getRpsIconHtml('unknown');
         announceEl.textContent = myChoice
           ? 'Waiting for opponent to choose...'
           : 'Choose Rock, Paper, or Scissors!';
@@ -124,9 +134,9 @@ function handleRpsSelection(choice) {
 
   const socket = getSocket();
   if (socket) {
-    socket.emit('game_move', {
-      roomCode: currentRoom.code,
-      move: { choice },
+    socket.emit('game_action', {
+      roomId: currentRoom.code,
+      action: { type: 'MAKE_CHOICE', choice },
     });
   }
 }
@@ -140,16 +150,10 @@ function playShootCountdownAndReveal(room, res, me) {
   const announceEl = document.getElementById('rps-result-announcement');
   const roundEl = document.getElementById('rps-round-text');
 
-  const emojiMap = {
-    rock: '✊',
-    paper: '✋',
-    scissors: '✌️',
-  };
-
   const steps = [
-    { text: '✊ Rock...', icon: '✊', pitch: 0.9 },
-    { text: '✋ Paper...', icon: '✋', pitch: 1.1 },
-    { text: '✌️ Scissors...', icon: '✌️', pitch: 1.3 },
+    { text: 'Rock...', choice: 'rock', pitch: 0.9 },
+    { text: 'Paper...', choice: 'paper', pitch: 1.1 },
+    { text: 'Scissors...', choice: 'scissors', pitch: 1.3 },
   ];
 
   let stepIdx = 0;
@@ -159,19 +163,19 @@ function playShootCountdownAndReveal(room, res, me) {
       const s = steps[stepIdx];
       if (roundEl) roundEl.textContent = s.text;
       if (p1SlotIcon) {
-        p1SlotIcon.textContent = s.icon;
+        p1SlotIcon.innerHTML = getRpsIconHtml(s.choice);
         p1SlotIcon.classList.add('rps-shake');
       }
       if (p2SlotIcon) {
-        p2SlotIcon.textContent = s.icon;
+        p2SlotIcon.innerHTML = getRpsIconHtml(s.choice);
         p2SlotIcon.classList.add('rps-shake');
       }
       playCountdownTick(s.pitch);
       stepIdx++;
       setTimeout(nextCountdownStep, 380);
     } else {
-      // 💥 SHOOT!
-      if (roundEl) roundEl.textContent = '💥 SHOOT!';
+      // SHOOT!
+      if (roundEl) roundEl.textContent = 'SHOOT!';
       if (p1SlotIcon) p1SlotIcon.classList.remove('rps-shake');
       if (p2SlotIcon) p2SlotIcon.classList.remove('rps-shake');
 
@@ -183,11 +187,11 @@ function playShootCountdownAndReveal(room, res, me) {
       const oppRevealedChoice = isMeP1 ? res.p2Choice : res.p1Choice;
 
       if (p1SlotIcon) {
-        p1SlotIcon.textContent = emojiMap[myRevealedChoice] || '❓';
+        p1SlotIcon.innerHTML = getRpsIconHtml(myRevealedChoice);
         p1SlotIcon.classList.add('rps-reveal-impact');
       }
       if (p2SlotIcon) {
-        p2SlotIcon.textContent = emojiMap[oppRevealedChoice] || '❓';
+        p2SlotIcon.innerHTML = getRpsIconHtml(oppRevealedChoice);
         p2SlotIcon.classList.add('rps-reveal-impact');
       }
 
@@ -198,11 +202,11 @@ function playShootCountdownAndReveal(room, res, me) {
 
       // Announce round outcome
       if (res.outcome === 'tie') {
-        announceEl.textContent = "🤝 It's a Tie! Both chose the same hand.";
+        announceEl.textContent = "It's a Tie! Both chose the same hand.";
         announceEl.style.color = '#facc15';
         playDrawSound();
       } else if (String(res.winnerId) === String(me?.id)) {
-        announceEl.textContent = '🎉 You won this round!';
+        announceEl.textContent = 'You won this round!';
         announceEl.style.color = '#10b981';
         playVictorySound();
       } else {

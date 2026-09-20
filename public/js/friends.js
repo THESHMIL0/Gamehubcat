@@ -411,7 +411,7 @@ function handleIncomingDmMessage(msg) {
     // Show Instagram style toast banner notification
     if (window.GameApp?.showToast) {
       const senderName = msg.sender?.display_name || 'Friend';
-      window.GameApp.showToast(`💬 ${senderName}: ${msg.text}`, 'info');
+      window.GameApp.showToast(`${senderName}: ${msg.text}`, 'info');
     }
     // Update local memory snippet
     updateFriendLastMessageLocally(otherUserId, msg.text, msg.createdAt, false);
@@ -554,7 +554,9 @@ export async function loadFriendsData() {
     if (container) {
       container.innerHTML = `
         <div class="insta-dm-empty">
-          <div class="insta-dm-empty-icon">💬</div>
+          <div class="insta-dm-empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          </div>
           <h4>Instagram Direct Messages</h4>
           <p>Sign in or create an account to search players, send message requests, and challenge friends to live duels.</p>
           <button type="button" class="btn-insta-req-confirm" style="margin-top: 1.25rem; padding: 8px 20px; font-size: 0.9rem;" onclick="window.GameApp?.openAuthModal ? window.GameApp.openAuthModal() : null">
@@ -636,11 +638,14 @@ function renderFriendsList() {
   if (friendsList.length === 0) {
     container.innerHTML = `
       <div class="insta-dm-empty">
-        <div class="insta-dm-empty-icon">💬</div>
+        <div class="insta-dm-empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
         <h4>Your Messages</h4>
         <p>Send direct messages and challenge players to live duels right from your inbox.</p>
-        <button type="button" class="btn-insta-req-confirm" style="margin-top: 14px; padding: 10px 22px; font-size: 0.9rem;" onclick="const inp = document.getElementById('input-friends-search'); if (inp) { inp.focus(); }">
-          🔍 Search Players to Chat
+        <button type="button" class="btn-insta-req-confirm" style="margin-top: 14px; padding: 10px 22px; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px;" onclick="const inp = document.getElementById('input-friends-search'); if (inp) { inp.focus(); }">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span>Search Players to Chat</span>
         </button>
       </div>
     `;
@@ -717,7 +722,9 @@ function renderRequestsList() {
     if (pendingReceived.length === 0) {
       receivedContainer.innerHTML = `
         <div class="empty-state-hint" style="padding: 2rem 1rem; text-align: center;">
-          <div style="font-size: 2rem; margin-bottom: 0.4rem;">📬</div>
+          <div style="margin-bottom: 0.5rem; display: flex; justify-content: center; color: var(--text-muted, #8e8e8e);">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+          </div>
           <p style="color: #8e8e8e; font-size: 0.85rem;">No pending message requests</p>
         </div>
       `;
@@ -808,7 +815,9 @@ async function handleUserSearch(query) {
     if (users.length === 0) {
       container.innerHTML = `
         <div class="empty-state-hint" style="padding: 2.5rem 1rem; text-align: center;">
-          <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+          <div style="margin-bottom: 0.5rem; display: flex; justify-content: center; color: var(--text-muted, #8e8e8e);">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
           <p style="color: #8e8e8e; font-size: 0.88rem;">No players found matching "<strong>${escapeHtml(query)}</strong>"</p>
         </div>
       `;

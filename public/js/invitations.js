@@ -44,17 +44,25 @@ function handleIncomingInvitation(invite) {
   let timeLeft = Math.max(1, Math.round((invite.expiresAt - Date.now()) / 1000));
 
   const senderName = invite.sender?.display_name || invite.sender?.username || 'A friend';
-  const senderAvatar = invite.sender?.avatar || '🎮';
   const gameName = invite.gameName || 'a game';
+  const gameLogo = invite.gameType === 'rps'
+    ? '/assets/logo-rps.svg'
+    : (invite.gameType === 'connect4' ? '/assets/logo-connect4.svg' : '/assets/logo-tictactoe.svg');
 
   card.innerHTML = `
-    <div class="invite-header">
-      <span>✉️ GAME INVITE</span>
+    <div class="invite-header" style="display: flex; align-items: center; justify-content: space-between;">
+      <span style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: #a5b4fc; font-size: 0.82rem; letter-spacing: 0.04em;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
+        GAME DUEL INVITE
+      </span>
       <span class="invite-timer" id="timer-${invite.id}">(${timeLeft}s)</span>
     </div>
-    <div class="invite-text">
-      <strong>${escapeHtml(senderAvatar)} ${escapeHtml(senderName)}</strong> invited you to play <strong>${escapeHtml(gameName)}</strong>!
-      <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 2px;">Room: ${escapeHtml(invite.roomCode)}</div>
+    <div class="invite-body" style="display: flex; align-items: center; gap: 12px; margin: 10px 0;">
+      <img src="${gameLogo}" alt="${escapeHtml(gameName)}" style="width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; background: rgba(0,0,0,0.5); padding: 4px; border: 1px solid rgba(255,255,255,0.1); object-fit: contain;">
+      <div class="invite-text" style="font-size: 0.88rem; line-height: 1.35; color: #f1f5f9;">
+        <strong>${escapeHtml(senderName)}</strong> challenged you to <strong>${escapeHtml(gameName)}</strong>!
+        <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">Room: ${escapeHtml(invite.roomCode)}</div>
+      </div>
     </div>
     <div class="invite-actions">
       <button type="button" class="btn btn-sm btn-primary btn-accept-invite" style="flex: 1;">

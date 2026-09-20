@@ -243,7 +243,7 @@ export async function loadMatchHistory(currentUserId) {
       if (container) {
         container.innerHTML = `
           <div class="match-history-empty">
-            <span class="match-empty-icon">🎮</span>
+            <span class="match-empty-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="4"></rect><path d="M6 12h4m-2-2v4m7-2h.01m3 0h.01"></path></svg></span>
             <div class="match-empty-title">History unavailable</div>
             <div class="match-empty-desc">Could not load recent matches right now. Please try again in a moment.</div>
           </div>
@@ -267,7 +267,7 @@ export async function loadMatchHistory(currentUserId) {
     if (recentGames.length === 0) {
       container.innerHTML = `
         <div class="match-history-empty">
-          <span class="match-empty-icon">🎮</span>
+          <span class="match-empty-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="4"></rect><path d="M6 12h4m-2-2v4m7-2h.01m3 0h.01"></path></svg></span>
           <div class="match-empty-title">No completed games yet</div>
           <div class="match-empty-desc">Play Tic-Tac-Toe, Rock Paper Scissors, or Connect Four to see your match history here!</div>
         </div>
@@ -276,9 +276,9 @@ export async function loadMatchHistory(currentUserId) {
     }
 
     const GAME_META = {
-      tictactoe: { name: 'Tic-Tac-Toe', icon: '⭕' },
-      rps: { name: 'Rock Paper Scissors', icon: '✂️' },
-      connect4: { name: 'Connect Four', icon: '🔴' },
+      tictactoe: { name: 'Tic-Tac-Toe', logo: '/assets/logo-tictactoe.svg' },
+      rps: { name: 'Rock Paper Scissors', logo: '/assets/logo-rps.svg' },
+      connect4: { name: 'Connect Four', logo: '/assets/logo-connect4.svg' },
     };
 
     container.innerHTML = recentGames.map((game) => {
@@ -300,7 +300,7 @@ export async function loadMatchHistory(currentUserId) {
 
       const meta = GAME_META[game.game_type] || {
         name: game.game_type ? game.game_type.toUpperCase() : 'Game',
-        icon: '🎮',
+        logo: '/assets/logo-tictactoe.svg',
       };
 
       const timeAgo = formatTimeAgo(game.created_at);
@@ -309,34 +309,26 @@ export async function loadMatchHistory(currentUserId) {
         <div class="match-history-card" data-opp-id="${oppId}">
           <div class="match-card-left">
             <div class="match-game-icon-chip" title="${escapeHtml(meta.name)}">
-              ${meta.icon}
+              <img src="${meta.logo}" alt="${escapeHtml(meta.name)}" style="width: 20px; height: 20px; object-fit: contain;" />
             </div>
             <div class="match-details">
               <div class="match-opp-row">
-                <span class="match-vs-label">vs</span>
                 <span class="match-opp-avatar">${escapeHtml(oppAvatar)}</span>
-                <strong class="match-opp-name" title="${escapeHtml(oppName)}">${escapeHtml(oppName)}</strong>
+                <span class="match-opp-name">${escapeHtml(oppName)}</span>
               </div>
-              <div class="match-meta-row">
-                <span class="match-game-type">${escapeHtml(meta.name)}</span>
-                <span class="match-dot-separator">•</span>
-                <span class="match-time" title="${new Date(game.created_at).toLocaleString()}">${escapeHtml(timeAgo)}</span>
-              </div>
+              <span class="match-time">${timeAgo}</span>
             </div>
           </div>
           <div class="match-card-right">
-            <span class="match-result-badge ${resultClass}">${resultText}</span>
+            <span class="match-badge ${resultClass}">${resultText}</span>
           </div>
         </div>
       `;
     }).join('');
 
-    // Clicking a match card opens the opponent's public profile
     container.querySelectorAll('.match-history-card').forEach((card) => {
-      const oppId = card.getAttribute('data-opp-id');
-      if (oppId && oppId !== 'null' && oppId !== 'undefined') {
-        card.style.cursor = 'pointer';
-        card.title = 'Click to view opponent details';
+      const oppId = card.dataset.oppId;
+      if (oppId) {
         card.onclick = () => {
           showPlayerProfileModal(oppId);
         };
@@ -347,7 +339,7 @@ export async function loadMatchHistory(currentUserId) {
     if (container) {
       container.innerHTML = `
         <div class="match-history-empty">
-          <span class="match-empty-icon">⚠️</span>
+          <span class="match-empty-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span>
           <div class="match-empty-desc">Match history temporarily unavailable. Please check connection.</div>
         </div>
       `;
@@ -496,11 +488,13 @@ export async function showPlayerProfileModal(userId) {
 
     if (user.id !== me?.id) {
       actionsContainer.innerHTML = `
-        <button type="button" class="btn btn-sm btn-secondary" onclick="window.GameApp?.closeModal('modal-player-profile'); window.FriendsModule?.openDmChat(${user.id});">
-          💬 Message
+        <button type="button" class="btn btn-sm btn-secondary" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="window.GameApp?.closeModal('modal-player-profile'); window.FriendsModule?.openDmChat(${user.id});">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>Message</span>
         </button>
-        <button type="button" class="btn btn-sm btn-primary" onclick="window.FriendsModule?.promptInviteGame(${user.id}, '${escapeHtml(user.display_name)}'); window.GameApp?.closeModal('modal-player-profile');">
-          ⚔️ Duel
+        <button type="button" class="btn btn-sm btn-primary" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="window.FriendsModule?.promptInviteGame(${user.id}, '${escapeHtml(user.display_name)}'); window.GameApp?.closeModal('modal-player-profile');">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>
+          <span>Duel</span>
         </button>
       `;
     } else {
