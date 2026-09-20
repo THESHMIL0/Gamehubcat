@@ -1461,12 +1461,27 @@ body:has(#insta-dm-chat-page.active) .mobile-bottom-nav {
 }
 
 .insta-dm-name {
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 600;
   color: #f5f5f5;
+  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.insta-dm-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.22);
+  margin-left: auto;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.insta-dm-row:hover .insta-dm-chevron {
+  color: rgba(255, 255, 255, 0.55);
+  transform: translateX(2px);
 }
 
 .insta-dm-handle {

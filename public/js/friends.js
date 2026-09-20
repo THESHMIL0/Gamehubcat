@@ -299,6 +299,9 @@ export async function openDmChat(friendId) {
       window.GameApp.showPlayerProfile(friend.id);
     }
   };
+  const onRemoveFriendClick = () => {
+    promptRemoveFriend(friend);
+  };
 
   const btnHeaderDuel = document.getElementById('btn-dm-chat-duel');
   const btnIntroDuel = document.getElementById('btn-dm-intro-duel');
@@ -310,7 +313,10 @@ export async function openDmChat(friendId) {
   const btnHeaderProfile = document.getElementById('btn-dm-chat-profile');
   const btnIntroProfile = document.getElementById('btn-dm-intro-profile');
   const headerUserClickable = document.getElementById('dm-chat-header-user-clickable');
-  if (btnHeaderProfile) btnHeaderProfile.onclick = onProfileClick;
+  if (btnHeaderProfile) {
+    btnHeaderProfile.title = 'Remove Friend';
+    btnHeaderProfile.onclick = onRemoveFriendClick;
+  }
   if (btnIntroProfile) btnIntroProfile.onclick = onProfileClick;
   if (headerUserClickable) headerUserClickable.onclick = onProfileClick;
 
@@ -645,12 +651,6 @@ function renderFriendsList() {
     .map((friend) => {
       const isOnline = friend.isOnline;
 
-      let snippetText = isOnline ? 'Active now' : (friend.presence || 'Offline');
-      if (friend.lastMessage && friend.lastMessage.text) {
-        const prefix = friend.lastMessage.isMine ? 'You: ' : '';
-        snippetText = `${prefix}${escapeHtml(friend.lastMessage.text)}`;
-      }
-
       return `
       <div class="insta-dm-row" onclick="window.FriendsModule?.openDmChat(${friend.id})" title="Chat with ${escapeHtml(friend.display_name)}">
         <div class="insta-dm-avatar-wrap">
@@ -660,21 +660,12 @@ function renderFriendsList() {
         <div class="insta-dm-content">
           <div class="insta-dm-name-row">
             <span class="insta-dm-name">${escapeHtml(friend.display_name)}</span>
-            <span class="insta-dm-handle">@${escapeHtml(friend.username)}</span>
-          </div>
-          <div class="insta-dm-snippet-row">
-            <span class="insta-dm-snippet ${friend.lastMessage ? '' : (isOnline ? 'active-now' : '')}">${snippetText}</span>
-            <span class="insta-dm-dot-sep">•</span>
-            <span class="insta-dm-tap-hint">Tap to chat</span>
           </div>
         </div>
-        <div class="insta-dm-actions" onclick="event.stopPropagation()">
-          <button type="button" class="btn-insta-duel" title="Challenge to live duel" onclick="window.FriendsModule?.promptInviteGame(${friend.id}, '${escapeHtml(friend.display_name)}')">
-            ⚔️ Duel
-          </button>
-          <button type="button" class="btn-insta-more" title="Remove Friend" onclick="window.FriendsModule?.removeFriend(${friend.id})">
-            ✕
-          </button>
+        <div class="insta-dm-chevron">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
         </div>
       </div>
     `;
@@ -933,10 +924,35 @@ export async function respondFriendRequest(requestId, action) {
   }
 }
 
-// Remove Friend
-export async function removeFriend(friendId) {
-  if (!confirm('Are you sure you want to remove this friend?')) return;
+// Remove Friend with Confirmation Dialog
+export function promptRemoveFriend(friend) {
+  if (!friend) return;
+  const modal = document.getElementById('modal-confirm-remove-friend');
+  const avatarEl = document.getElementById('modal-remove-friend-avatar');
+  const titleEl = document.getElementById('modal-remove-friend-title');
+  const descEl = document.getElementById('modal-remove-friend-desc');
+  const btnYes = document.getElementById('btn-confirm-remove-friend-yes');
 
+  const displayName = friend.display_name || friend.username || 'this friend';
+
+  if (modal && avatarEl && titleEl && descEl && btnYes) {
+    avatarEl.textContent = friend.avatar || '🎮';
+    titleEl.textContent = `Remove ${displayName}?`;
+    descEl.textContent = `Are you sure you want to remove ${displayName} from your friends?`;
+    btnYes.onclick = async () => {
+      window.GameApp?.closeModal('modal-confirm-remove-friend');
+      await executeRemoveFriend(friend.id);
+    };
+    window.GameApp?.openModal('modal-confirm-remove-friend');
+  } else {
+    if (confirm(`Are you sure you want to remove ${displayName} from your friends?`)) {
+      executeRemoveFriend(friend.id);
+    }
+  }
+}
+
+// Execute friend deletion
+export async function executeRemoveFriend(friendId) {
   const token = getToken();
   try {
     const res = await fetch(`/api/friends/${friendId}`, {
@@ -945,11 +961,24 @@ export async function removeFriend(friendId) {
     });
     if (!res.ok) throw new Error('Failed to remove friend');
 
-    window.GameApp?.showToast('Friend removed.', 'info');
+    if (window.GameApp?.showToast) {
+      window.GameApp.showToast('Friend removed.', 'info');
+    }
+    if (activeChatFriend && String(activeChatFriend.id) === String(friendId)) {
+      closeDmChat();
+    }
     loadFriendsData();
   } catch (err) {
-    window.GameApp?.showToast(err.message, 'error');
+    if (window.GameApp?.showToast) {
+      window.GameApp.showToast(err.message, 'error');
+    }
   }
+}
+
+// Remove Friend (public API)
+export async function removeFriend(friendId) {
+  const friend = friendsList.find((f) => String(f.id) === String(friendId)) || activeChatFriend || { id: friendId };
+  promptRemoveFriend(friend);
 }
 
 // Prompt game selection modal when clicking Invite / Duel on a friend
@@ -1008,6 +1037,7 @@ window.FriendsModule = {
   sendFriendRequest,
   respondFriendRequest,
   removeFriend,
+  promptRemoveFriend,
   openRequestsPage,
   openInboxPage,
   openDmChat,

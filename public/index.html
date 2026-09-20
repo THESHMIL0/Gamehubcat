@@ -529,7 +529,7 @@
                 <button type="button" id="btn-dm-chat-duel" class="btn-insta-duel" title="Challenge friend to live duel">
                   ⚔️ Duel
                 </button>
-                <button type="button" id="btn-dm-chat-profile" class="insta-icon-btn" title="View Friend Profile">
+                <button type="button" id="btn-dm-chat-profile" class="insta-icon-btn" title="Remove Friend">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                 </button>
               </div>
@@ -1071,6 +1071,21 @@
       <div class="modal-actions">
         <button type="button" id="btn-confirm-leave-yes" class="btn btn-danger">Leave</button>
         <button type="button" id="btn-confirm-leave-no" class="btn btn-secondary">Stay</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Remove Friend Modal -->
+  <div id="modal-confirm-remove-friend" class="modal-backdrop hidden">
+    <div class="modal-card glass-panel text-center" style="max-width: 340px; padding: 1.5rem 1.25rem;">
+      <div style="font-size: 2.2rem; margin-bottom: 0.5rem;" id="modal-remove-friend-avatar">🎮</div>
+      <h3 id="modal-remove-friend-title" style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 0.35rem;">Remove Friend?</h3>
+      <p class="modal-desc" id="modal-remove-friend-desc" style="font-size: 0.85rem; color: #a1a1aa; margin-bottom: 1.25rem; line-height: 1.4;">
+        Are you sure you want to remove this player from your friends?
+      </p>
+      <div class="modal-actions" style="display: flex; gap: 10px; width: 100%;">
+        <button type="button" id="btn-confirm-remove-friend-yes" class="btn btn-danger" style="flex: 1; border-radius: 10px; padding: 0.65rem; font-weight: 600;">Remove</button>
+        <button type="button" id="btn-confirm-remove-friend-no" class="btn btn-secondary" style="flex: 1; border-radius: 10px; padding: 0.65rem;" data-close-modal="modal-confirm-remove-friend">Cancel</button>
       </div>
     </div>
   </div>
