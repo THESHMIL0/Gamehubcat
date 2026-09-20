@@ -116,7 +116,6 @@ body {
   background: var(--glass-bg);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: none;
   border-radius: var(--radius-md);
   box-shadow: none;
@@ -810,7 +809,6 @@ body:has(#view-game.active) #mobile-nav {
   overflow-x: auto;
   padding-bottom: 0.25rem;
   max-width: 100%;
-  -webkit-overflow-scrolling: touch;
 }
 
 .online-friend-chip {
@@ -1401,7 +1399,6 @@ body:has(#view-game.active) #mobile-nav {
   flex-direction: column;
   gap: 2px;
   scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
 }
 
 .insta-dm-conversations-feed::-webkit-scrollbar,
@@ -1934,7 +1931,6 @@ body:has(#view-game.active) #mobile-nav {
   display: flex;
   flex-direction: column;
   scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
 }
 
 .insta-dm-chat-viewport::-webkit-scrollbar {
@@ -3687,7 +3683,6 @@ body:has(#view-game.active) #mobile-nav {
   /* Mask: top 25% under the game board gently dissolves messages into complete invisibility */
   -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
-  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
 }
 
 .game-live-chat-stream {
@@ -3709,7 +3704,6 @@ body:has(#view-game.active) #mobile-nav {
   background: rgba(15, 23, 42, 0.82);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
   padding: 4px 12px 4px 6px;
@@ -3777,7 +3771,6 @@ body:has(#view-game.active) #mobile-nav {
   background: rgba(10, 10, 15, 0.92);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 50;
   box-sizing: border-box;
@@ -3868,7 +3861,6 @@ body:has(#view-game.active) #mobile-nav {
   background: rgba(10, 10, 14, 0.96);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   box-sizing: border-box;
 }
 
@@ -3910,7 +3902,6 @@ body:has(#view-game.active) #mobile-nav {
   background: rgba(0, 0, 0, 0.75);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5079,7 +5070,6 @@ body:has(#view-game.active) #mobile-nav {
   position: relative;
   background: #000000;
   scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
 

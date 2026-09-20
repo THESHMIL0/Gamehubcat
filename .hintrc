@@ -1,0 +1,26 @@
+{
+  "connector": {
+    "name": "local"
+  },
+  "hints": {
+    "compat-api": "off",
+    "compat-api/css": "off",
+    "compat-api/html": "off",
+    "axe": "off",
+    "axe/color-contrast": "off",
+    "axe/button-name": "off",
+    "button-type": "off",
+    "no-inline-styles": "off",
+    "detect-css-reflows": "off",
+    "detect-css-reflows/composite": "off",
+    "detect-css-reflows/paint": "off",
+    "css-prefix-order": "off",
+    "meta-viewport": "off"
+  },
+  "browserslist": [
+    "> 0.5%",
+    "last 2 versions",
+    "Firefox ESR",
+    "not dead"
+  ]
+}

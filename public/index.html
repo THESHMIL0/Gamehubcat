@@ -152,20 +152,20 @@
 
         <!-- Desktop Navigation Tabs -->
         <nav class="desktop-nav">
-          <button class="nav-tab active" data-view="home" id="nav-btn-home">
+          <button type="button" class="nav-tab active" data-view="home" id="nav-btn-home">
             <svg class="nav-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             Home
           </button>
-          <button class="nav-tab" data-view="games" id="nav-btn-games">
+          <button type="button" class="nav-tab" data-view="games" id="nav-btn-games">
             <svg class="nav-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="6"/></svg>
             Games
           </button>
-          <button class="nav-tab" data-view="friends" id="nav-btn-friends">
+          <button type="button" class="nav-tab" data-view="friends" id="nav-btn-friends">
             <svg class="nav-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             Friends
             <span id="friends-badge-desktop" class="badge-counter hidden">0</span>
           </button>
-          <button class="nav-tab" data-view="profile" id="nav-btn-profile">
+          <button type="button" class="nav-tab" data-view="profile" id="nav-btn-profile">
             <svg class="nav-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             Profile
           </button>
@@ -184,7 +184,7 @@
           </button>
 
           <!-- Circular Profile Avatar Button -->
-          <button id="header-avatar-btn" class="header-avatar-btn" title="View Profile">
+          <button type="button" id="header-avatar-btn" class="header-avatar-btn" title="View Profile">
             <span id="header-avatar" class="avatar-circle">🐱</span>
           </button>
         </div>
@@ -858,15 +858,15 @@
               <div id="board-tictactoe" class="game-board-view hidden">
                 <div class="ttt-grid-wrap">
                   <div class="ttt-grid" id="ttt-grid">
-                    <button class="ttt-cell" data-idx="0" aria-label="Tic-Tac-Toe Cell 1 (Row 1, Column 1)" title="Cell 1"></button>
-                    <button class="ttt-cell" data-idx="1" aria-label="Tic-Tac-Toe Cell 2 (Row 1, Column 2)" title="Cell 2"></button>
-                    <button class="ttt-cell" data-idx="2" aria-label="Tic-Tac-Toe Cell 3 (Row 1, Column 3)" title="Cell 3"></button>
-                    <button class="ttt-cell" data-idx="3" aria-label="Tic-Tac-Toe Cell 4 (Row 2, Column 1)" title="Cell 4"></button>
-                    <button class="ttt-cell" data-idx="4" aria-label="Tic-Tac-Toe Cell 5 (Row 2, Column 2)" title="Cell 5"></button>
-                    <button class="ttt-cell" data-idx="5" aria-label="Tic-Tac-Toe Cell 6 (Row 2, Column 3)" title="Cell 6"></button>
-                    <button class="ttt-cell" data-idx="6" aria-label="Tic-Tac-Toe Cell 7 (Row 3, Column 1)" title="Cell 7"></button>
-                    <button class="ttt-cell" data-idx="7" aria-label="Tic-Tac-Toe Cell 8 (Row 3, Column 2)" title="Cell 8"></button>
-                    <button class="ttt-cell" data-idx="8" aria-label="Tic-Tac-Toe Cell 9 (Row 3, Column 3)" title="Cell 9"></button>
+                    <button type="button" class="ttt-cell" data-idx="0" aria-label="Tic-Tac-Toe Cell 1 (Row 1, Column 1)" title="Cell 1"></button>
+                    <button type="button" class="ttt-cell" data-idx="1" aria-label="Tic-Tac-Toe Cell 2 (Row 1, Column 2)" title="Cell 2"></button>
+                    <button type="button" class="ttt-cell" data-idx="2" aria-label="Tic-Tac-Toe Cell 3 (Row 1, Column 3)" title="Cell 3"></button>
+                    <button type="button" class="ttt-cell" data-idx="3" aria-label="Tic-Tac-Toe Cell 4 (Row 2, Column 1)" title="Cell 4"></button>
+                    <button type="button" class="ttt-cell" data-idx="4" aria-label="Tic-Tac-Toe Cell 5 (Row 2, Column 2)" title="Cell 5"></button>
+                    <button type="button" class="ttt-cell" data-idx="5" aria-label="Tic-Tac-Toe Cell 6 (Row 2, Column 3)" title="Cell 6"></button>
+                    <button type="button" class="ttt-cell" data-idx="6" aria-label="Tic-Tac-Toe Cell 7 (Row 3, Column 1)" title="Cell 7"></button>
+                    <button type="button" class="ttt-cell" data-idx="7" aria-label="Tic-Tac-Toe Cell 8 (Row 3, Column 2)" title="Cell 8"></button>
+                    <button type="button" class="ttt-cell" data-idx="8" aria-label="Tic-Tac-Toe Cell 9 (Row 3, Column 3)" title="Cell 9"></button>
                   </div>
                   <!-- Animated Winning Line SVG Overlay -->
                   <svg id="ttt-win-line" class="ttt-win-line hidden" viewBox="0 0 300 300">
@@ -928,13 +928,13 @@
                 <div class="connect4-board-container">
                   <!-- Column Hover Drop Indicators -->
                   <div class="connect4-drop-arrows" id="c4-drop-arrows">
-                    <button class="c4-col-arrow" data-col="0" aria-label="Drop token in column 1" title="Drop in column 1">▼</button>
-                    <button class="c4-col-arrow" data-col="1" aria-label="Drop token in column 2" title="Drop in column 2">▼</button>
-                    <button class="c4-col-arrow" data-col="2" aria-label="Drop token in column 3" title="Drop in column 3">▼</button>
-                    <button class="c4-col-arrow" data-col="3" aria-label="Drop token in column 4" title="Drop in column 4">▼</button>
-                    <button class="c4-col-arrow" data-col="4" aria-label="Drop token in column 5" title="Drop in column 5">▼</button>
-                    <button class="c4-col-arrow" data-col="5" aria-label="Drop token in column 6" title="Drop in column 6">▼</button>
-                    <button class="c4-col-arrow" data-col="6" aria-label="Drop token in column 7" title="Drop in column 7">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="0" aria-label="Drop token in column 1" title="Drop in column 1">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="1" aria-label="Drop token in column 2" title="Drop in column 2">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="2" aria-label="Drop token in column 3" title="Drop in column 3">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="3" aria-label="Drop token in column 4" title="Drop in column 4">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="4" aria-label="Drop token in column 5" title="Drop in column 5">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="5" aria-label="Drop token in column 6" title="Drop in column 6">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="6" aria-label="Drop token in column 7" title="Drop in column 7">▼</button>
                   </div>
                   <!-- 6 rows x 7 cols grid -->
                   <div class="connect4-grid" id="c4-grid">
@@ -967,20 +967,20 @@
 
       <!-- Mobile Bottom Navigation (Section 10 & 49) -->
       <nav id="mobile-nav" class="mobile-bottom-nav glass-panel">
-        <button class="mobile-nav-item active" data-view="home" id="mob-nav-home">
+        <button type="button" class="mobile-nav-item active" data-view="home" id="mob-nav-home">
           <svg class="nav-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           <span class="mob-label">Home</span>
         </button>
-        <button class="mobile-nav-item" data-view="games" id="mob-nav-games">
+        <button type="button" class="mobile-nav-item" data-view="games" id="mob-nav-games">
           <svg class="nav-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="6"/></svg>
           <span class="mob-label">Games</span>
         </button>
-        <button class="mobile-nav-item" data-view="friends" id="mob-nav-friends">
+        <button type="button" class="mobile-nav-item" data-view="friends" id="mob-nav-friends">
           <svg class="nav-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span class="mob-label">Friends</span>
           <span id="friends-badge-mobile" class="badge-counter hidden">0</span>
         </button>
-        <button class="mobile-nav-item" data-view="profile" id="mob-nav-profile">
+        <button type="button" class="mobile-nav-item" data-view="profile" id="mob-nav-profile">
           <svg class="nav-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span class="mob-label">Profile</span>
         </button>

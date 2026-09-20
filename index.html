@@ -99,17 +99,17 @@
 
         <!-- Desktop Navigation Tabs -->
         <nav class="desktop-nav">
-          <button class="nav-tab active" data-view="home" id="nav-btn-home">
+          <button type="button" class="nav-tab active" data-view="home" id="nav-btn-home">
             <span class="nav-icon">🏠</span> Home
           </button>
-          <button class="nav-tab" data-view="games" id="nav-btn-games">
+          <button type="button" class="nav-tab" data-view="games" id="nav-btn-games">
             <span class="nav-icon">🎲</span> Games
           </button>
-          <button class="nav-tab" data-view="friends" id="nav-btn-friends">
+          <button type="button" class="nav-tab" data-view="friends" id="nav-btn-friends">
             <span class="nav-icon">👥</span> Friends
             <span id="friends-badge-desktop" class="badge-counter hidden">0</span>
           </button>
-          <button class="nav-tab" data-view="profile" id="nav-btn-profile">
+          <button type="button" class="nav-tab" data-view="profile" id="nav-btn-profile">
             <span class="nav-icon">👤</span> Profile
           </button>
         </nav>
@@ -122,7 +122,7 @@
           </div>
 
           <!-- Circular Profile Avatar Button -->
-          <button id="header-avatar-btn" class="header-avatar-btn" title="View Profile">
+          <button type="button" id="header-avatar-btn" class="header-avatar-btn" title="View Profile">
             <span id="header-avatar" class="avatar-circle">🎮</span>
           </button>
         </div>
@@ -310,13 +310,13 @@
         <!-- 3. FRIENDS SCREEN (Section 11) -->
         <section id="view-friends" class="content-view">
           <div class="friends-tabs-bar">
-            <button class="friends-subtab active" data-subtab="list" id="subtab-btn-friends">
+            <button type="button" class="friends-subtab active" data-subtab="list" id="subtab-btn-friends">
               My Friends (<span id="friends-count-num">0</span>)
             </button>
-            <button class="friends-subtab" data-subtab="requests" id="subtab-btn-requests">
+            <button type="button" class="friends-subtab" data-subtab="requests" id="subtab-btn-requests">
               Friend Requests <span id="requests-badge" class="badge-counter hidden">0</span>
             </button>
-            <button class="friends-subtab" data-subtab="search" id="subtab-btn-search">
+            <button type="button" class="friends-subtab" data-subtab="search" id="subtab-btn-search">
               Search Users
             </button>
           </div>
@@ -574,15 +574,15 @@
               <div id="board-tictactoe" class="game-board-view hidden">
                 <div class="ttt-grid-wrap">
                   <div class="ttt-grid" id="ttt-grid">
-                    <button class="ttt-cell" data-idx="0" aria-label="Tic-Tac-Toe Cell 1 (Row 1, Column 1)" title="Cell 1"></button>
-                    <button class="ttt-cell" data-idx="1" aria-label="Tic-Tac-Toe Cell 2 (Row 1, Column 2)" title="Cell 2"></button>
-                    <button class="ttt-cell" data-idx="2" aria-label="Tic-Tac-Toe Cell 3 (Row 1, Column 3)" title="Cell 3"></button>
-                    <button class="ttt-cell" data-idx="3" aria-label="Tic-Tac-Toe Cell 4 (Row 2, Column 1)" title="Cell 4"></button>
-                    <button class="ttt-cell" data-idx="4" aria-label="Tic-Tac-Toe Cell 5 (Row 2, Column 2)" title="Cell 5"></button>
-                    <button class="ttt-cell" data-idx="5" aria-label="Tic-Tac-Toe Cell 6 (Row 2, Column 3)" title="Cell 6"></button>
-                    <button class="ttt-cell" data-idx="6" aria-label="Tic-Tac-Toe Cell 7 (Row 3, Column 1)" title="Cell 7"></button>
-                    <button class="ttt-cell" data-idx="7" aria-label="Tic-Tac-Toe Cell 8 (Row 3, Column 2)" title="Cell 8"></button>
-                    <button class="ttt-cell" data-idx="8" aria-label="Tic-Tac-Toe Cell 9 (Row 3, Column 3)" title="Cell 9"></button>
+                    <button type="button" class="ttt-cell" data-idx="0" aria-label="Tic-Tac-Toe Cell 1 (Row 1, Column 1)" title="Cell 1"></button>
+                    <button type="button" class="ttt-cell" data-idx="1" aria-label="Tic-Tac-Toe Cell 2 (Row 1, Column 2)" title="Cell 2"></button>
+                    <button type="button" class="ttt-cell" data-idx="2" aria-label="Tic-Tac-Toe Cell 3 (Row 1, Column 3)" title="Cell 3"></button>
+                    <button type="button" class="ttt-cell" data-idx="3" aria-label="Tic-Tac-Toe Cell 4 (Row 2, Column 1)" title="Cell 4"></button>
+                    <button type="button" class="ttt-cell" data-idx="4" aria-label="Tic-Tac-Toe Cell 5 (Row 2, Column 2)" title="Cell 5"></button>
+                    <button type="button" class="ttt-cell" data-idx="5" aria-label="Tic-Tac-Toe Cell 6 (Row 2, Column 3)" title="Cell 6"></button>
+                    <button type="button" class="ttt-cell" data-idx="6" aria-label="Tic-Tac-Toe Cell 7 (Row 3, Column 1)" title="Cell 7"></button>
+                    <button type="button" class="ttt-cell" data-idx="7" aria-label="Tic-Tac-Toe Cell 8 (Row 3, Column 2)" title="Cell 8"></button>
+                    <button type="button" class="ttt-cell" data-idx="8" aria-label="Tic-Tac-Toe Cell 9 (Row 3, Column 3)" title="Cell 9"></button>
                   </div>
                   <!-- Animated Winning Line SVG Overlay -->
                   <svg id="ttt-win-line" class="ttt-win-line hidden" viewBox="0 0 300 300">
@@ -634,13 +634,13 @@
                 <div class="connect4-board-container">
                   <!-- Column Hover Drop Indicators -->
                   <div class="connect4-drop-arrows" id="c4-drop-arrows">
-                    <button class="c4-col-arrow" data-col="0" aria-label="Drop token in column 1" title="Drop in column 1">▼</button>
-                    <button class="c4-col-arrow" data-col="1" aria-label="Drop token in column 2" title="Drop in column 2">▼</button>
-                    <button class="c4-col-arrow" data-col="2" aria-label="Drop token in column 3" title="Drop in column 3">▼</button>
-                    <button class="c4-col-arrow" data-col="3" aria-label="Drop token in column 4" title="Drop in column 4">▼</button>
-                    <button class="c4-col-arrow" data-col="4" aria-label="Drop token in column 5" title="Drop in column 5">▼</button>
-                    <button class="c4-col-arrow" data-col="5" aria-label="Drop token in column 6" title="Drop in column 6">▼</button>
-                    <button class="c4-col-arrow" data-col="6" aria-label="Drop token in column 7" title="Drop in column 7">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="0" aria-label="Drop token in column 1" title="Drop in column 1">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="1" aria-label="Drop token in column 2" title="Drop in column 2">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="2" aria-label="Drop token in column 3" title="Drop in column 3">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="3" aria-label="Drop token in column 4" title="Drop in column 4">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="4" aria-label="Drop token in column 5" title="Drop in column 5">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="5" aria-label="Drop token in column 6" title="Drop in column 6">▼</button>
+                    <button type="button" class="c4-col-arrow" data-col="6" aria-label="Drop token in column 7" title="Drop in column 7">▼</button>
                   </div>
                   <!-- 6 rows x 7 cols grid -->
                   <div class="connect4-grid" id="c4-grid">
@@ -672,20 +672,20 @@
 
       <!-- Mobile Bottom Navigation (Section 10 & 49) -->
       <nav id="mobile-nav" class="mobile-bottom-nav glass-panel">
-        <button class="mobile-nav-item active" data-view="home" id="mob-nav-home">
+        <button type="button" class="mobile-nav-item active" data-view="home" id="mob-nav-home">
           <span class="mob-icon">🏠</span>
           <span class="mob-label">Home</span>
         </button>
-        <button class="mobile-nav-item" data-view="games" id="mob-nav-games">
+        <button type="button" class="mobile-nav-item" data-view="games" id="mob-nav-games">
           <span class="mob-icon">🎲</span>
           <span class="mob-label">Games</span>
         </button>
-        <button class="mobile-nav-item" data-view="friends" id="mob-nav-friends">
+        <button type="button" class="mobile-nav-item" data-view="friends" id="mob-nav-friends">
           <span class="mob-icon">👥</span>
           <span class="mob-label">Friends</span>
           <span id="friends-badge-mobile" class="badge-counter hidden">0</span>
         </button>
-        <button class="mobile-nav-item" data-view="profile" id="mob-nav-profile">
+        <button type="button" class="mobile-nav-item" data-view="profile" id="mob-nav-profile">
           <span class="mob-icon">👤</span>
           <span class="mob-label">Profile</span>
         </button>
