@@ -2715,7 +2715,7 @@ body:has(#view-game.active) #mobile-nav {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 1.05rem 1.15rem;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -2739,25 +2739,25 @@ body:has(#view-game.active) #mobile-nav {
 .game-row-left {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.95rem;
   min-width: 0;
 }
 
 .game-row-icon-wrap {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--glass-border);
 }
 
 .game-row-logo {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
   filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
 }
@@ -2770,7 +2770,7 @@ body:has(#view-game.active) #mobile-nav {
 }
 
 .game-row-title {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-main);
   line-height: 1.25;
@@ -2780,7 +2780,7 @@ body:has(#view-game.active) #mobile-nav {
 }
 
 .game-row-sub {
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
   line-height: 1.25;
   white-space: nowrap;
