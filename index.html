@@ -647,29 +647,24 @@
                     <!-- 42 cells generated dynamically -->
                   </div>
                 </div>
-              </div>
             </div>
+          </div>
 
-            <!-- In-Game Live Floating Chat Panel (Sections 32-38) -->
-            <div class="game-chat-panel glass-panel">
-              <div class="game-chat-header">
-                <span class="chat-title">💬 Live Match Chat</span>
-                <span class="chat-hint">Messages float and fade</span>
-              </div>
+          <!-- RedNote-Style Live In-Game Floating Chat (Messages float above text box and fade slowly) -->
+          <div class="game-live-chat-wrap">
+            <div id="game-floating-bubbles" class="game-live-chat-stream"></div>
+          </div>
 
-              <!-- Floating Chat Container -->
-              <div class="game-chat-floating-wrap">
-                <div id="game-floating-bubbles" class="game-floating-bubbles"></div>
-              </div>
-
-              <!-- In-Game Chat Input -->
-              <form id="form-game-chat" class="chat-input-bar">
-                <input type="text" id="input-game-chat" class="input-field chat-input" placeholder="Type a message..." maxlength="150" autocomplete="off">
-                <button type="submit" class="btn btn-primary btn-icon-only" title="Send message">
-                  <span>➤</span>
+          <!-- In-Game Bottom Text Box Bar -->
+          <div class="game-bottom-bar">
+            <form id="form-game-chat" class="game-live-chat-form">
+              <div class="game-live-input-wrap">
+                <input type="text" id="input-game-chat" class="game-live-input" placeholder="Chat in game..." maxlength="150" autocomplete="off">
+                <button type="submit" id="btn-send-game-chat" class="game-live-send-btn" title="Send message">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </section>
 

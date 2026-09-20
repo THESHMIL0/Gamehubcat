@@ -1392,6 +1392,24 @@ io.on('connection', async (socket) => {
       if (room.chatHistory.length > 40) room.chatHistory.shift();
 
       io.to(`room_${code}`).emit('game_chat_message', msg);
+
+      // In bot matches, RoboCat AI replies with live in-game banter
+      if (room.isBotGame && !room.gameState?.winner && !room.gameState?.isDraw) {
+        setTimeout(() => {
+          if (rooms.has(code)) {
+            const botReplies = [
+              "Nice move! 🎯",
+              "I'm calculating my next play! 🧠",
+              "You're a skilled player! ✨",
+              "Let's see how this round goes! 🐱",
+              "Meow! Having a blast! 🐾",
+              "Focus mode activated! ⚡"
+            ];
+            const reply = botReplies[Math.floor(Math.random() * botReplies.length)];
+            sendBotChatMessage(room, reply);
+          }
+        }, 1100);
+      }
     } catch (err) {
       console.error('Game chat error:', err);
     }

@@ -87,8 +87,9 @@ export function initChat() {
     formGame.onsubmit = (e) => {
       e.preventDefault();
       const text = inputGame.value.trim();
-      if (!text || !activeRoomCode) return;
-      socket.emit('game_chat', { roomCode: activeRoomCode, text });
+      const roomCode = activeRoomCode || window.GameApp?.activeMatchRoom?.code;
+      if (!text || !roomCode) return;
+      socket.emit('game_chat', { roomCode, text });
       inputGame.value = '';
     };
   }
@@ -118,9 +119,10 @@ export function initChat() {
     }
   });
 
+  // RedNote-Style In-Game Live Stream Floating Chat Listener
   socket.off('game_chat_message');
   socket.on('game_chat_message', (msg) => {
-    spawnFloatingBubble('game-floating-bubbles', msg);
+    spawnInGameLiveMessage(msg);
   });
 
   socket.off('chat_error');
@@ -129,6 +131,66 @@ export function initChat() {
       window.GameApp.showToast(data.message, 'warning');
     }
   });
+}
+
+// RedNote Live Stream Floating Comments for In-Game Chat
+// Newer messages appear right above the text box; older ones float upward and fade slowly
+export function spawnInGameLiveMessage(message) {
+  const container = document.getElementById('game-floating-bubbles');
+  if (!container) return;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'rednote-live-bubble';
+
+  const sender = message.sender || {};
+  const current = getCurrentUser() || getGuestInfo();
+  const isMe = String(sender.id) === String(current?.id);
+  const isGuest = !!sender.isGuest || String(sender.id).startsWith('guest_');
+  const isBot = String(sender.id) === '999999' || String(sender.id) === 'bot' || !!sender.isBot;
+
+  // Distinctive RedNote Live Stream author badge colors
+  let authorColor = '#38bdf8'; // Opponent member (cyan)
+  if (isMe) {
+    authorColor = '#c084fc'; // Myself (vibrant lavender/purple)
+  } else if (isBot) {
+    authorColor = '#10b981'; // Bot (emerald)
+  } else if (isGuest) {
+    authorColor = '#fbbf24'; // Guest (amber)
+  }
+
+  const senderName = sender.display_name || sender.username || (isBot ? 'RoboCat AI' : 'Player');
+  const avatarChar = sender.avatar || (isBot ? '🤖' : '🐱');
+
+  bubble.innerHTML = `
+    <span class="rednote-live-avatar">${escapeHtml(avatarChar)}</span>
+    <span class="rednote-live-author" style="color: ${authorColor};">${escapeHtml(senderName)}:</span>
+    <span class="rednote-live-text">${escapeHtml(message.text || '')}</span>
+  `;
+
+  // Cap number of concurrent live bubbles (max 5)
+  const existingBubbles = container.querySelectorAll('.rednote-live-bubble');
+  if (existingBubbles.length >= 5) {
+    const oldest = existingBubbles[0];
+    oldest.classList.add('fade-out');
+    setTimeout(() => {
+      if (oldest.parentNode) oldest.parentNode.removeChild(oldest);
+    }, 400);
+  }
+
+  container.appendChild(bubble);
+
+  // RedNote live stream fade: stays visible ~3.8s, then fades out smoothly until 5.0s
+  setTimeout(() => {
+    if (bubble.parentNode) {
+      bubble.classList.add('fade-out');
+    }
+  }, 3800);
+
+  setTimeout(() => {
+    if (bubble.parentNode) {
+      bubble.parentNode.removeChild(bubble);
+    }
+  }, 5000);
 }
 
 // Spawns smooth floating bubble that floats upwards and disappears automatically
