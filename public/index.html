@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>GameRoom — Multiplayer Social Gaming</title>
-  <meta name="description" content="Play Tic-Tac-Toe, Rock Paper Scissors, and Connect Four with friends in real time.">
+  <meta name="description" content="Full-stack multiplayer social gaming platform with real-time Tic-Tac-Toe, Rock Paper Scissors, Connect Four, live floating chat, and friends system.">
   <link rel="stylesheet" href="/style.css">
   <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
-  <!-- Instant session check to prevent auth flicker/logout on reload -->
+  <!-- Instant session check & Zoom / Copy prevention -->
   <script>
     (function() {
       try {
@@ -15,6 +15,80 @@
           document.documentElement.classList.add('has-stored-auth');
         }
       } catch (e) {}
+
+      // Disable iOS pinch zoom gestures
+      document.addEventListener('gesturestart', function(e) {
+        e.preventDefault();
+      }, { passive: false });
+
+      document.addEventListener('gesturechange', function(e) {
+        e.preventDefault();
+      }, { passive: false });
+
+      document.addEventListener('gestureend', function(e) {
+        e.preventDefault();
+      }, { passive: false });
+
+      // Disable multi-touch zoom
+      document.addEventListener('touchstart', function(e) {
+        if (e.touches && e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      document.addEventListener('touchmove', function(e) {
+        if (e.touches && e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      // Disable double tap zoom on mobile
+      var lastTouchEnd = 0;
+      document.addEventListener('touchend', function(e) {
+        var now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+          if (!e.target.closest('input, textarea, select, [contenteditable="true"]')) {
+            e.preventDefault();
+          }
+        }
+        lastTouchEnd = now;
+      }, { passive: false });
+
+      // Prevent Ctrl/Cmd + wheel zoom and keyboard zoom shortcuts
+      window.addEventListener('wheel', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      window.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=' || e.key === '0')) {
+          e.preventDefault();
+        }
+      });
+
+      // Prevent tap-and-hold context menu / copy options except inside inputs/textareas
+      window.addEventListener('contextmenu', function(e) {
+        if (!e.target.closest('input, textarea, [contenteditable="true"]')) {
+          e.preventDefault();
+          return false;
+        }
+      }, { passive: false });
+
+      // Prevent selectstart across non-input elements
+      document.addEventListener('selectstart', function(e) {
+        if (!e.target.closest('input, textarea, [contenteditable="true"]')) {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      // Prevent copy event if selection is not from an input/textarea
+      document.addEventListener('copy', function(e) {
+        if (!e.target.closest('input, textarea, [contenteditable="true"]')) {
+          e.preventDefault();
+        }
+      });
     })();
   </script>
   <!-- Socket.IO client script -->
@@ -262,9 +336,6 @@
 
             <!-- Instagram GC Messages Stream Area -->
             <div class="insta-gc-viewport" id="insta-gc-viewport">
-              <!-- Floating reaction bubbles -->
-              <div id="lobby-floating-bubbles" class="floating-bubbles-area"></div>
-
               <!-- Instagram GC Group Bio Intro -->
               <div class="insta-gc-thread-intro">
                 <div class="insta-intro-avatar-wrap">
@@ -728,10 +799,6 @@
             </div>
 
             <div class="waiting-actions">
-              <button type="button" id="btn-waiting-add-bot" class="btn btn-accent btn-waiting-bot-action" title="Start game immediately with AI Bot" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
-                <span>Play vs Bot</span>
-              </button>
               <button type="button" id="btn-waiting-invite" class="btn btn-primary" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
                 <span>Invite Friend</span>

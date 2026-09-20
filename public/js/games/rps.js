@@ -18,62 +18,8 @@ let currentRoom = null;
 let lastRevealedResultRound = null;
 let isAnimatingShoot = false;
 
-export function initRps(room) {
-  currentRoom = room;
-  lastRevealedResultRound = null;
-  isAnimatingShoot = false;
-
-  // Bind 3 choice buttons
-  const buttons = document.querySelectorAll('.btn-rps-choice');
-  buttons.forEach((btn) => {
-    btn.onclick = () => {
-      const choice = btn.dataset.choice;
-      handleRpsSelection(choice);
-    };
-  });
-
-  updateRpsState(room);
-}
-
-export function updateRpsState(room, payload = {}) {
-  currentRoom = room;
-  const gameState = room.gameState || {};
-  const me = getCurrentUser();
-  const opponent = room.players.find((p) => String(p.id) !== String(me?.id));
-
-  // Update Round Banner and Player Labels
-  const roundEl = document.getElementById('rps-round-text');
-  if (roundEl && !isAnimatingShoot) {
-    const roundNum = gameState.round || 1;
-    roundEl.textContent = `Round ${roundNum} — Choose your hand`;
-  }
-  const p1Label = document.getElementById('rps-p1-label');
-  const p2Label = document.getElementById('rps-p2-label');
-  if (p1Label) p1Label.textContent = me?.display_name || 'You';
-  if (p2Label) p2Label.textContent = opponent?.display_name || 'Opponent';
-
-  // Check choices
-  const choices = gameState.choices || {};
-  const myChoice = choices[me?.id];
-  const oppChoice = choices[opponent?.id];
-
-  // Choice buttons state
-  const buttons = document.querySelectorAll('.btn-rps-choice');
-  buttons.forEach((btn) => {
-    if (btn.dataset.choice === myChoice) {
-      btn.classList.add('selected');
-    } else {
-      btn.classList.remove('selected');
-    }
-    // Disable once selected for this round (until result reveals)
-    btn.disabled = !!myChoice && !gameState.result;
-  });
-
-  const p1SlotIcon = document.getElementById('rps-p1-choice');
-  const p2SlotIcon = document.getElementById('rps-p2-choice');
-  const announceEl = document.getElementById('rps-result-announcement');
-
-  function getRpsIconHtml(choice) {
+// Shared SVG icon generator accessible everywhere in this module
+export function getRpsIconHtml(choice) {
   if (choice === 'rock') {
     return `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.45));"><polygon points="6 3 18 3 22 9 12 22 2 9 6 3"/></svg>`;
   }
@@ -89,6 +35,65 @@ export function updateRpsState(room, payload = {}) {
   return `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
 }
 
+export function initRps(room) {
+  currentRoom = room;
+  lastRevealedResultRound = null;
+  isAnimatingShoot = false;
+
+  // Reset and bind 3 choice buttons
+  const buttons = document.querySelectorAll('.btn-rps-choice');
+  buttons.forEach((btn) => {
+    btn.disabled = false;
+    btn.classList.remove('selected');
+    btn.onclick = () => {
+      const choice = btn.dataset.choice;
+      handleRpsSelection(choice);
+    };
+  });
+
+  updateRpsState(room);
+}
+
+export function updateRpsState(room, payload = {}) {
+  currentRoom = room;
+  const gameState = room.gameState || {};
+  const me = getCurrentUser();
+  const myId = String(me?.id);
+  const opponent = room.players?.find((p) => String(p.id) !== myId);
+  const oppId = opponent ? String(opponent.id) : null;
+
+  // Update Round Banner and Player Labels
+  const roundEl = document.getElementById('rps-round-text');
+  if (roundEl && !isAnimatingShoot) {
+    const roundNum = gameState.round || 1;
+    roundEl.textContent = `Round ${roundNum} — Choose your hand`;
+  }
+  const p1Label = document.getElementById('rps-p1-label');
+  const p2Label = document.getElementById('rps-p2-label');
+  if (p1Label) p1Label.textContent = me?.display_name || 'You';
+  if (p2Label) p2Label.textContent = opponent?.display_name || 'Opponent';
+
+  // Check choices
+  const choices = gameState.choices || {};
+  const myChoice = choices[myId] || (me?.id ? choices[me.id] : undefined);
+  const oppChoice = oppId ? (choices[oppId] || choices[opponent.id]) : undefined;
+
+  // Choice buttons state
+  const buttons = document.querySelectorAll('.btn-rps-choice');
+  buttons.forEach((btn) => {
+    if (myChoice && btn.dataset.choice === myChoice) {
+      btn.classList.add('selected');
+    } else {
+      btn.classList.remove('selected');
+    }
+    // Disabled once player has made a choice for this round until result is cleared
+    btn.disabled = !!myChoice && !gameState.result;
+  });
+
+  const p1SlotIcon = document.getElementById('rps-p1-choice');
+  const p2SlotIcon = document.getElementById('rps-p2-choice');
+  const announceEl = document.getElementById('rps-result-announcement');
+
   if (gameState.result) {
     // Has this round's reveal sequence already played?
     const roundId = `${gameState.round}_${gameState.result.p1Choice}_${gameState.result.p2Choice}`;
@@ -100,23 +105,27 @@ export function updateRpsState(room, payload = {}) {
     // Round in progress
     if (!isAnimatingShoot) {
       if (myChoice) {
-        p1SlotIcon.innerHTML = getRpsIconHtml(myChoice);
+        if (p1SlotIcon) p1SlotIcon.innerHTML = getRpsIconHtml(myChoice);
       } else {
-        p1SlotIcon.innerHTML = getRpsIconHtml('unknown');
+        if (p1SlotIcon) p1SlotIcon.innerHTML = getRpsIconHtml('unknown');
       }
 
       if (oppChoice) {
-        p2SlotIcon.innerHTML = getRpsIconHtml('locked');
-        announceEl.textContent = myChoice
-          ? 'Both chosen! Revealing hands...'
-          : 'Opponent is ready! Make your choice!';
-        announceEl.style.color = '#38bdf8';
+        if (p2SlotIcon) p2SlotIcon.innerHTML = getRpsIconHtml('locked');
+        if (announceEl) {
+          announceEl.textContent = myChoice
+            ? 'Both chosen! Revealing hands...'
+            : 'Opponent is ready! Make your choice!';
+          announceEl.style.color = '#38bdf8';
+        }
       } else {
-        p2SlotIcon.innerHTML = getRpsIconHtml('unknown');
-        announceEl.textContent = myChoice
-          ? 'Waiting for opponent to choose...'
-          : 'Choose Rock, Paper, or Scissors!';
-        announceEl.style.color = '#9ca3af';
+        if (p2SlotIcon) p2SlotIcon.innerHTML = getRpsIconHtml('unknown');
+        if (announceEl) {
+          announceEl.textContent = myChoice
+            ? 'Waiting for opponent to choose...'
+            : 'Choose Rock, Paper, or Scissors!';
+          announceEl.style.color = '#9ca3af';
+        }
       }
     }
   }
@@ -125,18 +134,43 @@ export function updateRpsState(room, payload = {}) {
 function handleRpsSelection(choice) {
   if (!currentRoom || currentRoom.state !== 'PLAYING') return;
 
-  const gameState = currentRoom.gameState;
+  const gameState = currentRoom.gameState || {};
   const me = getCurrentUser();
-  if (gameState?.choices && gameState.choices[me?.id]) return;
+  const myId = String(me?.id);
+  const choices = gameState.choices || {};
+  if (choices[myId] || (me?.id && choices[me.id])) return;
 
   playMoveSound(choice === 'rock' ? 'X' : 'O');
   triggerHaptic(15);
 
+  // Optimistic UI updates
+  const buttons = document.querySelectorAll('.btn-rps-choice');
+  buttons.forEach((btn) => {
+    if (btn.dataset.choice === choice) {
+      btn.classList.add('selected');
+    } else {
+      btn.classList.remove('selected');
+    }
+    btn.disabled = true;
+  });
+
+  const p1SlotIcon = document.getElementById('rps-p1-choice');
+  if (p1SlotIcon) {
+    p1SlotIcon.innerHTML = getRpsIconHtml(choice);
+  }
+
+  const announceEl = document.getElementById('rps-result-announcement');
+  if (announceEl) {
+    announceEl.textContent = 'Choice locked in! Waiting for opponent...';
+    announceEl.style.color = '#38bdf8';
+  }
+
   const socket = getSocket();
   if (socket) {
-    socket.emit('game_action', {
-      roomId: currentRoom.code,
-      action: { type: 'MAKE_CHOICE', choice },
+    // Send authoritative game_move
+    socket.emit('game_move', {
+      roomCode: currentRoom.code,
+      move: { choice },
     });
   }
 }
@@ -202,17 +236,23 @@ function playShootCountdownAndReveal(room, res, me) {
 
       // Announce round outcome
       if (res.outcome === 'tie') {
-        announceEl.textContent = "It's a Tie! Both chose the same hand.";
-        announceEl.style.color = '#facc15';
+        if (announceEl) {
+          announceEl.textContent = "It's a Tie! Both chose the same hand.";
+          announceEl.style.color = '#facc15';
+        }
         playDrawSound();
       } else if (String(res.winnerId) === String(me?.id)) {
-        announceEl.textContent = 'You won this round!';
-        announceEl.style.color = '#10b981';
+        if (announceEl) {
+          announceEl.textContent = 'You won this round!';
+          announceEl.style.color = '#10b981';
+        }
         playVictorySound();
       } else {
         const opp = room?.players?.find((p) => String(p.id) !== String(me?.id));
-        announceEl.textContent = `${opp?.display_name || 'Opponent'} won this round!`;
-        announceEl.style.color = '#ef4444';
+        if (announceEl) {
+          announceEl.textContent = `${opp?.display_name || 'Opponent'} won this round!`;
+          announceEl.style.color = '#ef4444';
+        }
         playDefeatSound();
       }
 
@@ -222,3 +262,4 @@ function playShootCountdownAndReveal(room, res, me) {
 
   nextCountdownStep();
 }
+

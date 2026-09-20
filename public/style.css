@@ -45,6 +45,20 @@
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection and normal typing inside input fields, textareas, and contenteditable elements */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
 }
 
 html {
@@ -53,6 +67,7 @@ html {
   height: 100dvh;
   overflow: hidden;
   box-sizing: border-box;
+  touch-action: pan-x pan-y;
 }
 
 body {
@@ -70,6 +85,10 @@ body {
   align-items: stretch;
   overflow: hidden;
   position: relative;
+  touch-action: pan-x pan-y;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .app-root {
@@ -3682,30 +3701,25 @@ body:has(#view-game.active) #mobile-nav {
 }
 
 /* ===================================================
-   REDNOTE-STYLE IN-GAME LIVE CHAT & BOTTOM INPUT BAR
-   (No unwanted chat card/box, live comments float up and fade)
+   IN-GAME LIVE CHAT & BOTTOM INPUT BAR
+   (Stationary, clean inline messages stacked above input)
    =================================================== */
 
-/* Container sits directly above the docked bottom input bar and extends under the game board */
+/* Container sits directly above the docked bottom input bar */
 .game-live-chat-wrap {
   position: absolute;
   bottom: 56px;
   left: 0;
   right: 0;
-  top: 335px; /* Sits right under the compact game board */
-  max-height: calc(100% - 345px);
-  min-height: 180px;
-  padding: 0 0.85rem 0.35rem 0.85rem;
-  pointer-events: none;
+  max-height: 180px;
+  padding: 0.4rem 0.85rem;
+  pointer-events: auto;
   z-index: 5;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  overflow: hidden;
+  overflow-y: auto;
   box-sizing: border-box;
-  /* Mask: top 25% under the game board gently dissolves messages into complete invisibility */
-  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
-  mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 0) 100%);
 }
 
 .game-live-chat-stream {
@@ -3715,45 +3729,30 @@ body:has(#view-game.active) #mobile-nav {
   align-items: flex-start;
   gap: 6px;
   width: 100%;
-  pointer-events: none;
 }
 
-/* RedNote-Style Live Stream Floating Badge Capsule */
+/* Stationary In-Game Message Bubble */
 .rednote-live-bubble {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  max-width: 88%;
-  background: rgba(15, 23, 42, 0.82);
+  max-width: 90%;
+  background: rgba(15, 23, 42, 0.9);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 20px;
-  padding: 4px 12px 4px 6px;
+  border-radius: 12px;
+  padding: 6px 12px 6px 8px;
   color: #f8fafc;
   font-size: 0.82rem;
   line-height: 1.35;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  pointer-events: none;
-  animation: rednoteSlideIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  transition: opacity 1.2s ease, transform 1.2s ease;
-  transform-origin: left bottom;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+  opacity: 1;
 }
 
 .rednote-live-bubble.fade-out {
-  opacity: 0;
-  transform: translateY(-14px) scale(0.95);
-}
-
-@keyframes rednoteSlideIn {
-  0% {
-    opacity: 0;
-    transform: translateY(14px) scale(0.92);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  display: none !important;
 }
 
 .rednote-live-avatar {
@@ -5321,6 +5320,7 @@ body:has(#view-game.active) #mobile-nav {
   flex-direction: column;
   gap: 0.45rem;
   width: 100%;
+  padding-bottom: 0.65rem;
 }
 
 .insta-msg-row {
@@ -5434,8 +5434,11 @@ body:has(#view-game.active) #mobile-nav {
   font-size: 0.93rem;
   line-height: 1.4;
   word-break: break-word;
-  -webkit-user-select: text;
-  user-select: text;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
   cursor: default;
   transition: transform 0.12s;
 }
@@ -5647,37 +5650,12 @@ body:has(#view-game.active) #mobile-nav {
   transform: scale(0.95);
 }
 
-/* Floating Reaction Bubbles */
-.floating-bubbles-area {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 15;
-}
-
+/* Floating Reaction Bubbles - Disabled per user request */
+.floating-bubbles-area,
 .chat-bubble-floating {
-  position: absolute;
-  bottom: 20px;
-  background: rgba(24, 24, 27, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  padding: 6px 14px;
-  border-radius: 18px;
-  color: #f5f5f5;
-  font-size: 0.82rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  animation: floatUpSlow 4s ease-out forwards;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-@keyframes floatUpSlow {
-  0% { transform: translateY(0) scale(0.85); opacity: 0; }
-  15% { transform: translateY(-30px) scale(1.02); opacity: 1; }
-  80% { transform: translateY(-160px) scale(0.98); opacity: 0.9; }
-  100% { transform: translateY(-220px) scale(0.85); opacity: 0; }
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
 
 .chat-system-notice {

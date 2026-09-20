@@ -7,8 +7,9 @@ import { initSocket, getSocket, disconnectSocket, updateGuestSocketProfile, reco
 import { initLobby, setActiveRoom, getActiveRoom, leaveCurrentGameRoom } from './lobby.js';
 import { initFriends, loadFriendsData } from './friends.js';
 import { initProfile, loadProfileData, showPlayerProfileModal } from './profile.js';
+import { initTheme } from './theme.js';
 import { initInvitations } from './invitations.js';
-import { initChat } from './chat.js';
+import { initChat, scrollLobbyToBottom } from './chat.js';
 import { initTicTacToe, updateTicTacToeState } from './games/tictactoe.js';
 import { initRps, updateRpsState } from './games/rps.js';
 import { initConnect4, updateConnect4State } from './games/connect4.js';
@@ -23,6 +24,7 @@ class GameRoomApp {
   }
 
   async init() {
+    initTheme();
     this.bindAuthEvents();
     this.bindNavigationEvents();
     this.bindModalEvents();
@@ -551,6 +553,8 @@ class GameRoomApp {
       loadProfileData();
     } else if (viewName === 'friends') {
       loadFriendsData();
+    } else if (viewName === 'home') {
+      scrollLobbyToBottom(false);
     }
 
     window.scrollTo(0, 0);

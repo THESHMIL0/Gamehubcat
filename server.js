@@ -1029,6 +1029,7 @@ io.on('connection', async (socket) => {
         code: roomCode,
         gameType: normalizedGame,
         state: 'WAITING', // WAITING, PLAYING, FINISHED
+        isBotGame: false,
         players: [
           {
             id: socket.user.id,
@@ -1192,6 +1193,9 @@ io.on('connection', async (socket) => {
         });
       }
 
+      // Ensure no leftover bot player exists in room
+      room.players = room.players.filter((p) => String(p.id) !== String(BOT_ID));
+
       // Check player limit (Max 2 players!)
       if (room.players.length >= 2) {
         return socket.emit('error_message', { message: 'This game already has two players. Room is full.' });
@@ -1216,8 +1220,9 @@ io.on('connection', async (socket) => {
 
       socket.join(`room_${code}`);
 
-      // Two players are now present! Start game automatically!
+      // Two players are now present! Start 1v1 human match
       room.state = 'PLAYING';
+      room.isBotGame = false;
       // Setup turn order
       if (room.gameState) {
         room.gameState.currentTurn = room.players[0].id;
@@ -1245,7 +1250,7 @@ io.on('connection', async (socket) => {
   });
 
   // Game Move (Server Authoritative)
-  socket.on('game_move', async ({ roomCode, move }) => {
+  const processGameMove = async (socketUser, roomCode, move) => {
     try {
       const code = (roomCode || '').trim().toUpperCase();
       const room = rooms.get(code);
@@ -1254,22 +1259,32 @@ io.on('connection', async (socket) => {
         return socket.emit('error_message', { message: 'Game is not in active play state.' });
       }
 
-      const player = room.players.find((p) => String(p.id) === String(socket.user.id));
+      const player = room.players.find((p) => String(p.id) === String(socketUser.id));
       if (!player) {
         return socket.emit('error_message', { message: 'You are not a player in this room.' });
       }
 
       // Route to game-specific logic
       if (room.gameType === 'tictactoe') {
-        handleTicTacToeMove(room, socket.user.id, move);
+        handleTicTacToeMove(room, socketUser.id, move);
       } else if (room.gameType === 'rps') {
-        handleRpsMove(room, socket.user.id, move);
+        handleRpsMove(room, socketUser.id, move);
       } else if (room.gameType === 'connect4') {
-        handleConnect4Move(room, socket.user.id, move);
+        handleConnect4Move(room, socketUser.id, move);
       }
     } catch (err) {
       console.error('Game move error:', err);
     }
+  };
+
+  socket.on('game_move', async ({ roomCode, move }) => {
+    await processGameMove(socket.user, roomCode, move);
+  });
+
+  socket.on('game_action', async (data = {}) => {
+    const code = data.roomCode || data.roomId || data.code;
+    const move = data.move || (data.action?.choice ? { choice: data.action.choice } : data.action) || data;
+    await processGameMove(socket.user, code, move);
   });
 
   // Rematch / Play Again handler
@@ -1299,6 +1314,7 @@ io.on('connection', async (socket) => {
             room.rematchVotes.clear();
             room.state = 'PLAYING';
             room.players.reverse();
+            room.players.forEach((p) => { p.score = 0; });
             if (room.gameType === 'tictactoe') {
               room.players[0].symbol = 'X';
               room.players[1].symbol = 'O';
@@ -1334,6 +1350,7 @@ io.on('connection', async (socket) => {
 
         // Alternate starting player for fairness
         room.players.reverse(); // swap order so alternate player goes first
+        room.players.forEach((p) => { p.score = 0; });
         if (room.gameType === 'tictactoe') {
           room.players[0].symbol = 'X';
           room.players[1].symbol = 'O';
@@ -1460,6 +1477,7 @@ io.on('connection', async (socket) => {
         code: roomCode,
         gameType: normalizedGame,
         state: 'WAITING',
+        isBotGame: false,
         players: [
           {
             id: socket.user.id,
@@ -1539,6 +1557,9 @@ io.on('connection', async (socket) => {
         return socket.emit('error_message', { message: 'The game room no longer exists.' });
       }
 
+      // Ensure no leftover bot player exists in room
+      room.players = room.players.filter((p) => String(p.id) !== String(BOT_ID));
+
       if (room.players.length >= 2) {
         invitations.delete(inviteId);
         return socket.emit('error_message', { message: 'This game is already full.' });
@@ -1565,6 +1586,7 @@ io.on('connection', async (socket) => {
 
       socket.join(`room_${invite.roomCode}`);
       room.state = 'PLAYING';
+      room.isBotGame = false;
 
       const presenceName = getGamePresenceName(room.gameType);
       updateUserPresence(room.players[0].id, presenceName, invite.roomCode);
@@ -1690,10 +1712,17 @@ function leaveCurrentRoom(socket, notifyOpponent = false) {
         rooms.delete(code);
       } else {
         // If remaining player is alone, room goes to WAITING or finishes
-        room.state = 'WAITING';
-        io.to(`room_${code}`).emit('room_state_updated', {
-          room: sanitizeRoomForClient(room, null),
-        });
+        // Also remove any bot player and reset isBotGame
+        room.players = room.players.filter((p) => String(p.id) !== String(BOT_ID));
+        room.isBotGame = false;
+        if (room.players.length === 0) {
+          rooms.delete(code);
+        } else {
+          room.state = 'WAITING';
+          io.to(`room_${code}`).emit('room_state_updated', {
+            room: sanitizeRoomForClient(room, null),
+          });
+        }
       }
 
       updateUserPresence(socket.user.id, 'Online', null);
@@ -1723,6 +1752,8 @@ function handlePlayerSocketDisconnect(socket) {
           if (isPlayerStillDisconnected) {
             // Remove disconnected player
             currentRoom.players = currentRoom.players.filter((p) => p.id !== socket.userId);
+            currentRoom.players = currentRoom.players.filter((p) => String(p.id) !== String(BOT_ID));
+            currentRoom.isBotGame = false;
             if (currentRoom.players.length === 0) {
               rooms.delete(code);
             } else {
@@ -1895,7 +1926,7 @@ function triggerBotTicTacToeMove(room) {
   if (moveIdx !== -1) {
     const delay = 500 + Math.floor(Math.random() * 350);
     setTimeout(() => {
-      if (room.state === 'PLAYING' && String(room.gameState?.currentTurn) === String(BOT_ID)) {
+      if (room.state === 'PLAYING' && room.isBotGame && room.players.some((p) => String(p.id) === String(BOT_ID)) && String(room.gameState?.currentTurn) === String(BOT_ID)) {
         handleTicTacToeMove(room, BOT_ID, { index: moveIdx });
       }
     }, delay);
@@ -1986,7 +2017,7 @@ function triggerBotConnect4Move(room) {
 
   const delay = 650 + Math.floor(Math.random() * 350);
   setTimeout(() => {
-    if (room.state === 'PLAYING' && String(room.gameState?.currentTurn) === String(BOT_ID)) {
+    if (room.state === 'PLAYING' && room.isBotGame && room.players.some((p) => String(p.id) === String(BOT_ID)) && String(room.gameState?.currentTurn) === String(BOT_ID)) {
       handleConnect4Move(room, BOT_ID, { col: chosenCol });
     }
   }, delay);
@@ -1998,7 +2029,7 @@ function triggerBotRpsMove(room) {
   const choice = options[Math.floor(Math.random() * options.length)];
   const delay = 350 + Math.floor(Math.random() * 300);
   setTimeout(() => {
-    if (room.state === 'PLAYING') {
+    if (room.state === 'PLAYING' && room.isBotGame && room.players.some((p) => String(p.id) === String(BOT_ID))) {
       handleRpsMove(room, BOT_ID, { choice });
     }
   }, delay);
@@ -2108,36 +2139,45 @@ async function handleTicTacToeMove(room, userId, { index }) {
 // ==========================================
 // GAME 2: ROCK PAPER SCISSORS LOGIC
 // ==========================================
-async function handleRpsMove(room, userId, { choice }) {
+async function handleRpsMove(room, userId, moveData = {}) {
   const { gameState } = room;
+  const choice = moveData?.choice || moveData?.action?.choice || (typeof moveData === 'string' ? moveData : null);
   const validChoices = ['rock', 'paper', 'scissors'];
   if (!validChoices.includes(choice)) return;
 
   if (!gameState.choices) gameState.choices = {};
   if (!gameState.scores) gameState.scores = {};
 
-  // Store player choice
+  // Store player choice (both key variants)
   gameState.choices[userId] = choice;
+  gameState.choices[String(userId)] = choice;
 
   // If playing vs Bot, trigger the bot choice immediately
-  if (room.isBotGame && String(userId) !== String(BOT_ID) && !gameState.choices[BOT_ID]) {
+  if (room.isBotGame && String(userId) !== String(BOT_ID) && !gameState.choices[BOT_ID] && !gameState.choices[String(BOT_ID)]) {
     triggerBotRpsMove(room);
   }
 
   // Notify both players that a selection occurred (without revealing opponent's choice)
   for (const p of room.players) {
+    if (!p.socketId) continue;
+    const isMe = String(userId) === String(p.id);
     io.to(p.socketId).emit('game_state', {
       room: sanitizeRoomForClient(room, p.id),
-      message: `${userId === p.id ? 'You' : 'Opponent'} selected!`,
+      message: `${isMe ? 'You' : 'Opponent'} selected!`,
+    });
+    io.to(p.socketId).emit('game_update', {
+      room: sanitizeRoomForClient(room, p.id),
+      payload: { choices: room.gameState.choices },
     });
   }
 
   // Check if both players have submitted
   const [p1, p2] = room.players;
-  if (gameState.choices[p1.id] && gameState.choices[p2.id]) {
-    const c1 = gameState.choices[p1.id];
-    const c2 = gameState.choices[p2.id];
+  if (!p1 || !p2) return;
+  const c1 = gameState.choices[p1.id] || gameState.choices[String(p1.id)];
+  const c2 = gameState.choices[p2.id] || gameState.choices[String(p2.id)];
 
+  if (c1 && c2) {
     let winnerId = null;
     let outcome = 'tie';
 
@@ -2152,11 +2192,13 @@ async function handleRpsMove(room, userId, { choice }) {
       outcome = 'p1';
       p1.score = (p1.score || 0) + 1;
       gameState.scores[p1.id] = (gameState.scores[p1.id] || 0) + 1;
+      gameState.scores[String(p1.id)] = gameState.scores[p1.id];
     } else {
       winnerId = p2.id;
       outcome = 'p2';
       p2.score = (p2.score || 0) + 1;
       gameState.scores[p2.id] = (gameState.scores[p2.id] || 0) + 1;
+      gameState.scores[String(p2.id)] = gameState.scores[p2.id];
     }
 
     gameState.result = {
@@ -2164,12 +2206,12 @@ async function handleRpsMove(room, userId, { choice }) {
       outcome,
       p1Choice: c1,
       p2Choice: c2,
-      round: gameState.round,
+      round: gameState.round || 1,
     };
 
     // Update database stats
     if (winnerId) {
-      const loserId = winnerId === p1.id ? p2.id : p1.id;
+      const loserId = String(winnerId) === String(p1.id) ? p2.id : p1.id;
       await recordGameResult('rps', p1.id, p2.id, winnerId, 'win');
     } else {
       await recordGameResult('rps', p1.id, p2.id, null, 'draw');
@@ -2186,10 +2228,27 @@ async function handleRpsMove(room, userId, { choice }) {
       payload: { result: gameState.result },
     });
 
+    // Check if match won (first to 3 points in Best of 5)
+    const TARGET_WINS = 3;
+    const isMatchOver = ((p1.score || 0) >= TARGET_WINS || (p2.score || 0) >= TARGET_WINS);
+
     // Reset choices for next round after 3.5 seconds
     setTimeout(() => {
       const currentRoom = rooms.get(room.code);
       if (currentRoom && currentRoom.gameType === 'rps' && currentRoom.state === 'PLAYING') {
+        if (isMatchOver) {
+          currentRoom.state = 'FINISHED';
+          const matchWinner = (p1.score || 0) >= TARGET_WINS ? p1 : p2;
+          currentRoom.gameState.winner = matchWinner.id;
+          const finalSanitized = sanitizeRoomForClient(currentRoom, null);
+          io.to(`room_${currentRoom.code}`).emit('game_over', {
+            room: finalSanitized,
+            winner: matchWinner,
+            reason: `${matchWinner.display_name} won the match (${matchWinner.score} - ${String(matchWinner.id) === String(p1.id) ? p2.score || 0 : p1.score || 0})!`,
+          });
+          return;
+        }
+
         currentRoom.gameState.choices = {};
         currentRoom.gameState.result = null;
         currentRoom.gameState.round = (currentRoom.gameState.round || 1) + 1;

@@ -131,7 +131,7 @@ function renderGrid(gameState, lastMove) {
     const val = board[r][c];
     const prevVal = lastRenderedBoard ? lastRenderedBoard[r][c] : null;
 
-    cell.className = 'c4-cell';
+    cell.classList.remove('p1', 'p2', 'c4-drop-animate', 'win-highlight');
 
     if (val === '🔴') {
       cell.classList.add('p1');

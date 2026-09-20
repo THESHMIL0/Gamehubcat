@@ -27,7 +27,15 @@ export function initChat() {
       socket.emit('lobby_message', { text });
       inputLobby.value = '';
       inputLobby.focus();
+      scrollLobbyToBottom(true);
     };
+
+    // Auto-scroll when keyboard appears on mobile
+    inputLobby.addEventListener('focus', () => {
+      setTimeout(() => {
+        scrollLobbyToBottom(true);
+      }, 150);
+    });
   }
 
   // Quick Reaction Buttons (Pills)
@@ -37,6 +45,7 @@ export function initChat() {
       const msg = pill.getAttribute('data-msg');
       if (msg && socket.connected) {
         socket.emit('lobby_message', { text: msg });
+        scrollLobbyToBottom(true);
       }
     };
   });
@@ -47,6 +56,7 @@ export function initChat() {
     btnQuickMeow.onclick = () => {
       if (socket.connected) {
         socket.emit('lobby_message', { text: '🐱 Meow!' });
+        scrollLobbyToBottom(true);
       }
     };
   }
@@ -75,6 +85,7 @@ export function initChat() {
       const log = document.getElementById('lobby-messages-log');
       if (log) {
         log.innerHTML = '<div class="chat-system-notice">Chat history cleared locally.</div>';
+        scrollLobbyToBottom(false);
       }
     };
   }
@@ -94,11 +105,18 @@ export function initChat() {
     };
   }
 
+  // Auto-scroll when window or viewport resizes (e.g., mobile keyboard toggle or rotate)
+  window.addEventListener('resize', () => {
+    const homeView = document.getElementById('view-home');
+    if (homeView && homeView.classList.contains('active')) {
+      scrollLobbyToBottom(false);
+    }
+  });
+
   // Socket Listeners for Lobby Chat
   socket.off('lobby_message');
   socket.on('lobby_message', (msg) => {
-    spawnFloatingBubble('lobby-floating-bubbles', msg);
-    appendChatMessage('lobby-messages-log', msg);
+    appendChatMessage('lobby-messages-log', msg, true);
   });
 
   socket.off('lobby_history');
@@ -106,8 +124,9 @@ export function initChat() {
     const log = document.getElementById('lobby-messages-log');
     if (log) log.innerHTML = '';
     if (Array.isArray(history)) {
-      history.forEach((m) => appendChatMessage('lobby-messages-log', m));
+      history.forEach((m) => appendChatMessage('lobby-messages-log', m, false));
     }
+    scrollLobbyToBottom(false);
   });
 
   // Online Players Count in Lobby
@@ -167,69 +186,21 @@ export function spawnInGameLiveMessage(message) {
     <span class="rednote-live-text">${escapeHtml(message.text || '')}</span>
   `;
 
-  // Cap number of live bubbles: allow up to 8 visible messages in the generous space under the game
-  const existingBubbles = container.querySelectorAll('.rednote-live-bubble:not(.fade-out)');
-  if (existingBubbles.length >= 8) {
+  // Keep message log clean: cap at 15 messages
+  const existingBubbles = container.querySelectorAll('.rednote-live-bubble');
+  if (existingBubbles.length >= 15) {
     const oldest = existingBubbles[0];
-    oldest.classList.add('fade-out');
-    setTimeout(() => {
-      if (oldest.parentNode) oldest.parentNode.removeChild(oldest);
-    }, 600);
+    if (oldest && oldest.parentNode) oldest.parentNode.removeChild(oldest);
   }
 
   container.appendChild(bubble);
 
   // Smoothly ensure latest message is at the bottom
   container.scrollTop = container.scrollHeight;
-
-  // Removed 3-second auto-disappear per user request!
-  // Messages stay visible as they stack and push upward toward the game board,
-  // where they go into the gradient mask under the game and disappear.
-  // We keep only a long idle safeguard (45s) for completely inactive rooms:
-  setTimeout(() => {
-    if (bubble.parentNode && !bubble.classList.contains('fade-out')) {
-      bubble.classList.add('fade-out');
-      setTimeout(() => {
-        if (bubble.parentNode) bubble.parentNode.removeChild(bubble);
-      }, 1000);
-    }
-  }, 45000);
-}
-
-// Spawns smooth floating bubble that floats upwards and disappears automatically
-function spawnFloatingBubble(containerId, message) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
-  const bubble = document.createElement('div');
-  bubble.className = 'chat-bubble-floating';
-
-  // Apply randomized horizontal offset
-  const leftPercent = 15 + Math.floor(Math.random() * 60);
-  bubble.style.left = `${leftPercent}%`;
-
-  const sender = message.sender || {};
-  const current = getCurrentUser() || getGuestInfo();
-  const isMe = String(sender.id) === String(current?.id);
-
-  bubble.innerHTML = `
-    <span class="chat-bubble-author" style="color: ${isMe ? '#a855f7' : sender.isGuest ? '#fbbf24' : '#38bdf8'}">
-      ${escapeHtml(sender.avatar || '🐱')} ${escapeHtml(sender.display_name || sender.username || 'Player')}:
-    </span>
-    <span class="chat-bubble-text">${escapeHtml(message.text)}</span>
-  `;
-
-  container.appendChild(bubble);
-
-  setTimeout(() => {
-    if (bubble.parentNode) {
-      bubble.parentNode.removeChild(bubble);
-    }
-  }, 4200);
 }
 
 // Appends message as an authentic Instagram Group Chat message row
-function appendChatMessage(containerId, message) {
+function appendChatMessage(containerId, message, autoScroll = true) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -322,8 +293,46 @@ function appendChatMessage(containerId, message) {
   }
 
   container.appendChild(item);
-  container.scrollTop = container.scrollHeight;
+
+  if (autoScroll) {
+    scrollLobbyToBottom(true);
+  }
 }
+
+// Auto-scrolls the Instagram Public Lobby Viewport to the newest bottom message
+export function scrollLobbyToBottom(smooth = true) {
+  const viewport = document.getElementById('insta-gc-viewport');
+  if (!viewport) return;
+
+  const performScroll = () => {
+    const targetY = viewport.scrollHeight + 1000;
+    if (smooth) {
+      try {
+        viewport.scrollTo({
+          top: targetY,
+          behavior: 'smooth',
+        });
+      } catch (e) {
+        viewport.scrollTop = targetY;
+      }
+    } else {
+      const prevBehavior = viewport.style.scrollBehavior;
+      viewport.style.scrollBehavior = 'auto';
+      viewport.scrollTop = targetY;
+      viewport.style.scrollBehavior = prevBehavior;
+    }
+    viewport.scrollTop = targetY;
+  };
+
+  performScroll();
+  requestAnimationFrame(performScroll);
+  setTimeout(performScroll, 50);
+  setTimeout(performScroll, 180);
+}
+
+window.ChatModule = {
+  scrollLobbyToBottom,
+};
 
 function escapeHtml(text) {
   if (!text) return '';
