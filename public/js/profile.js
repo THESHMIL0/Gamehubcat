@@ -282,7 +282,7 @@ export async function loadMatchHistory(currentUserId) {
     };
 
     container.innerHTML = recentGames.map((game) => {
-      const isP1 = Number(game.player1_id) === myId;
+      const isP1 = String(game.player1_id) === String(myId);
       const oppName = isP1 ? (game.p2_name || 'Opponent') : (game.p1_name || 'Opponent');
       const oppAvatar = isP1 ? (game.p2_avatar || '🎮') : (game.p1_avatar || '🎮');
       const oppId = isP1 ? game.player2_id : game.player1_id;
@@ -293,7 +293,7 @@ export async function loadMatchHistory(currentUserId) {
       if (game.result === 'draw' || game.winner_id === null || game.winner_id === undefined) {
         resultText = 'DRAW';
         resultClass = 'badge-draw';
-      } else if (Number(game.winner_id) === myId) {
+      } else if (String(game.winner_id) === String(myId)) {
         resultText = 'WIN';
         resultClass = 'badge-win';
       }
@@ -304,23 +304,31 @@ export async function loadMatchHistory(currentUserId) {
       };
 
       const timeAgo = formatTimeAgo(game.created_at);
+      const isBotOpponent = String(oppId) === '999999' || String(oppId) === 'bot';
+      const isGuestOpponent = typeof oppId === 'string' && oppId.startsWith('guest_');
+      const canViewProfile = !isBotOpponent && !isGuestOpponent && oppId;
 
       return `
-        <div class="match-history-card" data-opp-id="${oppId}">
+        <div class="match-history-card" data-opp-id="${canViewProfile ? oppId : ''}" style="${canViewProfile ? 'cursor: pointer;' : ''}">
           <div class="match-card-left">
             <div class="match-game-icon-chip" title="${escapeHtml(meta.name)}">
               <img src="${meta.logo}" alt="${escapeHtml(meta.name)}" style="width: 20px; height: 20px; object-fit: contain;" />
             </div>
             <div class="match-details">
               <div class="match-opp-row">
+                <span class="match-vs-label">vs</span>
                 <span class="match-opp-avatar">${escapeHtml(oppAvatar)}</span>
-                <span class="match-opp-name">${escapeHtml(oppName)}</span>
+                <strong class="match-opp-name" title="${escapeHtml(oppName)}">${escapeHtml(oppName)}</strong>
               </div>
-              <span class="match-time">${timeAgo}</span>
+              <div class="match-meta-row">
+                <span class="match-game-type">${escapeHtml(meta.name)}</span>
+                <span class="match-dot-separator">•</span>
+                <span class="match-time" title="${new Date(game.created_at).toLocaleString()}">${escapeHtml(timeAgo)}</span>
+              </div>
             </div>
           </div>
           <div class="match-card-right">
-            <span class="match-badge ${resultClass}">${resultText}</span>
+            <span class="match-result-badge ${resultClass}">${resultText}</span>
           </div>
         </div>
       `;

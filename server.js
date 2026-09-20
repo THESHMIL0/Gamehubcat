@@ -6,7 +6,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { dbRun, dbGet, dbAll, initDb, getPublicAccounts, saveDirectMessage, getDirectMessages, getLastDirectMessage } from './database.js';
+import { dbRun, dbGet, dbAll, initDb, getPublicAccounts, saveDirectMessage, getDirectMessages, getLastDirectMessage, getLobbyChatHistory, saveLobbyChatMessage } from './database.js';
 
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'gameroom_super_secret_jwt_key_production_ready';
@@ -769,8 +769,8 @@ const rooms = new Map();
 // invitations: Map(inviteId -> InviteObject)
 const invitations = new Map();
 
-// Lobby Chat history (last 50 messages)
-const lobbyChatHistory = [];
+// Lobby Chat history (persisted in database, last 60 messages)
+const lobbyChatHistory = getLobbyChatHistory(60);
 
 // Rate limiting for chat
 const chatRateLimits = new Map();
@@ -944,6 +944,7 @@ io.on('connection', async (socket) => {
 
       lobbyChatHistory.push(messageObj);
       if (lobbyChatHistory.length > 60) lobbyChatHistory.shift();
+      saveLobbyChatMessage(messageObj);
 
       io.to('lobby').emit('lobby_message', messageObj);
     } catch (e) {
@@ -2334,36 +2335,50 @@ function checkConnectFourWin(board, r, c, symbol) {
   return null;
 }
 
-// Database stats helper
+// Database stats and match history helper
 async function recordGameResult(gameType, p1Id, p2Id, winnerId, result) {
   try {
-    const isP1Real = typeof p1Id === 'number' && p1Id !== BOT_ID;
-    const isP2Real = typeof p2Id === 'number' && p2Id !== BOT_ID;
-    if (!isP1Real && !isP2Real) return;
+    const numP1 = !isNaN(Number(p1Id)) ? Number(p1Id) : null;
+    const numP2 = !isNaN(Number(p2Id)) ? Number(p2Id) : null;
+    const isP1User = numP1 !== null && numP1 !== BOT_ID && numP1 > 0;
+    const isP2User = numP2 !== null && numP2 !== BOT_ID && numP2 > 0;
 
-    if (isP1Real && isP2Real) {
-      await dbRun(
-        'INSERT INTO game_history (game_type, player1_id, player2_id, winner_id, result) VALUES (?, ?, ?, ?, ?)',
-        [gameType, p1Id, p2Id, winnerId, result]
-      );
+    // At least one participant must be a registered user to record history
+    if (!isP1User && !isP2User) return;
+
+    const finalP1 = isP1User ? numP1 : (numP1 === BOT_ID ? BOT_ID : p1Id);
+    const finalP2 = isP2User ? numP2 : (numP2 === BOT_ID ? BOT_ID : p2Id);
+    let finalWinner = null;
+    if (winnerId !== null && winnerId !== undefined) {
+      finalWinner = !isNaN(Number(winnerId)) ? Number(winnerId) : winnerId;
     }
 
-    // Update stats
-    if (result === 'win' && winnerId) {
-      if (winnerId === p1Id && isP1Real) {
-        await dbRun('UPDATE stats SET games_played = games_played + 1, wins = wins + 1 WHERE user_id = ?', [p1Id]);
-      } else if (isP1Real) {
-        await dbRun('UPDATE stats SET games_played = games_played + 1, losses = losses + 1 WHERE user_id = ?', [p1Id]);
+    // Insert game history record into database (preserves real matches vs bot, friend, or guest)
+    await dbRun(
+      'INSERT INTO game_history (game_type, player1_id, player2_id, winner_id, result) VALUES (?, ?, ?, ?, ?)',
+      [gameType, finalP1, finalP2, finalWinner, result]
+    );
+
+    // Update stats for registered user 1
+    if (isP1User) {
+      if (result === 'win' && String(finalWinner) === String(finalP1)) {
+        await dbRun('UPDATE stats SET games_played = games_played + 1, wins = wins + 1 WHERE user_id = ?', [numP1]);
+      } else if (result === 'win' && String(finalWinner) !== String(finalP1)) {
+        await dbRun('UPDATE stats SET games_played = games_played + 1, losses = losses + 1 WHERE user_id = ?', [numP1]);
+      } else if (result === 'draw') {
+        await dbRun('UPDATE stats SET games_played = games_played + 1, draws = draws + 1 WHERE user_id = ?', [numP1]);
       }
-      if (winnerId === p2Id && isP2Real) {
-        await dbRun('UPDATE stats SET games_played = games_played + 1, wins = wins + 1 WHERE user_id = ?', [p2Id]);
-      } else if (isP2Real) {
-        await dbRun('UPDATE stats SET games_played = games_played + 1, losses = losses + 1 WHERE user_id = ?', [p2Id]);
+    }
+
+    // Update stats for registered user 2 (if player 2 is also a registered user)
+    if (isP2User) {
+      if (result === 'win' && String(finalWinner) === String(finalP2)) {
+        await dbRun('UPDATE stats SET games_played = games_played + 1, wins = wins + 1 WHERE user_id = ?', [numP2]);
+      } else if (result === 'win' && String(finalWinner) !== String(finalP2)) {
+        await dbRun('UPDATE stats SET games_played = games_played + 1, losses = losses + 1 WHERE user_id = ?', [numP2]);
+      } else if (result === 'draw') {
+        await dbRun('UPDATE stats SET games_played = games_played + 1, draws = draws + 1 WHERE user_id = ?', [numP2]);
       }
-    } else {
-      // Draw
-      if (isP1Real) await dbRun('UPDATE stats SET games_played = games_played + 1, draws = draws + 1 WHERE user_id = ?', [p1Id]);
-      if (isP2Real) await dbRun('UPDATE stats SET games_played = games_played + 1, draws = draws + 1 WHERE user_id = ?', [p2Id]);
     }
   } catch (err) {
     console.error('Failed to record game stats in DB:', err);

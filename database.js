@@ -20,12 +20,14 @@ const db = {
   friends: [],
   game_history: [],
   direct_messages: [],
+  lobby_messages: [],
   seq: {
     users: 1,
     stats: 1,
     friends: 1,
     game_history: 1,
     direct_messages: 1,
+    lobby_messages: 1,
   },
 };
 
@@ -42,12 +44,14 @@ try {
     db.friends = Array.isArray(data.friends) ? data.friends : [];
     db.game_history = Array.isArray(data.game_history) ? data.game_history : [];
     db.direct_messages = Array.isArray(data.direct_messages) ? data.direct_messages : [];
+    db.lobby_messages = Array.isArray(data.lobby_messages) ? data.lobby_messages : [];
     db.seq = {
       users: Number(data.seq?.users) || 1,
       stats: Number(data.seq?.stats) || 1,
       friends: Number(data.seq?.friends) || 1,
       game_history: Number(data.seq?.game_history) || 1,
       direct_messages: Number(data.seq?.direct_messages) || 1,
+      lobby_messages: Number(data.seq?.lobby_messages) || 1,
     };
   }
 } catch (err) {
@@ -91,6 +95,19 @@ export function getLastDirectMessage(u1, u2) {
   return messages.length > 0 ? messages[messages.length - 1] : null;
 }
 
+export function getLobbyChatHistory(limit = 60) {
+  return Array.isArray(db.lobby_messages) ? db.lobby_messages.slice(-limit) : [];
+}
+
+export function saveLobbyChatMessage(messageObj) {
+  if (!Array.isArray(db.lobby_messages)) db.lobby_messages = [];
+  db.lobby_messages.push(messageObj);
+  if (db.lobby_messages.length > 80) {
+    db.lobby_messages.splice(0, db.lobby_messages.length - 80);
+  }
+  persist();
+}
+
 export async function initDb() {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -105,12 +122,14 @@ export async function initDb() {
       db.friends = Array.isArray(data.friends) ? data.friends : [];
       db.game_history = Array.isArray(data.game_history) ? data.game_history : [];
       db.direct_messages = Array.isArray(data.direct_messages) ? data.direct_messages : [];
+      db.lobby_messages = Array.isArray(data.lobby_messages) ? data.lobby_messages : [];
       db.seq = {
         users: Number(data.seq?.users) || 1,
         stats: Number(data.seq?.stats) || 1,
         friends: Number(data.seq?.friends) || 1,
         game_history: Number(data.seq?.game_history) || 1,
         direct_messages: Number(data.seq?.direct_messages) || 1,
+        lobby_messages: Number(data.seq?.lobby_messages) || 1,
       };
       console.log('✅ Loaded database from', DATA_FILE);
     } catch (e) {
@@ -292,12 +311,17 @@ export async function dbRun(sql, params = []) {
   if (norm.startsWith('INSERT INTO game_history')) {
     const [game_type, player1_id, player2_id, winner_id, result] = params;
     const id = db.seq.game_history++;
+    const parseId = (val) => {
+      if (val === null || val === undefined) return null;
+      const n = Number(val);
+      return !isNaN(n) ? n : String(val);
+    };
     const row = {
       id,
       game_type,
-      player1_id: parseInt(player1_id, 10),
-      player2_id: parseInt(player2_id, 10),
-      winner_id: winner_id ? parseInt(winner_id, 10) : null,
+      player1_id: parseId(player1_id),
+      player2_id: parseId(player2_id),
+      winner_id: parseId(winner_id),
       result,
       created_at: new Date().toISOString(),
     };
@@ -569,24 +593,37 @@ export async function dbAll(sql, params = []) {
     const myId = parseInt(uid, 10);
 
     const history = db.game_history
-      .filter((h) => parseInt(h.player1_id, 10) === myId || parseInt(h.player2_id, 10) === myId)
+      .filter((h) => {
+        const p1 = !isNaN(Number(h.player1_id)) ? Number(h.player1_id) : String(h.player1_id);
+        const p2 = !isNaN(Number(h.player2_id)) ? Number(h.player2_id) : String(h.player2_id);
+        return p1 === myId || p2 === myId || String(p1) === String(myId) || String(p2) === String(myId);
+      })
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 10);
+      .slice(0, 15);
 
     return history.map((h) => {
-      const p1Id = parseInt(h.player1_id, 10);
-      const p2Id = parseInt(h.player2_id, 10);
-      const u1 = db.users.find((x) => x.id === p1Id) || {};
-      const u2 = db.users.find((x) => x.id === p2Id) || {};
+      const p1Id = !isNaN(Number(h.player1_id)) ? Number(h.player1_id) : String(h.player1_id);
+      const p2Id = !isNaN(Number(h.player2_id)) ? Number(h.player2_id) : String(h.player2_id);
+
+      let u1 = typeof p1Id === 'number' ? db.users.find((x) => x.id === p1Id) : null;
+      let u2 = typeof p2Id === 'number' ? db.users.find((x) => x.id === p2Id) : null;
+
+      if (p1Id === 999999 || String(p1Id) === 'bot') {
+        u1 = { display_name: 'RoboCat (AI)', avatar: '🤖' };
+      }
+      if (p2Id === 999999 || String(p2Id) === 'bot') {
+        u2 = { display_name: 'RoboCat (AI)', avatar: '🤖' };
+      }
+
       return {
         ...h,
         player1_id: p1Id,
         player2_id: p2Id,
-        winner_id: h.winner_id ? parseInt(h.winner_id, 10) : null,
-        p1_name: u1.display_name || u1.username || 'Player 1',
-        p1_avatar: u1.avatar || '🎮',
-        p2_name: u2.display_name || u2.username || 'Player 2',
-        p2_avatar: u2.avatar || '🎮',
+        winner_id: h.winner_id !== null && h.winner_id !== undefined ? (!isNaN(Number(h.winner_id)) ? Number(h.winner_id) : String(h.winner_id)) : null,
+        p1_name: u1 ? (u1.display_name || u1.username || 'Player 1') : (typeof p1Id === 'string' && p1Id.startsWith('guest_') ? 'Guest' : 'Player 1'),
+        p1_avatar: u1 ? (u1.avatar || '🎮') : '🎮',
+        p2_name: u2 ? (u2.display_name || u2.username || 'Player 2') : (typeof p2Id === 'string' && p2Id.startsWith('guest_') ? 'Guest' : 'Player 2'),
+        p2_avatar: u2 ? (u2.avatar || '🎮') : '🎮',
       };
     });
   }
